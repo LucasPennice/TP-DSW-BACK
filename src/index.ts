@@ -1,12 +1,14 @@
 import express from "express"
+import { Profesor } from "../entities/profesor.js"
 
 const app = express()
 const port = 3000
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  const profesor = new Profesor()
+  res.send(`Hola ${profesor.nombre}`)
 })
 
 app.listen(port, () => {
-  console.log(`⚡️ Example app listening on port ${port} ⚡️`)
+  console.log(`⚡️ App corriendo en puerto: ${port} ⚡️`)
 })
