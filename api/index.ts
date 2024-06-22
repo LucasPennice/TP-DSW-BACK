@@ -1,12 +1,16 @@
 import express from "express"
-import { Profesor } from "../entities/profesor.js"
+import profesorRouter from "./routes/profesor.js";
 
 const app = express()
 const port = 3000
 
+app.use("/api/profesor", profesorRouter);
+
 app.get('/', (req, res) => {
-  const profesor = new Profesor()
-  res.send(`Hola ${profesor.nombre}`)
+  res.send(`
+  Directorios: \n
+  /api/profesor
+  `)
 })
 
 app.listen(port, () => {
