@@ -1,5 +1,7 @@
 import express from "express"
 import profesorRouter from "./profesor/profesor.route.js";
+import usuarioRouter from "./usuario/usuario.route.js";
+import catedraRouter from "./catedra/catedra.route.js";
 import bodyParser from "body-parser"; 
 import { RequestContext } from "@mikro-orm/mongodb";
 import { orm } from "./orm.js";
@@ -16,13 +18,19 @@ app.use((req, res, next) => {
 
 
 app.use("/api/profesor", profesorRouter);
+app.use("/api/catedra", catedraRouter);
+app.use("/api/usuario", usuarioRouter);
+
 
 app.get('/', (req, res) => {
   res.send(`
   Directorios: \n
-  /api/profesor
+  /api/profesor \n
+  /api/usuario \n
+  /api/catedra \n
   `)
 })
+
 
 app.listen(port, () => {
   console.log(`⚡️ App corriendo en puerto: ${port} ⚡️`)

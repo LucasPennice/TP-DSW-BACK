@@ -8,12 +8,13 @@ export class Usuario{
 
     @Property()
     legajo: String
+    // integer?
     
     @Property()
     nombre : String
     
-    constructor() { 
-        this.nombre = "Peter"
-        this.legajo = "50977"
+    constructor(nombre: String, legajo: String) { 
+        this.nombre = nombre
+        this.legajo = legajo
     }
 }

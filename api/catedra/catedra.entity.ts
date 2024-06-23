@@ -9,8 +9,8 @@ export class Catedra{
     @Property()
     nombre : String
 
-    constructor() { 
-        this.nombre = "Peter"
+    constructor(nombre: String) { 
+        this.nombre = nombre
     }
 
 }
