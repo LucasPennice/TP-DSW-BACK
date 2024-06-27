@@ -25,21 +25,28 @@ interface _Body {
 }
 
 async function findAll(req: Request, res: Response){
-    const response : Catedra[] | undefined = await repository.findAll()
-
-    res.json({data: response})
+    try {
+        const response : Catedra[] | undefined = await repository.findAll()
+     
+        res.json({data: response})
+    } catch (error) {
+        res.status(500).send(error)   
+    }
 }
 
 async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
-    const catedra : Catedra | undefined = await repository.findOne({_id})
-    
-    if (!catedra){
-        return res.status(404).send({ message: "Catedra no encontrada"})
+    try {
+        const catedra : Catedra | undefined = await repository.findOne({_id})
+        
+        if (!catedra){
+            return res.status(404).send({ message: "Catedra no encontrada"})
+        }
+        res.json({data:catedra})
+    } catch (error) {
+        res.status(500).send(error)   
     }
-    res.json({data:catedra})
-
 }
 
 function add(req: Request, res: Response){
@@ -48,14 +55,15 @@ function add(req: Request, res: Response){
     // 🚨 VALIDAR CON ZOD 🚨
     
     const nuevaCatedra = new Catedra(nombre)
-    res.status(201).send({message:"Catedra creada ", data: repository.add(nuevaCatedra)})
-
+    try {
+        res.status(201).send({message:"Catedra creada ", data: repository.add(nuevaCatedra)})
+    } catch (error) {
+        res.status(500).send(error)   
+    }
 }
 
 
 function modify(req: Request, res: Response){
-
-    
     const _id =  req.params.id as string
 
     const nombre = req.body.nombre as string | undefined
@@ -64,24 +72,32 @@ function modify(req: Request, res: Response){
         nombre: nombre,
     }
 
-    const catedraModificada = repository.update({_id}, body)
-    
-    if (!catedraModificada){
-        return res.status(404).send({ message: "Catedra no encontrada"})
+    try {
+        const catedraModificada = repository.update({_id}, body)
+        
+        if (!catedraModificada){
+            return res.status(404).send({ message: "Catedra no encontrada"})
+        }
+        
+        res.status(200).send({message:"Catedra modificada", data: catedraModificada})
+    } catch (error) {
+        res.status(500).send(error)   
     }
-    
-    res.status(200).send({message:"Catedra modificada", data: catedraModificada})
 }
 
 function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
-    const catedraBorrada = repository.delete({_id})
-
-    if(!catedraBorrada){
-        return res.status(404).send({ message: "Catedra no encontrada"})
+    try {
+        const catedraBorrada = repository.delete({_id})
+    
+        if(!catedraBorrada){
+            return res.status(404).send({ message: "Catedra no encontrada"})
+        }
+        res.status(200).send({message:"Catedra borrada", data: catedraBorrada})
+    } catch (error) {
+        res.status(500).send(error)   
     }
-    res.status(200).send({message:"Catedra borrada", data: catedraBorrada})
 }
 
 export{findAll, findOne, add, modify, delete_}

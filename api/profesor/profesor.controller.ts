@@ -5,7 +5,6 @@ import { dateFromString } from "../dateExtension.js";
 
 const repository = new ProfesorRepository()
 
-
 interface _Body {
     nombre?: string;
     apellido?: string;
@@ -16,25 +15,31 @@ interface _Body {
     sexo?: Sexo
 }
 
-
 async function findAll(req: Request, res: Response){
-    const response : Profesor[] | undefined = await repository.findAll()
-    res.json({data: response})
+    try {
+        const response : Profesor[] | undefined = await repository.findAll()
+        res.json({data: response})
+    } catch (error) {
+        res.status(500).send(error)   
+    }
 }
 
 async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
-    const profesor : Profesor | undefined = await repository.findOne({_id})
-
-    if (!profesor){
-        return res.status(404).send({ message: "profesor no encontrado"})
+ 
+    try {
+        const profesor : Profesor | undefined = await repository.findOne({_id})
+    
+        if (!profesor){
+            return res.status(404).send({ message: "profesor no encontrado"})
+        }
+        res.json({data:profesor})
+    } catch (error) {
+        res.status(500).send(error)   
     }
-    res.json({data:profesor})
-
 }
 
 function add(req: Request, res: Response){
-    
     const nombre = req.body.nombre as string
     const apellido = req.body.apellido as string
     const fechaNacimiento = req.body.fechaNacimiento as string // DD/MM/AAAA
@@ -91,8 +96,6 @@ function modify(req: Request, res: Response){
     } catch (error) {
             res.status(500).send(error)
     }
-
-    
 }
 
 function delete_(req: Request, res: Response){
