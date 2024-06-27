@@ -1,5 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
-import {findAll, findOne, add, modify, delete_} from "./profesor.controler.js"
+import {findAll, findOne, add, modify, delete_} from "./profesor.controller.js"
 
 const profesorRouter = express.Router();
 

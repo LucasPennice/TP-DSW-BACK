@@ -1,5 +1,5 @@
 import express from "express";
-import { findAll, findOne, add, modify, delete_ } from "./usuario.controler.js";
+import { findAll, findOne, add, modify, delete_ } from "./usuario.controller.js";
 
 
 const usuarioRouter = express.Router();
