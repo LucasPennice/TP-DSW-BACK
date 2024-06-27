@@ -1,5 +1,5 @@
-import { Catedra } from "./catedra.entity";
-import { CatedraRepository } from "./catedra.repository";
+import { Catedra } from "./catedra.entity.js";
+import { CatedraRepository } from "./catedra.repository.js";
 import { NextFunction, Request, Response } from "express";
 
 const repository = new CatedraRepository()

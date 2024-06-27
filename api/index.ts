@@ -12,8 +12,6 @@ const port = 3000
 app.use( bodyParser.json() );       // app.use(express.json() )
 app.use(bodyParser.urlencoded({extended: true})); 
 
-
-
 app.use((req, res, next) => {
   RequestContext.create(orm.em, next);
 });

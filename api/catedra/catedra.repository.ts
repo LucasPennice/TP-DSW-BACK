@@ -1,5 +1,5 @@
-import { Repostitory } from "../shared/repository";
-import { Catedra } from "./catedra.entity";
+import { Repostitory } from "../shared/repository.js";
+import { Catedra } from "./catedra.entity.js";
 import { orm } from "../orm.js";
 
 interface _Body {
