@@ -24,14 +24,16 @@ interface _Body {
     nombre?: string;
 }
 
-function findAll(req: Request, res: Response){
-    res.json({data: repository.findAll()})
+async function findAll(req: Request, res: Response){
+    const response : Catedra[] | undefined = await repository.findAll()
+
+    res.json({data: response})
 }
 
-function findOne(req: Request, res: Response){
+async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
-    const catedra = repository.findOne({_id})
+    const catedra : Catedra | undefined = await repository.findOne({_id})
     
     if (!catedra){
         return res.status(404).send({ message: "Catedra no encontrada"})

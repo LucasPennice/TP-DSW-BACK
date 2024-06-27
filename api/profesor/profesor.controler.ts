@@ -17,15 +17,15 @@ interface _Body {
 }
 
 
-function findAll(req: Request, res: Response){
-    res.json({data: repository.findAll()})
+async function findAll(req: Request, res: Response){
+    const response : Profesor[] | undefined = await repository.findAll()
+    res.json({data: response})
 }
 
-function findOne(req: Request, res: Response){
+async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
+    const profesor : Profesor | undefined = await repository.findOne({_id})
 
-    const profesor = repository.findOne({_id})
-    
     if (!profesor){
         return res.status(404).send({ message: "profesor no encontrado"})
     }
@@ -48,14 +48,17 @@ function add(req: Request, res: Response){
     // 🚨 VALIDAR CON ZOD 🚨
     
     const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, cargos, horariosDeClase, puntuacionGeneral ?? 0, sexo)
-    res.status(201).send({message:"profesor creado", data: repository.add(nuevoProfesor)})
+
+    try {
+        res.status(201).send({message:"profesor creado", data: repository.add(nuevoProfesor)})
+    } catch (error) {
+        res.status(500).send(error)
+    }
 
 }
 
 
 function modify(req: Request, res: Response){
-
-    
     const _id =  req.params.id as string
 
     const nombre = req.body.nombre as string | undefined
@@ -77,24 +80,35 @@ function modify(req: Request, res: Response){
         sexo: sexo
     }
 
-    const profesorModificada = repository.update({_id}, body)
-    
-    if (!profesorModificada){
-        return res.status(404).send({ message: "profesor no encontrado"})
+    try {
+        const profesorModificada = repository.update({_id}, body)
+        
+        if (!profesorModificada){
+            return res.status(404).send({ message: "profesor no encontrado"})
+        }
+        
+        res.status(200).send({message:"profesor modificado", data: profesorModificada})
+    } catch (error) {
+            res.status(500).send(error)
     }
+
     
-    res.status(200).send({message:"profesor modificado", data: profesorModificada})
 }
 
 function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
-    const profesorBorrado = repository.delete({_id})
+    try {
+        const profesorBorrado = repository.delete({_id})
+        
+        if(!profesorBorrado){
+            return res.status(404).send({ message: "profesor no encontrado"})
+        }
+        res.status(200).send({message:"profesor borrado", data: profesorBorrado})
 
-    if(!profesorBorrado){
-        return res.status(404).send({ message: "profesor no encontrado"})
+    } catch (error) {
+        res.status(500).send(error)   
     }
-    res.status(200).send({message:"profesor borrado", data: profesorBorrado})
 }
 
 export{findAll, findOne, add, modify, delete_}
