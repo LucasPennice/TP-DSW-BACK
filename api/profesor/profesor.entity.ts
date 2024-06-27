@@ -12,30 +12,30 @@ export class Profesor{
     _id = v4();
 
     @Property()
-    nombre : String
+    nombre : string
 
     @Property()
-    apellido : String
+    apellido : string
 
     @Property()
     fechaNacimiento : Date
 
     @Property()
-    dni: Number
+    dni: number
 
     @Property()
-    cargos : String[]
+    cargos : string[]
 
     @Property()
-    horariosDeClase: String[] // "DIA_SEMANA - HH:MM" formato 24hs
+    horariosDeClase: string[] // "DIA_SEMANA - HH:MM" formato 24hs
     
     @Property()
-    puntuacionGeneral: Number
+    puntuacionGeneral: number
 
     @Property()
     sexo: Sexo
 
-    constructor(nombre: String, apellido: String, fechaNacimiento: Date, dni: Number, cargos: String[], horariosDeClase: String[], puntuacionGeneral: Number, sexo: Sexo) { 
+    constructor(nombre: string, apellido: string, fechaNacimiento: Date, dni: number, cargos: string[], horariosDeClase: string[], puntuacionGeneral: number, sexo: Sexo) { 
         this.nombre = nombre
         this.apellido = apellido
         this.fechaNacimiento = fechaNacimiento

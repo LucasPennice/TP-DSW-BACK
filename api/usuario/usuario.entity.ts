@@ -7,13 +7,13 @@ export class Usuario{
     _id = v4();
 
     @Property()
-    legajo: String
+    legajo: string
     // integer?
     
     @Property()
-    nombre : String
+    nombre : string
     
-    constructor(nombre: String, legajo: String) { 
+    constructor(nombre: string, legajo: string) { 
         this.nombre = nombre
         this.legajo = legajo
     }

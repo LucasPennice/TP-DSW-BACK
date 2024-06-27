@@ -1,12 +1,7 @@
-import express, { NextFunction, Request, Response } from "express";
-import { orm } from "../orm.js";
-import { CatedraRepository } from "./catedra.repository.js";
+import express from "express";
 import { findAll, findOne, add, modify, delete_} from "./catedra.controler.js";
 
-
-
 const catedraRouter = express.Router();
-const repository = new CatedraRepository()
 
 catedraRouter.get("/", findAll)
 
