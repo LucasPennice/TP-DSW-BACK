@@ -6,11 +6,13 @@ import bodyParser from "body-parser";
 import { RequestContext } from "@mikro-orm/mongodb";
 import { orm } from "./orm.js";
 
+
 const app = express()
 const port = 3000
-
-app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use( bodyParser.json() );       // app.use(express.json() )
 app.use(bodyParser.urlencoded({extended: true})); 
+
+
 
 app.use((req, res, next) => {
   RequestContext.create(orm.em, next);

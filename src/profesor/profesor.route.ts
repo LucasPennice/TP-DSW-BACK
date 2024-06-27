@@ -33,14 +33,14 @@ profesorRouter.get("/:id", async (req: Request, res: Response, next: NextFunctio
 */
 
 profesorRouter.post("/", async (req: Request, res: Response, next: NextFunction) => {
-    const nombre = req.body.nombre as String
-    const apellido = req.body.apellido as String
-    const fechaNacimiento = req.body.fechaNacimiento as String // DD/MM/AAAA
-    const dni = req.body.dni as Number
-    const cargos = req.body.cargos as String[]
-    const horariosDeClase = req.body.horariosDeClase as String[] // "DIA_SEMANA - HH:MM" formato 24hs
-    const puntuacionGeneral = req.body.puntuacionGeneral as Number | undefined
-    const sexoTentativo = req.body.sexo as String
+    const nombre = req.body.nombre as string
+    const apellido = req.body.apellido as string
+    const fechaNacimiento = req.body.fechaNacimiento as string // DD/MM/AAAA
+    const dni = req.body.dni as number
+    const cargos = req.body.cargos as string[]
+    const horariosDeClase = req.body.horariosDeClase as string[] // "DIA_SEMANA - HH:MM" formato 24hs
+    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
+    const sexoTentativo = req.body.sexo as string
 
     const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
 
@@ -59,13 +59,13 @@ profesorRouter.post("/", async (req: Request, res: Response, next: NextFunction)
 profesorRouter.patch("/:id", async (req: Request, res: Response, next: NextFunction) => {
     const tentativeProfId =  req.params.id as string;
 
-    const nombre = req.body.nombre as String | undefined
-    const apellido = req.body.apellido as String | undefined
-    const fechaNacimiento = req.body.fechaNacimiento as String | undefined // DD/MM/AAAA
-    const dni = req.body.dni as Number | undefined
-    const cargos = req.body.cargos as String[] | undefined
-    const horariosDeClase = req.body.horariosDeClase as String[] | undefined // "DIA_SEMANA - HH:MM" formato 24hs
-    const puntuacionGeneral = req.body.puntuacionGeneral as Number | undefined
+    const nombre = req.body.nombre as string | undefined
+    const apellido = req.body.apellido as string | undefined
+    const fechaNacimiento = req.body.fechaNacimiento as string | undefined // DD/MM/AAAA
+    const dni = req.body.dni as number | undefined
+    const cargos = req.body.cargos as string[] | undefined
+    const horariosDeClase = req.body.horariosDeClase as string[] | undefined // "DIA_SEMANA - HH:MM" formato 24hs
+    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
     const sexoTentativo = req.body.sexo as String | undefined
 
     const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer

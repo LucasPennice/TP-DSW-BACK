@@ -7,9 +7,9 @@ export class Catedra{
     _id = v4();
 
     @Property()
-    nombre : String
+    nombre : string
 
-    constructor(nombre: String) { 
+    constructor(nombre: string) { 
         this.nombre = nombre
     }
 

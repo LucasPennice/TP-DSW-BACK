@@ -6,8 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --loader ts-node/esm api/index.ts",
-    "start:prod": "npm run build && node ./dist/api/index.js",
+    "start": "node --loader ts-node/esm src/index.ts",
+    "start:prod": "npm run build && node ./dist/src/index.js",
     "build": "npx tsc"
   },
   "author": "",
