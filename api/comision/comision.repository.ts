@@ -36,7 +36,6 @@ export class ComisionRepository implements Repostitory<Comision>{
         const comision = orm.em.getReference(Comision, item._id);
     
         if (comision){
-            
             if (body.numero) comision.numero = body.numero
             await orm.em.flush()
         }

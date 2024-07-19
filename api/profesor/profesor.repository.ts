@@ -49,11 +49,10 @@ export class ProfesorRepository implements Repostitory<Profesor>{
         const profesor = orm.em.getReference(Profesor, item._id);
     
         if (profesor){
-            
+            if (body.fechaNacimiento) profesor.fechaNacimiento = body.fechaNacimiento
             if (body.nombre) profesor.nombre = body.nombre
             if (body.apellido) profesor.apellido = body.apellido
             if (body.dni) profesor.dni = body.dni
-            if (body.cargos !== undefined) profesor.cargos = body.cargos
             if (body.horariosDeClase) profesor.horariosDeClase = body.horariosDeClase
             if (body.puntuacionGeneral) profesor.puntuacionGeneral = body.puntuacionGeneral
             if (body.sexo) profesor.sexo = body.sexo

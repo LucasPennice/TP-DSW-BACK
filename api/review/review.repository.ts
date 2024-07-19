@@ -37,7 +37,6 @@ export class ReviewRepository implements Repostitory<Review>{
         const review = orm.em.getReference(Review, item._id);
     
         if (review){
-            
             if (body.descripcion) review.descripcion = body.descripcion
             if (body.puntuacion) review.puntuacion = body.puntuacion
             await orm.em.flush()

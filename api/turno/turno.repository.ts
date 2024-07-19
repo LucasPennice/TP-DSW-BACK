@@ -36,7 +36,6 @@ export class TurnoRepository implements Repostitory<Turno>{
         const turno = orm.em.getReference(Turno, item._id);
     
         if (turno){
-            
             if (body.nombre) turno.nombre = body.nombre
             await orm.em.flush()
         }

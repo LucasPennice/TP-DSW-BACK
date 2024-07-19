@@ -36,7 +36,6 @@ export class MateriaRepository implements Repostitory<Materia>{
         const materia = orm.em.getReference(Materia, item._id);
     
         if (materia){
-            
             if (body.nombre) materia.nombre = body.nombre
             await orm.em.flush()
         }

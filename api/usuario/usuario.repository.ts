@@ -36,7 +36,6 @@ export class UsuarioRepository implements Repostitory<Usuario>{
         const usuario = orm.em.getReference(Usuario, item._id);
     
         if (usuario){
-            
             if (body.nombre) usuario.nombre = body.nombre
             if (body.legajo) usuario.legajo = body.legajo
             if(body.apellido) usuario.apellido = body.apellido

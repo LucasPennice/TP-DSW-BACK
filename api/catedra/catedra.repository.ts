@@ -36,7 +36,6 @@ export class CatedraRepository implements Repostitory<Catedra>{
         const catedra = orm.em.getReference(Catedra, item._id);
     
         if (catedra){
-            
             if (body.nombre) catedra.nombre = body.nombre
             await orm.em.flush()
         }
