@@ -5,6 +5,7 @@ import catedraRouter from "./catedra/catedra.route.js";
 import bodyParser from "body-parser"; 
 import { RequestContext } from "@mikro-orm/mongodb";
 import { orm } from "./orm.js";
+import materiaRouter from "./materia/materia.route.js";
 
 
 const app = express()
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 app.use("/api/profesor", profesorRouter);
 app.use("/api/catedra", catedraRouter);
 app.use("/api/usuario", usuarioRouter);
+app.use("/api/materia", materiaRouter);
 
 
 app.get('/', (req, res) => {
@@ -28,6 +30,7 @@ app.get('/', (req, res) => {
   /api/profesor \n
   /api/usuario \n
   /api/catedra \n
+  /api/materia \n
   `)
 })
 

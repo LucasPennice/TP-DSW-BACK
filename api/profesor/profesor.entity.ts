@@ -1,10 +1,6 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 import { v4 } from 'uuid';
-
-export enum Sexo {
-    Mujer = "Mujer",
-    Hombre = "Hombre"
-  }
+import { Sexo } from '../shared/types.js';
 
 @Entity()
 export class Profesor{

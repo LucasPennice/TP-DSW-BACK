@@ -1,7 +1,8 @@
-import { Profesor, Sexo } from "./profesor.entity.js";
 import { Request, Response } from "express";
-import { ProfesorRepository } from "./profesor.repository.js";
 import { dateFromString } from "../dateExtension.js";
+import { Sexo } from "../shared/types.js";
+import { Profesor } from "./profesor.entity.js";
+import { ProfesorRepository } from "./profesor.repository.js";
 
 const repository = new ProfesorRepository()
 
@@ -114,4 +115,4 @@ function delete_(req: Request, res: Response){
     }
 }
 
-export{findAll, findOne, add, modify, delete_}
+export { add, delete_, findAll, findOne, modify };

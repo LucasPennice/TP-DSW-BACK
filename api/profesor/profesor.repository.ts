@@ -1,7 +1,7 @@
-import { Repostitory } from "../shared/repository.js";
 import { orm } from "../orm.js";
-import { Profesor, Sexo } from "./profesor.entity.js";
-import { dateFromString } from "../dateExtension.js";
+import { Repostitory } from "../shared/repository.js";
+import { Sexo } from "../shared/types.js";
+import { Profesor } from "./profesor.entity.js";
 
 interface _Body {
     nombre?: string;

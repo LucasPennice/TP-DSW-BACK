@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Usuario } from "./usuario.entity.js";
 import { UsuarioRepository } from "./usuario.repository.js";
+import { Sexo, UserRole } from "../shared/types.js";
 
 const repository = new UsuarioRepository()
 
@@ -38,10 +39,15 @@ async function findOne(req: Request, res: Response){
 function add(req: Request, res: Response){
     const nombre = req.body.nombre as string
     const legajo = req.body.legajo as string
+    const apellido = req.body.apellido as string
+    const username = req.body.username as string
+    const fechaNacimiento = req.body.fechaNacimiento as string
+    const rol = req.body.rol as UserRole
+    const sexo = req.body.sexo as Sexo
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevoUsuario = new Usuario(legajo, nombre)
+    const nuevoUsuario = new Usuario(legajo, nombre, apellido, username, fechaNacimiento, rol, sexo)
 
     try {
         res.status(201).send({message:"Usuario creado", data: repository.add(nuevoUsuario)})
