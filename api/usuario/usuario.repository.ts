@@ -2,11 +2,7 @@ import { Repostitory } from "../shared/repository.js";
 import { orm } from "../orm.js";
 import { Usuario } from "./usuario.entity.js";
 
-interface _Body {
-    nombre?: string;
-    legajo?: string;
-}
-
+type _Body = Partial<Usuario>
 
 export class UsuarioRepository implements Repostitory<Usuario>{
     

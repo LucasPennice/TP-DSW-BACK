@@ -5,10 +5,7 @@ import { Sexo, UserRole } from "../shared/types.js";
 
 const repository = new UsuarioRepository()
 
-interface _Body {
-    nombre?: string;
-    legajo?: string;
-}
+type _Body = Partial<Usuario>
 
 async function findAll(req: Request, res: Response){
     const response: Usuario[] | undefined = await repository.findAll()

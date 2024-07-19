@@ -6,15 +6,7 @@ import { ProfesorRepository } from "./profesor.repository.js";
 
 const repository = new ProfesorRepository()
 
-interface _Body {
-    nombre?: string;
-    apellido?: string;
-    dni?: number;
-    cargos?: string[];
-    horariosDeClase?: string[];
-    puntuacionGeneral?: number;
-    sexo?: Sexo
-}
+type _Body = Partial<Profesor>
 
 async function findAll(req: Request, res: Response){
     try {

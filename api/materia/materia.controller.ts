@@ -4,9 +4,7 @@ import { MateriaRepository } from "./materia.repository.js";
 
 const repository = new MateriaRepository()
 
-interface _Body {
-    nombre?: string;
-}
+type _Body = Partial<Materia>;
 
 async function findAll(req: Request, res: Response){
     try {
@@ -52,9 +50,7 @@ function modify(req: Request, res: Response){
 
     const nombre = req.body.nombre as string | undefined
     
-    const body: _Body ={
-        nombre: nombre,
-    }
+    const body: _Body = {nombre: nombre}
 
     try {
         const materiaModificada = repository.update({_id}, body)

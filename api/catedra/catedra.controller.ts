@@ -1,6 +1,6 @@
+import { Request, Response } from "express";
 import { Catedra } from "./catedra.entity.js";
 import { CatedraRepository } from "./catedra.repository.js";
-import { NextFunction, Request, Response } from "express";
 
 const repository = new CatedraRepository()
 
@@ -19,10 +19,7 @@ function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
 }
 */
 
-
-interface _Body {
-    nombre?: string;
-}
+type _Body = Partial<Catedra>;
 
 async function findAll(req: Request, res: Response){
     try {
@@ -100,4 +97,4 @@ function delete_(req: Request, res: Response){
     }
 }
 
-export{findAll, findOne, add, modify, delete_}
+export { add, delete_, findAll, findOne, modify };

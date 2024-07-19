@@ -2,10 +2,7 @@ import { Repostitory } from "../shared/repository.js";
 import { Catedra } from "./catedra.entity.js";
 import { orm } from "../orm.js";
 
-interface _Body {
-    nombre?: string;
-}
-
+type _Body = Partial<Catedra>;
 
 export class CatedraRepository implements Repostitory<Catedra>{
     

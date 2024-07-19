@@ -1,18 +1,8 @@
 import { orm } from "../orm.js";
 import { Repostitory } from "../shared/repository.js";
-import { Sexo } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
 
-interface _Body {
-    nombre?: string;
-    apellido?: string;
-    dni?: number;
-    cargos?: string[];
-    horariosDeClase?: string[];
-    puntuacionGeneral?: number;
-    sexo?: Sexo
-}
-
+type _Body = Partial<Profesor>;
 
 export class ProfesorRepository implements Repostitory<Profesor>{
     
