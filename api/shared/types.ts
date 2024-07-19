@@ -8,3 +8,7 @@ export enum UserRole {
     Administrador = "Administrador"
 }
 
+export type ExpressResponse<T> = {
+    message: string,
+    data: T | undefined
+}

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Catedra } from "./catedra.entity.js";
 import { CatedraRepository } from "./catedra.repository.js";
+import { ExpressResponse } from "../shared/types.js";
 
 const repository = new CatedraRepository()
 
@@ -23,11 +24,13 @@ type _Body = Partial<Catedra>;
 
 async function findAll(req: Request, res: Response){
     try {
-        const response : Catedra[] | undefined = await repository.findAll()
+        const response : Catedra[] = await repository.findAll() ?? []
      
-        res.json({data: response})
+        const reponse : ExpressResponse<Catedra[]> = {message: "Catedras encontradas:", data: response}
+        res.json(reponse)
     } catch (error) {
-        res.status(500).send(error)   
+        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        res.status(500).send(reponse)   
     }
 }
 
@@ -38,11 +41,13 @@ async function findOne(req: Request, res: Response){
         const catedra : Catedra | undefined = await repository.findOne({_id})
         
         if (!catedra){
-            return res.status(404).send({ message: "Catedra no encontrada"})
+            const reponse : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
+            return res.status(404).send(reponse)
         }
         res.json({data:catedra})
     } catch (error) {
-        res.status(500).send(error)   
+        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        res.status(500).send(reponse)   
     }
 }
 
@@ -53,47 +58,59 @@ async function add(req: Request, res: Response){
     
     const nuevaCatedra = new Catedra(nombre)
     try {
-        res.status(201).send({message:"Catedra creada ", data: await repository.add(nuevaCatedra)})
+        const reponse : ExpressResponse<Catedra> = {message: "Catedra creada", data: await repository.add(nuevaCatedra)}
+
+        res.status(201).send(reponse)
     } catch (error) {
-        res.status(500).send(error)   
+        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+
+        res.status(500).send(reponse)   
     }
 }
 
 
-function modify(req: Request, res: Response){
+async function modify(req: Request, res: Response){
     const _id =  req.params.id as string
 
     const nombre = req.body.nombre as string | undefined
     
-    const body: _Body ={
-        nombre: nombre,
-    }
+    const body: _Body = {nombre: nombre}
 
     try {
-        const catedraModificada = repository.update({_id}, body)
+        const catedraModificada = await repository.update({_id}, body)
         
         if (!catedraModificada){
-            return res.status(404).send({ message: "Catedra no encontrada"})
+            const response : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
+            
+            return res.status(404).send(response)
         }
         
-        res.status(200).send({message:"Catedra modificada", data: catedraModificada})
+        const response : ExpressResponse<Catedra> = {message: "Catedra modificada", data: catedraModificada}
+        res.status(200).send(response)
     } catch (error) {
-        res.status(500).send(error)   
+
+        const response : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
-function delete_(req: Request, res: Response){
+async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const catedraBorrada = repository.delete({_id})
+        const catedraBorrada = await repository.delete({_id})
     
         if(!catedraBorrada){
-            return res.status(404).send({ message: "Catedra no encontrada"})
+            const response : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
+            return res.status(404).send(response)
         }
-        res.status(200).send({message:"Catedra borrada", data: catedraBorrada})
+        
+        const response : ExpressResponse<Catedra> = {message: "Catedra borrada", data: catedraBorrada}
+        res.status(200).send(response)
     } catch (error) {
-        res.status(500).send(error)   
+
+        const response : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
