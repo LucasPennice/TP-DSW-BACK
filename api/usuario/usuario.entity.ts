@@ -35,7 +35,6 @@ export class Usuario{
         this.username = username
         this.fechaNacimiento = fechaNacimiento
         this.rol = rol
-        this.apellido = apellido
         this.sexo = sexo
     }
 }

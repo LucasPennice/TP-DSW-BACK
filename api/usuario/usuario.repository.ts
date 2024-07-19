@@ -39,6 +39,12 @@ export class UsuarioRepository implements Repostitory<Usuario>{
             
             if (body.nombre) usuario.nombre = body.nombre
             if (body.legajo) usuario.legajo = body.legajo
+            if(body.apellido) usuario.apellido = body.apellido
+            if(body.username) usuario.username = body.username
+            if(body.fechaNacimiento) usuario.fechaNacimiento = body.fechaNacimiento
+            if(body.rol) usuario.rol = body.rol
+            if(body.sexo) usuario.sexo = body.sexo
+
             await orm.em.flush()
         }
             

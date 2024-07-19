@@ -2,38 +2,44 @@ import { Request, Response } from "express";
 import { Usuario } from "./usuario.entity.js";
 import { UsuarioRepository } from "./usuario.repository.js";
 import { Sexo, UserRole } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
+
 
 const repository = new UsuarioRepository()
 
 type _Body = Partial<Usuario>
 
 async function findAll(req: Request, res: Response){
-    const response: Usuario[] | undefined = await repository.findAll()
-    
     try {
-        res.json({data: response})
+        const response : Usuario[] = await repository.findAll() ?? []
+     
+        const reponse : ExpressResponse<Usuario[]> = {message: "Usuarios encontrados:", data: response}
+        res.json(reponse)
     } catch (error) {
-        res.status(500).send({message: error})
+        const reponse : ExpressResponse<Usuario> = {message: String(error), data: undefined}
+        res.status(500).send(reponse)   
     }
 }
+
 
 async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
     try {
         const usuario : Usuario | undefined = await repository.findOne({_id})
-
+        
         if (!usuario){
-            return res.status(404).send({ message: "Usuario no encontrado"})
+            const reponse : ExpressResponse<Usuario> = {message: "Usuario no encontrado", data: undefined}
+            return res.status(404).send(reponse)
         }
-
         res.json({data:usuario})
     } catch (error) {
-        res.status(500).send({message: error})
+        const reponse : ExpressResponse<Usuario> = {message: String(error), data: undefined}
+        res.status(500).send(reponse)   
     }
 }
 
-function add(req: Request, res: Response){
+async function add(req: Request, res: Response){
     const nombre = req.body.nombre as string
     const legajo = req.body.legajo as string
     const apellido = req.body.apellido as string
@@ -47,49 +53,73 @@ function add(req: Request, res: Response){
     const nuevoUsuario = new Usuario(legajo, nombre, apellido, username, fechaNacimiento, rol, sexo)
 
     try {
-        res.status(201).send({message:"Usuario creado", data: repository.add(nuevoUsuario)})
+        const reponse : ExpressResponse<Usuario> = {message: "Usuario creada", data: await repository.add(nuevoUsuario)}
+
+        res.status(201).send(reponse)
     } catch (error) {
-        res.status(500).send({message: error})
+        const reponse : ExpressResponse<Usuario> = {message: String(error), data: undefined}
+
+        res.status(500).send(reponse)   
     }
 }
 
 
-function modify(req: Request, res: Response){
+async function modify(req: Request, res: Response){
     const _id =  req.params.id as string
 
     const nombre = req.body.nombre as string | undefined
     const legajo = req.body.legajo as string | undefined
+    const apellido = req.body.apellido as string | undefined
+    const username = req.body.username as string | undefined
+    const fechaNacimiento = req.body.fechaNacimiento as string | undefined
+    const rol = req.body.rol as UserRole | undefined
+    const sexo = req.body.sexo as Sexo | undefined
     
     const body: _Body ={
         nombre: nombre,
-        legajo: legajo
+        legajo: legajo,
+        apellido: apellido,
+        username: username,
+        fechaNacimiento: fechaNacimiento,
+        rol: rol,
+        sexo: sexo
     }
 
     try {
-        const usuarioModificado = repository.update({_id}, body)
+        const usuarioModificado = await repository.update({_id}, body)
         
         if (!usuarioModificado){
-            return res.status(404).send({ message: "Usuario no encontrada"})
+            const response : ExpressResponse<Usuario> = {message: "Usuario no encontrado", data: undefined}
+            
+            return res.status(404).send(response)
         }
         
-        res.status(200).send({message:"Usuario modificada", data: usuarioModificado})
+        const response : ExpressResponse<Usuario> = {message: "Usuario modificado", data: usuarioModificado}
+        res.status(200).send(response)
     } catch (error) {
-        res.status(500).send({message: error})
+
+        const response : ExpressResponse<Usuario> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
-function delete_(req: Request, res: Response){
+async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const usuarioBorrado = repository.delete({_id})
-
+        const usuarioBorrado = await repository.delete({_id})
+    
         if(!usuarioBorrado){
-            return res.status(404).send({ message: "Usuario no encontrado"})
+            const response : ExpressResponse<Usuario> = {message: "Usuario no encontrado", data: undefined}
+            return res.status(404).send(response)
         }
-        res.status(200).send({message:"Usuario no encontrado", data: usuarioBorrado})
+        
+        const response : ExpressResponse<Usuario> = {message: "Usuario borrado", data: usuarioBorrado}
+        res.status(200).send(response)
     } catch (error) {
-        res.status(500).send({message: error})
+
+        const response : ExpressResponse<Usuario> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
