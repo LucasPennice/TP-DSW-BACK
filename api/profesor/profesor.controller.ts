@@ -7,7 +7,7 @@ import { ExpressResponse } from "../shared/types.js";
 
 const repository = new ProfesorRepository()
 
-type _Body = Partial<Profesor>
+type _Body = Omit<Partial<Profesor>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {

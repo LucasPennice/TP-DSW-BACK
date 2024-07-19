@@ -2,7 +2,7 @@ import { orm } from "../orm.js";
 import { Repostitory } from "../shared/repository.js";
 import { Profesor } from "./profesor.entity.js";
 
-type _Body = Partial<Profesor>;
+type _Body = Omit<Partial<Profesor>,"_id">;
 
 export class ProfesorRepository implements Repostitory<Profesor>{
     

@@ -2,7 +2,7 @@ import { Repostitory } from "../shared/repository.js";
 import { Turno } from "./turno.entity.js";
 import { orm } from "../orm.js";
 
-type _Body = Partial<Turno>;
+type _Body = Omit<Partial<Turno>,"_id">;
 
 export class TurnoRepository implements Repostitory<Turno>{
     

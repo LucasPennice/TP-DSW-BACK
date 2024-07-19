@@ -20,7 +20,7 @@ function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
 }
 */ 
 
-type _Body = Partial<Catedra>;
+type _Body = Omit<Partial<Catedra>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {
