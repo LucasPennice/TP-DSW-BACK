@@ -46,14 +46,14 @@ async function findOne(req: Request, res: Response){
     }
 }
 
-function add(req: Request, res: Response){
+async function add(req: Request, res: Response){
     const nombre = req.body.nombre as string
 
     // 🚨 VALIDAR CON ZOD 🚨
     
     const nuevaCatedra = new Catedra(nombre)
     try {
-        res.status(201).send({message:"Catedra creada ", data: repository.add(nuevaCatedra)})
+        res.status(201).send({message:"Catedra creada ", data: await repository.add(nuevaCatedra)})
     } catch (error) {
         res.status(500).send(error)   
     }
