@@ -18,7 +18,7 @@ function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
     })
     next()
 }
-*/
+*/ 
 
 type _Body = Partial<Catedra>;
 

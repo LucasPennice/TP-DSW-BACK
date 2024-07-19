@@ -3,6 +3,7 @@ import { dateFromString } from "../dateExtension.js";
 import { Sexo } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
 import { ProfesorRepository } from "./profesor.repository.js";
+import { ExpressResponse } from "../shared/types.js";
 
 const repository = new ProfesorRepository()
 
@@ -11,9 +12,12 @@ type _Body = Partial<Profesor>
 async function findAll(req: Request, res: Response){
     try {
         const response : Profesor[] | undefined = await repository.findAll()
-        res.json({data: response})
+
+        const reponse : ExpressResponse<Profesor[]> = {message: "Profesores encontrados:", data: response}
+        res.json(reponse)
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
@@ -24,15 +28,17 @@ async function findOne(req: Request, res: Response){
         const profesor : Profesor | undefined = await repository.findOne({_id})
     
         if (!profesor){
-            return res.status(404).send({ message: "profesor no encontrado"})
+            const response : ExpressResponse<Profesor> = {message: "Profesor no encontrado", data: undefined}
+            return res.status(404).send(response)
         }
         res.json({data:profesor})
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
-function add(req: Request, res: Response){
+async function add(req: Request, res: Response){
     const nombre = req.body.nombre as string
     const apellido = req.body.apellido as string
     const fechaNacimiento = req.body.fechaNacimiento as string // DD/MM/AAAA
@@ -48,15 +54,17 @@ function add(req: Request, res: Response){
     const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, cargos, horariosDeClase, puntuacionGeneral ?? 0, sexo)
 
     try {
-        res.status(201).send({message:"profesor creado", data: repository.add(nuevoProfesor)})
+        const response : ExpressResponse<Profesor> = {message: "Profesor creado", data: await repository.add(nuevoProfesor)}
+        res.status(201).send(response)
     } catch (error) {
-        res.status(500).send(error)
+        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
+        res.status(500).send(response)
     }
 
 }
 
 
-function modify(req: Request, res: Response){
+async function modify(req: Request, res: Response){
     const _id =  req.params.id as string
 
     const nombre = req.body.nombre as string | undefined
@@ -79,31 +87,37 @@ function modify(req: Request, res: Response){
     }
 
     try {
-        const profesorModificada = repository.update({_id}, body)
+        const profesorModificado = await repository.update({_id}, body)
         
-        if (!profesorModificada){
-            return res.status(404).send({ message: "profesor no encontrado"})
+        if (!profesorModificado){
+            const response : ExpressResponse<Profesor> = {message: "Profesor  no encontrado", data: undefined}
+            return res.status(404).send(response)
         }
         
-        res.status(200).send({message:"profesor modificado", data: profesorModificada})
+        res.status(200).send({message:"profesor modificado", data: profesorModificado})
     } catch (error) {
-            res.status(500).send(error)
+        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
+        res.status(500).send(response)
     }
 }
 
-function delete_(req: Request, res: Response){
+async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const profesorBorrado = repository.delete({_id})
+        const profesorBorrado = await repository.delete({_id})
         
         if(!profesorBorrado){
-            return res.status(404).send({ message: "profesor no encontrado"})
+            const response : ExpressResponse<Profesor> = {message: "Profesor no encontrado", data: undefined}
+            return res.status(404).send(response)
         }
-        res.status(200).send({message:"profesor borrado", data: profesorBorrado})
+
+        const response : ExpressResponse<Profesor> = {message: "Profesor borrado", data: profesorBorrado}
+        res.status(200).send(response)
 
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
