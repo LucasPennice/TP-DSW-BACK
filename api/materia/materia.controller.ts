@@ -5,7 +5,7 @@ import { ExpressResponse } from "../shared/types.js";
 
 const repository = new MateriaRepository()
 
-type _Body = Partial<Materia>;
+type _Body = Omit<Partial<Materia>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {

@@ -5,7 +5,7 @@ import { ExpressResponse } from "../shared/types.js";
 
 const repository = new ComisionRepository()
 
-type _Body = Partial<Comision>;
+type _Body = Omit<Partial<Comision>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {

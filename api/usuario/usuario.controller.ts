@@ -7,7 +7,7 @@ import { ExpressResponse } from "../shared/types.js";
 
 const repository = new UsuarioRepository()
 
-type _Body = Partial<Usuario>
+type _Body = Omit<Partial<Usuario>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {
