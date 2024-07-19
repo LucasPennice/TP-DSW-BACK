@@ -6,6 +6,9 @@ import bodyParser from "body-parser";
 import { RequestContext } from "@mikro-orm/mongodb";
 import { orm } from "./orm.js";
 import materiaRouter from "./materia/materia.route.js";
+import comisionRouter from "./comision/comision.route.js";
+import turnoRouter from "./turno/turno.route.js";
+import reviewRouter from "./review/review.route.js";
 
 
 const app = express()
@@ -22,6 +25,9 @@ app.use("/api/profesor", profesorRouter);
 app.use("/api/catedra", catedraRouter);
 app.use("/api/usuario", usuarioRouter);
 app.use("/api/materia", materiaRouter);
+app.use("/api/comision", comisionRouter);
+app.use("/api/turno", turnoRouter);
+app.use("/api/review", reviewRouter);
 
 
 app.get('/', (req, res) => {
