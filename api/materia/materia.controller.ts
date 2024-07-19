@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Materia } from "./materia.entity.js";
 import { MateriaRepository } from "./materia.repository.js";
+import { ExpressResponse } from "../shared/types.js";
 
 const repository = new MateriaRepository()
 
@@ -8,11 +9,13 @@ type _Body = Partial<Materia>;
 
 async function findAll(req: Request, res: Response){
     try {
-        const response : Materia[] | undefined = await repository.findAll()
+        const data : Materia[] = await repository.findAll() ?? []
      
-        res.json({data: response})
+        const response : ExpressResponse<Materia[]> = {message: "Materias Encontradas", data}
+        res.json(response)
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Materia[]> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
@@ -23,29 +26,36 @@ async function findOne(req: Request, res: Response){
         const materia : Materia | undefined = await repository.findOne({_id})
         
         if (!materia){
-            return res.status(404).send({ message: "Materia no encontrada"})
+            const response : ExpressResponse<Materia[]> = {message: "Materia no Encontrada", data: undefined}
+            return res.status(404).send(response)
         }
-        res.json({data: materia})
+        const response : ExpressResponse<Materia> = {message: "Materias Encontrada", data: materia}
+        res.json(response)
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Materia> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
-function add(req: Request, res: Response){
+async function add(req: Request, res: Response){
     const nombre = req.body.nombre as string
 
     // 🚨 VALIDAR CON ZOD 🚨
     
     const nuevaMateria = new Materia(nombre)
     try {
-        res.status(201).send({message:"Materia creada ", data: repository.add(nuevaMateria)})
+        const data : Materia | undefined = await repository.add(nuevaMateria)
+
+        const response : ExpressResponse<Materia> = {message: "Materia Creada", data}
+        res.status(201).send(response)
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Materia> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
 
-function modify(req: Request, res: Response){
+async function modify(req: Request, res: Response){
     const _id =  req.params.id as string
 
     const nombre = req.body.nombre as string | undefined
@@ -53,30 +63,37 @@ function modify(req: Request, res: Response){
     const body: _Body = {nombre: nombre}
 
     try {
-        const materiaModificada = repository.update({_id}, body)
+        const materiaModificada : Materia | undefined = await repository.update({_id}, body)
         
         if (!materiaModificada){
-            return res.status(404).send({ message: "Materia no encontrada"})
+            const response : ExpressResponse<Materia> = {message: String("Materia no encontrada"), data: undefined}
+            return res.status(404).send(response)
         }
         
-        res.status(200).send({message:"Materia modificada", data: materiaModificada})
+        const response : ExpressResponse<Materia> = {message: String("Materia modificada"), data: materiaModificada}
+        res.status(200).send(response)
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Materia> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
-function delete_(req: Request, res: Response){
+async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const materiaBorrada = repository.delete({_id})
+        const materiaBorrada : Materia | undefined = await repository.delete({_id})
     
         if(!materiaBorrada){
-            return res.status(404).send({ message: "Materia no encontrada"})
+            const response : ExpressResponse<Materia> = {message: "Materia no encontrada", data: undefined}
+            return res.status(404).send(response)
         }
-        res.status(200).send({message:"Materia borrada", data: materiaBorrada})
+
+        const response : ExpressResponse<Materia> = {message: String("Materia Borrada"), data: materiaBorrada}
+        res.status(200).send(response)
     } catch (error) {
-        res.status(500).send(error)   
+        const response : ExpressResponse<Materia> = {message: String(error), data: undefined}
+        res.status(500).send(response)   
     }
 }
 
