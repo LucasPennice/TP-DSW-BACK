@@ -13,6 +13,7 @@ node_modules
 Thumbs.db
 
 # ignore built ts files
+public/**/*
 dist/**/*
 
 # vscode
@@ -28,3 +29,4 @@ dist/**/*
 
 ## built vscode extensions
 *.vsix
+.vercel
