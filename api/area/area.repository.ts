@@ -1,5 +1,5 @@
 import { Repostitory } from "../shared/repository.js";
-import { Catedra } from "./catedra.entity.js";
+import { Catedra } from "./area.entity.js";
 import { orm } from "../orm.js";
 
 type _Body = Omit<Partial<Catedra>,"_id">;

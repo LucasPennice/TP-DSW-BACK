@@ -1,13 +1,11 @@
 import express from "express"
 import profesorRouter from "./profesor/profesor.route.js";
 import usuarioRouter from "./usuario/usuario.route.js";
-import catedraRouter from "./catedra/catedra.route.js";
+import catedraRouter from "./area/area.route.js";
 import bodyParser from "body-parser"; 
 import { RequestContext } from "@mikro-orm/mongodb";
 import { orm } from "./orm.js";
 import materiaRouter from "./materia/materia.route.js";
-import comisionRouter from "./comision/comision.route.js";
-import turnoRouter from "./turno/turno.route.js";
 import reviewRouter from "./review/review.route.js";
 
 
@@ -25,8 +23,6 @@ app.use("/api/profesor", profesorRouter);
 app.use("/api/catedra", catedraRouter);
 app.use("/api/usuario", usuarioRouter);
 app.use("/api/materia", materiaRouter);
-app.use("/api/comision", comisionRouter);
-app.use("/api/turno", turnoRouter);
 app.use("/api/review", reviewRouter);
 
 

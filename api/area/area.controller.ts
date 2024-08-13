@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { Turno } from "./turno.entity.js";
-import { TurnoRepository } from "./turno.repository.js";
+import { Catedra } from "./area.entity.js";
+import { CatedraRepository } from "./area.repository.js";
 import { ExpressResponse } from "../shared/types.js";
 
-const repository = new TurnoRepository()
+const repository = new CatedraRepository()
 
 /*
 function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
@@ -18,18 +18,18 @@ function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
     })
     next()
 }
-*/
+*/ 
 
-type _Body = Omit<Partial<Turno>,"_id">;
+type _Body = Omit<Partial<Catedra>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {
-        const response : Turno[] = await repository.findAll() ?? []
+        const response : Catedra[] = await repository.findAll() ?? []
      
-        const reponse : ExpressResponse<Turno[]> = {message: "Turnos encontrados:", data: response}
+        const reponse : ExpressResponse<Catedra[]> = {message: "Catedras encontradas:", data: response}
         res.json(reponse)
     } catch (error) {
-        const reponse : ExpressResponse<Turno> = {message: String(error), data: undefined}
+        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
         res.status(500).send(reponse)   
     }
 }
@@ -38,15 +38,15 @@ async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
     try {
-        const turno : Turno | undefined = await repository.findOne({_id})
+        const catedra : Catedra | undefined = await repository.findOne({_id})
         
-        if (!turno){
-            const reponse : ExpressResponse<Turno> = {message: "Turno no encontrado", data: undefined}
+        if (!catedra){
+            const reponse : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
             return res.status(404).send(reponse)
         }
-        res.json({data:turno})
+        res.json({data:catedra})
     } catch (error) {
-        const reponse : ExpressResponse<Turno> = {message: String(error), data: undefined}
+        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
         res.status(500).send(reponse)   
     }
 }
@@ -56,13 +56,13 @@ async function add(req: Request, res: Response){
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevoTurno = new Turno(nombre)
+    const nuevaCatedra = new Catedra(nombre)
     try {
-        const reponse : ExpressResponse<Turno> = {message: "Turno creado", data: await repository.add(nuevoTurno)}
+        const reponse : ExpressResponse<Catedra> = {message: "Catedra creada", data: await repository.add(nuevaCatedra)}
 
         res.status(201).send(reponse)
     } catch (error) {
-        const reponse : ExpressResponse<Turno> = {message: String(error), data: undefined}
+        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
 
         res.status(500).send(reponse)   
     }
@@ -77,19 +77,19 @@ async function modify(req: Request, res: Response){
     const body: _Body = {nombre: nombre}
 
     try {
-        const turnoModificado = await repository.update({_id}, body)
+        const catedraModificada = await repository.update({_id}, body)
         
-        if (!turnoModificado){
-            const response : ExpressResponse<Turno> = {message: "Turno no encontrado", data: undefined}
+        if (!catedraModificada){
+            const response : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
             
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Turno> = {message: "Turno modificado", data: turnoModificado}
+        const response : ExpressResponse<Catedra> = {message: "Catedra modificada", data: catedraModificada}
         res.status(200).send(response)
     } catch (error) {
 
-        const response : ExpressResponse<Turno> = {message: String(error), data: undefined}
+        const response : ExpressResponse<Catedra> = {message: String(error), data: undefined}
         res.status(500).send(response)   
     }
 }
@@ -98,18 +98,18 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const turnoBorrado = await repository.delete({_id})
+        const catedraBorrada = await repository.delete({_id})
     
-        if(!turnoBorrado){
-            const response : ExpressResponse<Turno> = {message: "Turno no encontrado", data: undefined}
+        if(!catedraBorrada){
+            const response : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Turno> = {message: "Turno borrado", data: turnoBorrado}
+        const response : ExpressResponse<Catedra> = {message: "Catedra borrada", data: catedraBorrada}
         res.status(200).send(response)
     } catch (error) {
 
-        const response : ExpressResponse<Turno> = {message: String(error), data: undefined}
+        const response : ExpressResponse<Catedra> = {message: String(error), data: undefined}
         res.status(500).send(response)   
     }
 }

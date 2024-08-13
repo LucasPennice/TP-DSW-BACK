@@ -1,5 +1,5 @@
 import express from "express";
-import { findAll, findOne, add, modify, delete_} from "./catedra.controller.js";
+import { findAll, findOne, add, modify, delete_} from "./area.controller.js";
 
 const catedraRouter = express.Router();
 
