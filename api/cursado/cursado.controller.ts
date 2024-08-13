@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { Cursado } from "./cursado.entity.js";
-import { MateriaRepository } from "./cursado.repository.js";
+import { CursadoRepository } from "./cursado.repository.js";
 import { ExpressResponse } from "../shared/types.js";
 
-const repository = new MateriaRepository()
+const repository = new CursadoRepository()
 
 type _Body = Omit<Partial<Cursado>,"_id">;
 
@@ -38,13 +38,17 @@ async function findOne(req: Request, res: Response){
 }
 
 async function add(req: Request, res: Response){
-    const nombre = req.body.nombre as string
 
-    // 🚨 VALIDAR CON ZOD 🚨
+    const diaCursado = req.body.diaCursado as string
+    const horaCursado = req.body.horaCursado as string[]
+    const comision = req.body.comision as number
+    const turno = req.body.turno as string
+    const año = req.body.año as number
+
     
-    const nuevaMateria = new Cursado(nombre)
+    const nuevoCursado = new Cursado(diaCursado, horaCursado, comision, turno, año)
     try {
-        const data : Cursado | undefined = await repository.add(nuevaMateria)
+        const data : Cursado | undefined = await repository.add(nuevoCursado)
 
         const response : ExpressResponse<Cursado> = {message: "Cursado Creada", data}
         res.status(201).send(response)
@@ -58,19 +62,29 @@ async function add(req: Request, res: Response){
 async function modify(req: Request, res: Response){
     const _id =  req.params.id as string
 
-    const nombre = req.body.nombre as string | undefined
+    const diaCursado = req.body.diaCursado as string | undefined
+    const horaCursado = req.body.horaCursado as string[] | undefined
+    const comision = req.body.comision as number | undefined
+    const turno = req.body.turno as string | undefined
+    const año = req.body.año as number | undefined
     
-    const body: _Body = {nombre: nombre}
+    const body: _Body = {
+        diaCursado: diaCursado,
+        horaCursado : horaCursado,
+        comision : comision,
+        turno : turno,
+        año : año,
+    }
 
     try {
-        const materiaModificada : Cursado | undefined = await repository.update({_id}, body)
+        const cursadoModificado : Cursado | undefined = await repository.update({_id}, body)
         
-        if (!materiaModificada){
+        if (!cursadoModificado){
             const response : ExpressResponse<Cursado> = {message: String("Cursado no encontrada"), data: undefined}
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Cursado> = {message: String("Cursado modificada"), data: materiaModificada}
+        const response : ExpressResponse<Cursado> = {message: String("Cursado modificada"), data: cursadoModificado}
         res.status(200).send(response)
     } catch (error) {
         const response : ExpressResponse<Cursado> = {message: String(error), data: undefined}
@@ -82,14 +96,14 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const materiaBorrada : Cursado | undefined = await repository.delete({_id})
+        const cursadoBorrado : Cursado | undefined = await repository.delete({_id})
     
-        if(!materiaBorrada){
+        if(!cursadoBorrado){
             const response : ExpressResponse<Cursado> = {message: "Cursado no encontrada", data: undefined}
             return res.status(404).send(response)
         }
 
-        const response : ExpressResponse<Cursado> = {message: String("Cursado Borrada"), data: materiaBorrada}
+        const response : ExpressResponse<Cursado> = {message: String("Cursado Borrada"), data: cursadoBorrado}
         res.status(200).send(response)
     } catch (error) {
         const response : ExpressResponse<Cursado> = {message: String(error), data: undefined}

@@ -4,7 +4,7 @@ import { Cursado } from "./cursado.entity.js";
 
 type _Body = Omit<Partial<Cursado>,"_id">;
 
-export class MateriaRepository implements Repostitory<Cursado>{
+export class CursadoRepository implements Repostitory<Cursado>{
     
     public async findAll(): Promise<Cursado[] | undefined> {
         const materias = await orm.em.findAll(Cursado)
@@ -36,7 +36,11 @@ export class MateriaRepository implements Repostitory<Cursado>{
         const cursado = orm.em.getReference(Cursado, item._id);
     
         if (cursado){
-            if (body.nombre) cursado.nombre = body.nombre
+            if (body.diaCursado) cursado.diaCursado = body.diaCursado
+            if (body.horaCursado) cursado.horaCursado = body.horaCursado
+            if (body.comision) cursado.comision = body.comision
+            if (body.turno) cursado.turno = body.turno
+            if (body.año) cursado.año = body.año
             await orm.em.flush()
         }
             
