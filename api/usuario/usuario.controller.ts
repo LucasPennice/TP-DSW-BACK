@@ -51,7 +51,7 @@ async function add(req: Request, res: Response){
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevoUsuario = new Usuario(legajo, nombre, apellido, username, fechaNacimiento, rol, sexo, contraseña)
+    const nuevoUsuario = new Usuario(nombre, legajo , apellido, username, fechaNacimiento, rol, sexo, contraseña)
 
     try {
         const reponse : ExpressResponse<Usuario> = {message: "Usuario creada", data: await repository.add(nuevoUsuario)}
