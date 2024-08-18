@@ -71,19 +71,11 @@ async function modify(req: Request, res: Response){
 
     const nombre = req.body.nombre as string | undefined
     const apellido = req.body.apellido as string | undefined
-    const dni = req.body.dni as number | undefined
-    const cursados = req.body.cursados as Collection<Cursado> | undefined
-    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
-    const sexoTentativo = req.body.sexo as String | undefined
-    const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
+
     
     const body: _Body ={
         nombre: nombre,
         apellido: apellido,
-        dni: dni,
-        cursados: cursados,
-        puntuacionGeneral: puntuacionGeneral,
-        sexo: sexo
     }
 
     try {
