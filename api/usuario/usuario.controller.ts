@@ -44,13 +44,14 @@ async function add(req: Request, res: Response){
     const legajo = req.body.legajo as string
     const apellido = req.body.apellido as string
     const username = req.body.username as string
+    const contraseña = req.body.contraseña as string
     const fechaNacimiento = req.body.fechaNacimiento as string
     const rol = req.body.rol as UserRole
     const sexo = req.body.sexo as Sexo
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevoUsuario = new Usuario(legajo, nombre, apellido, username, fechaNacimiento, rol, sexo)
+    const nuevoUsuario = new Usuario(legajo, nombre, apellido, username, fechaNacimiento, rol, sexo, contraseña)
 
     try {
         const reponse : ExpressResponse<Usuario> = {message: "Usuario creada", data: await repository.add(nuevoUsuario)}
@@ -74,6 +75,7 @@ async function modify(req: Request, res: Response){
     const fechaNacimiento = req.body.fechaNacimiento as string | undefined
     const rol = req.body.rol as UserRole | undefined
     const sexo = req.body.sexo as Sexo | undefined
+    const contraseña = req.body.contraseña as string | undefined
     
     const body: _Body ={
         nombre: nombre,
