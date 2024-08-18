@@ -53,6 +53,7 @@ async function add(req: Request, res: Response){
     const materiaId = req.body.materiaId as string;
     const profesorId = req.body.profesorId as string;
 
+
     const materia : Materia | undefined = await repositoryMaterias.findOne({_id: materiaId})
 
     const profesor : Profesor | undefined = await repositoryProfesor.findOne({_id: profesorId})

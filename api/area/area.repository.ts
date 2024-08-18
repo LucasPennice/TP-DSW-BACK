@@ -7,7 +7,9 @@ type _Body = Omit<Partial<Area>,"_id">;
 export class AreaRepository implements Repostitory<Area>{
     
     public async findAll(): Promise<Area[] | undefined> {
-        const areas = await orm.em.findAll(Area)
+        const areas = await orm.em.findAll(Area, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
 
@@ -17,7 +19,9 @@ export class AreaRepository implements Repostitory<Area>{
     
     public async findOne(item: { _id: string; }): Promise<Area | undefined> {
         
-        const area = await orm.em.findOne(Area, item._id)
+        const area = await orm.em.findOne(Area, item._id, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
         

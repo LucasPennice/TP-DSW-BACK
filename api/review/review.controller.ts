@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import { Review } from "./review.entity.js";
 import { ReviewRepository } from "./review.repository.js";
-import { ExpressResponse } from "../shared/types.js";
+import { ExpressResponse, UserRole } from "../shared/types.js";
+import { Usuario } from "../usuario/usuario.entity.js";
+import { UsuarioRepository } from "../usuario/usuario.repository.js";
 
 const repository = new ReviewRepository()
+const repositoryUsuarios = new UsuarioRepository()
 
 type _Body = Partial<Review>
 
@@ -39,10 +42,18 @@ async function findOne(req: Request, res: Response){
 async function add(req: Request, res: Response){
     const descripcion = req.body.descripcion as string
     const puntuacion = req.body.puntuacion as number
+    const usuarioId = req.body.usuarioId as string;
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevaReview = new Review(descripcion, puntuacion)
+    const usuario : Usuario | undefined = await repositoryUsuarios.findOne({_id: usuarioId})
+
+    if (!usuario){
+        const response : ExpressResponse<Usuario> = {message: "Usuario no Válido", data: undefined}
+        return res.status(404).send(response)
+    }
+
+    const nuevaReview = new Review(descripcion, puntuacion, usuario)
 
     try {
         const response : ExpressResponse<Review> = {message: "Review creada", data: await repository.add(nuevaReview)}

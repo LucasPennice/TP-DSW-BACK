@@ -8,7 +8,9 @@ type _Body = Omit<Partial<Cursado>,"_id">;
 export class CursadoRepository implements Repostitory<Cursado>{
     
     public async findAll(): Promise<Cursado[] | undefined> {
-        const cursados = await orm.em.findAll(Cursado)
+        const cursados = await orm.em.findAll(Cursado, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
 
@@ -18,7 +20,9 @@ export class CursadoRepository implements Repostitory<Cursado>{
     
     public async findOne(item: { _id: string; }): Promise<Cursado | undefined> {
         
-        const cursado = await orm.em.findOne(Cursado, item._id)
+        const cursado = await orm.em.findOne(Cursado, item._id, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
         

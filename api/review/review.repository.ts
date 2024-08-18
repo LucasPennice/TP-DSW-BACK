@@ -7,7 +7,9 @@ type _Body = Partial<Review>;
 export class ReviewRepository implements Repostitory<Review>{
     
     public async findAll(): Promise<Review[] | undefined> {
-        const reviews = await orm.em.findAll(Review)
+        const reviews = await orm.em.findAll(Review, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
 
@@ -17,7 +19,9 @@ export class ReviewRepository implements Repostitory<Review>{
     
     public async findOne(item: { _id: string; }): Promise<Review | undefined> {
         
-        const review = await orm.em.findOne(Review, item._id)
+        const review = await orm.em.findOne(Review, item._id, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
         

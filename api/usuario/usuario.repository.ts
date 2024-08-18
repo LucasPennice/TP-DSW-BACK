@@ -7,7 +7,9 @@ type _Body = Omit<Partial<Usuario>,"_id">;
 export class UsuarioRepository implements Repostitory<Usuario>{
     
     public async findAll(): Promise<Usuario[] | undefined> {
-        const usuarios = await orm.em.findAll(Usuario)
+        const usuarios = await orm.em.findAll(Usuario, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
 
@@ -17,7 +19,9 @@ export class UsuarioRepository implements Repostitory<Usuario>{
     
     public async findOne(item: { _id: string; }): Promise<Usuario | undefined> {
         
-        const usuario = await orm.em.findOne(Usuario, item._id)
+        const usuario = await orm.em.findOne(Usuario, item._id, {
+            populate: ['*'],
+          })
 
         await orm.em.flush();
         
