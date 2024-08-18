@@ -8,9 +8,13 @@ import materiaRouter from "./materia/materia.route.js";
 import reviewRouter from "./review/review.route.js";
 import areaRouter from "./area/area.route.js";
 import cursadoRouter from "./cursado/cursado.route.js";
+import cors from "cors"
 
 
 const app = express()
+
+app.use(cors())
+
 const port = 3000;
 app.use( bodyParser.json() );       // app.use(express.json() )
 app.use(bodyParser.urlencoded({extended: true})); 
