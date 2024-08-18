@@ -50,8 +50,8 @@ async function add(req: Request, res: Response){
     const comision = req.body.comision as number
     const turno = req.body.turno as string
     const año = req.body.año as number
-    const materiaId = req.body.materia as string;
-    const profesorId = req.body.profesor as string;
+    const materiaId = req.body.materiaId as string;
+    const profesorId = req.body.profesorId as string;
 
     const materia : Materia | undefined = await repositoryMaterias.findOne({_id: materiaId})
 

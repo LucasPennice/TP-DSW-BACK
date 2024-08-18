@@ -20,7 +20,7 @@ export class Profesor{
     @Property()
     dni: number
 
-    @OneToMany(() => Cursado, cursado => cursado.profesor)
+    @OneToMany({ entity: () => Cursado, mappedBy: "profesor" })
     cursados = new Collection<Cursado>(this);
     
     @Property()

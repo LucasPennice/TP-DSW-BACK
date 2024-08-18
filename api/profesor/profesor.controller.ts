@@ -4,6 +4,8 @@ import { Sexo } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
 import { ProfesorRepository } from "./profesor.repository.js";
 import { ExpressResponse } from "../shared/types.js";
+import { Collection } from "@mikro-orm/core";
+import { Cursado } from "../cursado/cursado.entity.js";
 
 const repository = new ProfesorRepository()
 
@@ -43,15 +45,16 @@ async function add(req: Request, res: Response){
     const apellido = req.body.apellido as string
     const fechaNacimiento = req.body.fechaNacimiento as string // DD/MM/AAAA
     const dni = req.body.dni as number
-    const cursadas = req.body.cursadas as string[]
     const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
     const sexoTentativo = req.body.sexo as string
     const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, cursadas, puntuacionGeneral ?? 0, sexo)
+    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, puntuacionGeneral ?? 0, sexo)
 
+    console.log(JSON.stringify(nuevoProfesor))
+    
     try {
         const response : ExpressResponse<Profesor> = {message: "Profesor creado", data: await repository.add(nuevoProfesor)}
         res.status(201).send(response)
@@ -69,7 +72,7 @@ async function modify(req: Request, res: Response){
     const nombre = req.body.nombre as string | undefined
     const apellido = req.body.apellido as string | undefined
     const dni = req.body.dni as number | undefined
-    const cursadas = req.body.cursadas as string[] | undefined
+    const cursados = req.body.cursados as Collection<Cursado> | undefined
     const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
     const sexoTentativo = req.body.sexo as String | undefined
     const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
@@ -78,7 +81,7 @@ async function modify(req: Request, res: Response){
         nombre: nombre,
         apellido: apellido,
         dni: dni,
-        cursadas: cursadas,
+        cursados: cursados,
         puntuacionGeneral: puntuacionGeneral,
         sexo: sexo
     }

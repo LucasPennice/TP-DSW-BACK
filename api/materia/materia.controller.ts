@@ -2,8 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import { Materia } from "./materia.entity.js";
 import { MateriaRepository } from "./materia.repository.js";
 import { ExpressResponse } from "../shared/types.js";
+import { Area } from "../area/area.entity.js";
+import { AreaRepository } from "../area/area.repository.js";
 
 const repository = new MateriaRepository()
+const repositoryAreas = new AreaRepository()
 
 type _Body = Omit<Partial<Materia>,"_id">;
 
@@ -39,10 +42,18 @@ async function findOne(req: Request, res: Response){
 
 async function add(req: Request, res: Response){
     const nombre = req.body.nombre as string
+    const areaId = req.body.areaId as string
+
+    const area : Area | undefined = await repositoryAreas.findOne({_id: areaId})
+
 
     // 🚨 VALIDAR CON ZOD 🚨
-    
-    const nuevaMateria = new Materia(nombre)
+    if (!area){
+        const response : ExpressResponse<Area> = {message: "Area no Válida", data: undefined}
+        return res.status(404).send(response)
+    }
+
+    const nuevaMateria = new Materia(nombre, area)
     try {
         const data : Materia | undefined = await repository.add(nuevaMateria)
 

@@ -25,18 +25,6 @@ export class ProfesorRepository implements Repostitory<Profesor>{
 
     }
     
-    /*
-{
-    "nombre" : "mi profesor",
-    "apellido" : "aoekkuidio",
-    "fechaNacimiento" : "19/03/2001",
-    "dni" : 43167696,
-    "cargos" : [],
-    "horariosDeClase" : ["MARTES - 12:32"],
-    "puntuacionGeneral" : 2,
-    "sexo" : "Hombre"
-}
-*/
     
     public async add(item: Profesor): Promise<Profesor | undefined> {
         await orm.em.persist(item).flush();
@@ -53,7 +41,7 @@ export class ProfesorRepository implements Repostitory<Profesor>{
             if (body.nombre) profesor.nombre = body.nombre
             if (body.apellido) profesor.apellido = body.apellido
             if (body.dni) profesor.dni = body.dni
-            if (body.cursadas) profesor.cursadas = body.cursadas
+            if (body.cursados) profesor.cursados = body.cursados
             if (body.puntuacionGeneral) profesor.puntuacionGeneral = body.puntuacionGeneral
             if (body.sexo) profesor.sexo = body.sexo
             await orm.em.flush()
