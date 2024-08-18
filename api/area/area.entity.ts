@@ -1,5 +1,6 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Collection, Entity, OneToMany, PrimaryKey, Property } from '@mikro-orm/core';
 import { v4 } from 'uuid';
+import { Materia } from '../materia/materia.entity.js';
 
 @Entity()
 export class Area{
@@ -8,6 +9,9 @@ export class Area{
 
     @Property()
     nombre : string
+
+    @OneToMany(() => Materia, materia => materia.area)
+    materias = new Collection<Materia>(this);
 
     constructor(nombre: string) { 
         this.nombre = nombre

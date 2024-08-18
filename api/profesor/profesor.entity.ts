@@ -1,6 +1,7 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property, OneToMany, Collection } from '@mikro-orm/core';
 import { v4 } from 'uuid';
 import { Sexo } from '../shared/types.js';
+import { Cursado } from '../cursado/cursado.entity.js';
 
 @Entity()
 export class Profesor{
@@ -19,8 +20,8 @@ export class Profesor{
     @Property()
     dni: number
 
-    @Property()
-    cursadas : string[]
+    @OneToMany(() => Cursado, cursado => cursado.profesor)
+    cursados = new Collection<Cursado>(this);
     
     @Property()
     puntuacionGeneral: number
@@ -28,12 +29,11 @@ export class Profesor{
     @Property()
     sexo: Sexo
 
-    constructor(nombre: string, apellido: string, fechaNacimiento: Date, dni: number, cursadas: string[], puntuacionGeneral: number, sexo: Sexo) { 
+    constructor(nombre: string, apellido: string, fechaNacimiento: Date, dni: number, puntuacionGeneral: number, sexo: Sexo) { 
         this.nombre = nombre
         this.apellido = apellido
         this.fechaNacimiento = fechaNacimiento
         this.dni = dni
-        this.cursadas = cursadas
         this.puntuacionGeneral = puntuacionGeneral
         this.sexo = sexo
     }
