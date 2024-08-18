@@ -2,8 +2,14 @@ import { NextFunction, Request, Response } from "express";
 import { Cursado } from "./cursado.entity.js";
 import { CursadoRepository } from "./cursado.repository.js";
 import { ExpressResponse } from "../shared/types.js";
+import { Materia } from "../materia/materia.entity.js";
+import {MateriaRepository} from "../materia/materia.repository.js" ;
+import { Profesor } from "../profesor/profesor.entity.js";
+import { ProfesorRepository } from "../profesor/profesor.repository.js";
 
 const repository = new CursadoRepository()
+const repositoryMaterias = new MateriaRepository()
+const repositoryProfesor = new ProfesorRepository()
 
 type _Body = Omit<Partial<Cursado>,"_id">;
 
@@ -11,7 +17,7 @@ async function findAll(req: Request, res: Response){
     try {
         const data : Cursado[] = await repository.findAll() ?? []
      
-        const response : ExpressResponse<Cursado[]> = {message: "Materias Encontradas", data}
+        const response : ExpressResponse<Cursado[]> = {message: "Cursados Encontrados", data}
         res.json(response)
     } catch (error) {
         const response : ExpressResponse<Cursado[]> = {message: String(error), data: undefined}
@@ -26,10 +32,10 @@ async function findOne(req: Request, res: Response){
         const cursado : Cursado | undefined = await repository.findOne({_id})
         
         if (!cursado){
-            const response : ExpressResponse<Cursado[]> = {message: "Cursado no Encontrada", data: undefined}
+            const response : ExpressResponse<Cursado> = {message: "Cursado no Encontrada", data: undefined}
             return res.status(404).send(response)
         }
-        const response : ExpressResponse<Cursado> = {message: "Materias Encontrada", data: cursado}
+        const response : ExpressResponse<Cursado> = {message: "Cursado Encontrado", data: cursado}
         res.json(response)
     } catch (error) {
         const response : ExpressResponse<Cursado> = {message: String(error), data: undefined}
@@ -40,13 +46,28 @@ async function findOne(req: Request, res: Response){
 async function add(req: Request, res: Response){
 
     const diaCursado = req.body.diaCursado as string
-    const horaCursado = req.body.horaCursado as string[]
+    const horaCursado = req.body.horaCursado as string
     const comision = req.body.comision as number
     const turno = req.body.turno as string
     const año = req.body.año as number
+    const materiaId = req.body.materia as string;
+    const profesorId = req.body.profesor as string;
 
-    
-    const nuevoCursado = new Cursado(diaCursado, horaCursado, comision, turno, año)
+    const materia : Materia | undefined = await repositoryMaterias.findOne({_id: materiaId})
+
+    const profesor : Profesor | undefined = await repositoryProfesor.findOne({_id: profesorId})
+
+    if (!materia){
+        const response : ExpressResponse<Cursado> = {message: "Materia no Válida", data: undefined}
+        return res.status(404).send(response)
+    }
+    if (!profesor){
+        const response : ExpressResponse<Cursado> = {message: "Profesor no Válido", data: undefined}
+        return res.status(404).send(response)
+    }
+
+    const nuevoCursado = new Cursado(diaCursado, horaCursado, comision, turno, año, materia, profesor)
+
     try {
         const data : Cursado | undefined = await repository.add(nuevoCursado)
 
@@ -63,7 +84,7 @@ async function modify(req: Request, res: Response){
     const _id =  req.params.id as string
 
     const diaCursado = req.body.diaCursado as string | undefined
-    const horaCursado = req.body.horaCursado as string[] | undefined
+    const horaCursado = req.body.horaCursado as string | undefined
     const comision = req.body.comision as number | undefined
     const turno = req.body.turno as string | undefined
     const año = req.body.año as number | undefined

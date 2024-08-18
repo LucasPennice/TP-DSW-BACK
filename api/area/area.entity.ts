@@ -2,7 +2,7 @@ import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 import { v4 } from 'uuid';
 
 @Entity()
-export class Catedra{
+export class Area{
     @PrimaryKey({ type: 'uuid' })
     _id = v4();
 

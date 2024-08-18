@@ -2,16 +2,17 @@ import { Repostitory } from "../shared/repository.js";
 import { orm } from "../orm.js";
 import { Cursado } from "./cursado.entity.js";
 
+
 type _Body = Omit<Partial<Cursado>,"_id">;
 
 export class CursadoRepository implements Repostitory<Cursado>{
     
     public async findAll(): Promise<Cursado[] | undefined> {
-        const materias = await orm.em.findAll(Cursado)
+        const cursados = await orm.em.findAll(Cursado)
 
         await orm.em.flush();
 
-        return materias
+        return cursados
 
     }
     
@@ -26,8 +27,8 @@ export class CursadoRepository implements Repostitory<Cursado>{
     }
     
     public async add(item: Cursado): Promise<Cursado | undefined> {
+
         await orm.em.persist(item).flush();
-        
         return item
     }
     
@@ -41,6 +42,8 @@ export class CursadoRepository implements Repostitory<Cursado>{
             if (body.comision) cursado.comision = body.comision
             if (body.turno) cursado.turno = body.turno
             if (body.año) cursado.año = body.año
+            if(body.materia) cursado.materia = body.materia
+            if(body.profesor) cursado.profesor = body.profesor
             await orm.em.flush()
         }
             
@@ -56,4 +59,6 @@ export class CursadoRepository implements Repostitory<Cursado>{
         
         return cursado
     }
+
+    
 }

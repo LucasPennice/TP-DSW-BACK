@@ -43,15 +43,14 @@ async function add(req: Request, res: Response){
     const apellido = req.body.apellido as string
     const fechaNacimiento = req.body.fechaNacimiento as string // DD/MM/AAAA
     const dni = req.body.dni as number
-    const cargos = req.body.cargos as string[]
-    const horariosDeClase = req.body.horariosDeClase as string[] // "DIA_SEMANA - HH:MM" formato 24hs
+    const cursadas = req.body.cursadas as string[]
     const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
     const sexoTentativo = req.body.sexo as string
     const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, cargos, horariosDeClase, puntuacionGeneral ?? 0, sexo)
+    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, cursadas, puntuacionGeneral ?? 0, sexo)
 
     try {
         const response : ExpressResponse<Profesor> = {message: "Profesor creado", data: await repository.add(nuevoProfesor)}
@@ -70,8 +69,7 @@ async function modify(req: Request, res: Response){
     const nombre = req.body.nombre as string | undefined
     const apellido = req.body.apellido as string | undefined
     const dni = req.body.dni as number | undefined
-    const cargos = req.body.cargos as string[] | undefined
-    const horariosDeClase = req.body.horariosDeClase as string[] | undefined // "DIA_SEMANA - HH:MM" formato 24hs
+    const cursadas = req.body.cursadas as string[] | undefined
     const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
     const sexoTentativo = req.body.sexo as String | undefined
     const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
@@ -80,8 +78,7 @@ async function modify(req: Request, res: Response){
         nombre: nombre,
         apellido: apellido,
         dni: dni,
-        cargos: cargos,
-        horariosDeClase: horariosDeClase,
+        cursadas: cursadas,
         puntuacionGeneral: puntuacionGeneral,
         sexo: sexo
     }

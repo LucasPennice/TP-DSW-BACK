@@ -1,5 +1,7 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property, ManyToOne } from '@mikro-orm/core';
 import { v4 } from 'uuid';
+import {Materia} from "../materia/materia.entity.js"
+import { Profesor } from '../profesor/profesor.entity.js';
 
 @Entity()
 export class Cursado{
@@ -7,26 +9,34 @@ export class Cursado{
     _id = v4();
    
     @Property()
-    diaCursado : string
+    diaCursado!: string
 
     @Property()
-    horaCursado : string[]
+    horaCursado!: string
 
     @Property()
-    comision : number
+    comision!: number
 
     @Property()
-    turno : string
+    turno!: string
 
     @Property()
-    año : number
+    año!: number
 
-    constructor(diaCursado: string, horaCursado : string[], comision : number, turno : string, año : number) { 
+    @ManyToOne(() => Materia, { eager: true })
+    materia!: Materia
+
+    @ManyToOne(() => Profesor, { eager: true })
+    profesor!: Profesor
+
+    constructor(diaCursado: string, horaCursado : string, comision : number, turno : string, año : number, materia: Materia, profesor: Profesor) { 
         this.diaCursado = diaCursado
         this.horaCursado = horaCursado
         this.comision = comision
         this.turno = turno
         this.año = año
+        this.materia = materia
+        this.profesor = profesor
     }
 
 }

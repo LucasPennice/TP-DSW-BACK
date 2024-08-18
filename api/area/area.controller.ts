@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { Catedra } from "./area.entity.js";
-import { CatedraRepository } from "./area.repository.js";
+import { Area } from "./area.entity.js";
+import { AreaRepository } from "./area.repository.js";
 import { ExpressResponse } from "../shared/types.js";
 
-const repository = new CatedraRepository()
+const repository = new AreaRepository()
 
 /*
 function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
@@ -20,16 +20,16 @@ function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
 }
 */ 
 
-type _Body = Omit<Partial<Catedra>,"_id">;
+type _Body = Omit<Partial<Area>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {
-        const response : Catedra[] = await repository.findAll() ?? []
+        const response : Area[] = await repository.findAll() ?? []
      
-        const reponse : ExpressResponse<Catedra[]> = {message: "Catedras encontradas:", data: response}
+        const reponse : ExpressResponse<Area[]> = {message: "Areas encontradas:", data: response}
         res.json(reponse)
     } catch (error) {
-        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        const reponse : ExpressResponse<Area> = {message: String(error), data: undefined}
         res.status(500).send(reponse)   
     }
 }
@@ -38,15 +38,15 @@ async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
     try {
-        const catedra : Catedra | undefined = await repository.findOne({_id})
+        const area : Area | undefined = await repository.findOne({_id})
         
-        if (!catedra){
-            const reponse : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
+        if (!area){
+            const reponse : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
             return res.status(404).send(reponse)
         }
-        res.json({data:catedra})
+        res.json({data:area})
     } catch (error) {
-        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        const reponse : ExpressResponse<Area> = {message: String(error), data: undefined}
         res.status(500).send(reponse)   
     }
 }
@@ -56,13 +56,13 @@ async function add(req: Request, res: Response){
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevaCatedra = new Catedra(nombre)
+    const nuevoArea = new Area(nombre)
     try {
-        const reponse : ExpressResponse<Catedra> = {message: "Catedra creada", data: await repository.add(nuevaCatedra)}
+        const reponse : ExpressResponse<Area> = {message: "Area creada", data: await repository.add(nuevoArea)}
 
         res.status(201).send(reponse)
     } catch (error) {
-        const reponse : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        const reponse : ExpressResponse<Area> = {message: String(error), data: undefined}
 
         res.status(500).send(reponse)   
     }
@@ -77,19 +77,19 @@ async function modify(req: Request, res: Response){
     const body: _Body = {nombre: nombre}
 
     try {
-        const catedraModificada = await repository.update({_id}, body)
+        const areaModificada = await repository.update({_id}, body)
         
-        if (!catedraModificada){
-            const response : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
+        if (!areaModificada){
+            const response : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
             
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Catedra> = {message: "Catedra modificada", data: catedraModificada}
+        const response : ExpressResponse<Area> = {message: "Area modificada", data: areaModificada}
         res.status(200).send(response)
     } catch (error) {
 
-        const response : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        const response : ExpressResponse<Area> = {message: String(error), data: undefined}
         res.status(500).send(response)   
     }
 }
@@ -98,18 +98,18 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const catedraBorrada = await repository.delete({_id})
+        const areaBorrada = await repository.delete({_id})
     
-        if(!catedraBorrada){
-            const response : ExpressResponse<Catedra> = {message: "Catedra no encontrada", data: undefined}
+        if(!areaBorrada){
+            const response : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Catedra> = {message: "Catedra borrada", data: catedraBorrada}
+        const response : ExpressResponse<Area> = {message: "Area borrada", data: areaBorrada}
         res.status(200).send(response)
     } catch (error) {
 
-        const response : ExpressResponse<Catedra> = {message: String(error), data: undefined}
+        const response : ExpressResponse<Area> = {message: String(error), data: undefined}
         res.status(500).send(response)   
     }
 }

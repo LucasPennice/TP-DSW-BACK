@@ -53,7 +53,7 @@ export class ProfesorRepository implements Repostitory<Profesor>{
             if (body.nombre) profesor.nombre = body.nombre
             if (body.apellido) profesor.apellido = body.apellido
             if (body.dni) profesor.dni = body.dni
-            if (body.horariosDeClase) profesor.horariosDeClase = body.horariosDeClase
+            if (body.cursadas) profesor.cursadas = body.cursadas
             if (body.puntuacionGeneral) profesor.puntuacionGeneral = body.puntuacionGeneral
             if (body.sexo) profesor.sexo = body.sexo
             await orm.em.flush()

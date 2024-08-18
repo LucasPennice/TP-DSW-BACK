@@ -1,17 +1,17 @@
 import express from "express";
 import { findAll, findOne, add, modify, delete_} from "./area.controller.js";
 
-const catedraRouter = express.Router();
+const areaRouter = express.Router();
 
-catedraRouter.get("/", findAll)
+areaRouter.get("/", findAll)
 
-catedraRouter.get("/:id", findOne)
+areaRouter.get("/:id", findOne)
 
-catedraRouter.post("/", add)
+areaRouter.post("/", add)
 
-catedraRouter.patch("/:id", modify)
+areaRouter.patch("/:id", modify)
 
-catedraRouter.delete("/:id", delete_)
+areaRouter.delete("/:id", delete_)
 
 
-export default catedraRouter;
+export default areaRouter;

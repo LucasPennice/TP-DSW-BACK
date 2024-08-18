@@ -20,10 +20,7 @@ export class Profesor{
     dni: number
 
     @Property()
-    cargos : string[]
-
-    @Property()
-    horariosDeClase: string[] // "DIA_SEMANA - HH:MM" formato 24hs
+    cursadas : string[]
     
     @Property()
     puntuacionGeneral: number
@@ -31,13 +28,12 @@ export class Profesor{
     @Property()
     sexo: Sexo
 
-    constructor(nombre: string, apellido: string, fechaNacimiento: Date, dni: number, cargos: string[], horariosDeClase: string[], puntuacionGeneral: number, sexo: Sexo) { 
+    constructor(nombre: string, apellido: string, fechaNacimiento: Date, dni: number, cursadas: string[], puntuacionGeneral: number, sexo: Sexo) { 
         this.nombre = nombre
         this.apellido = apellido
         this.fechaNacimiento = fechaNacimiento
         this.dni = dni
-        this.cargos = cargos
-        this.horariosDeClase = horariosDeClase
+        this.cursadas = cursadas
         this.puntuacionGeneral = puntuacionGeneral
         this.sexo = sexo
     }

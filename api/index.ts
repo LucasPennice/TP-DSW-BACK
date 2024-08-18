@@ -1,16 +1,17 @@
 import express from "express"
 import profesorRouter from "./profesor/profesor.route.js";
 import usuarioRouter from "./usuario/usuario.route.js";
-import catedraRouter from "./area/area.route.js";
 import bodyParser from "body-parser"; 
 import { RequestContext } from "@mikro-orm/mongodb";
 import { orm } from "./orm.js";
 import materiaRouter from "./materia/materia.route.js";
 import reviewRouter from "./review/review.route.js";
+import areaRouter from "./area/area.route.js";
+import cursadoRouter from "./cursado/cursado.route.js";
 
 
 const app = express()
-const port = process.env.PORT || 4000;
+const port = 3000;
 app.use( bodyParser.json() );       // app.use(express.json() )
 app.use(bodyParser.urlencoded({extended: true})); 
 
@@ -20,10 +21,11 @@ app.use((req, res, next) => {
 
 
 app.use("/api/profesor", profesorRouter);
-app.use("/api/catedra", catedraRouter);
+app.use("/api/area", areaRouter);
 app.use("/api/usuario", usuarioRouter);
 app.use("/api/materia", materiaRouter);
 app.use("/api/review", reviewRouter);
+app.use("/api/cursado", cursadoRouter);
 
 
 app.get('/', (req, res) => {
@@ -31,7 +33,7 @@ app.get('/', (req, res) => {
   Directorios: \n
   /api/profesor \n
   /api/usuario \n
-  /api/catedra \n
+  /api/area \n
   /api/materia \n
   `)
 })
