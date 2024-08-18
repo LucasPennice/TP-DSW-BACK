@@ -23,10 +23,10 @@ export class Cursado{
     @Property()
     año!: number
 
-    @ManyToOne(() => Materia, { eager: true })
+    @ManyToOne()
     materia!: Materia
 
-    @ManyToOne(() => Profesor, { eager: true })
+    @ManyToOne()
     profesor!: Profesor
 
     constructor(diaCursado: string, horaCursado : string, comision : number, turno : string, año : number, materia: Materia, profesor: Profesor) { 

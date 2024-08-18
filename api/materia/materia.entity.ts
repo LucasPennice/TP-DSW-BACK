@@ -10,8 +10,8 @@ export class Materia{
     @Property()
     nombre : string
 
-    // @OneToMany(() => Cursado, cursado => cursado.materia)
-    // cursados = new Collection<Cursado>(this);
+    @OneToMany(() => Cursado, cursado => cursado.materia)
+    cursados = new Collection<Cursado>(this);
 
     constructor(nombre: string) { 
         this.nombre = nombre
