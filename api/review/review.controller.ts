@@ -1,18 +1,12 @@
 import { Request, Response } from "express";
 import { Review } from "./review.entity.js";
-import { ReviewRepository } from "./review.repository.js";
 import { ExpressResponse, UserRole } from "../shared/types.js";
 import { Usuario } from "../usuario/usuario.entity.js";
-import { UsuarioRepository } from "../usuario/usuario.repository.js";
 import { findOneUsuario} from "../usuario/usuario.controller.js"
 import { findOneCursado} from "../cursado/cursado.controller.js"
 import { orm } from "../orm.js";
 import { Cursado } from "../cursado/cursado.entity.js";
 
-const repository = new ReviewRepository()
-const repositoryUsuarios = new UsuarioRepository()
-
-type _Body = Partial<Review>
 
 async function findAll(req: Request, res: Response){
     try {

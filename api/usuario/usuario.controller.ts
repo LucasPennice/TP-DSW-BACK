@@ -1,13 +1,10 @@
 import { Request, Response } from "express";
 import { Usuario } from "./usuario.entity.js";
-import { UsuarioRepository } from "./usuario.repository.js";
 import { Sexo, UserRole } from "../shared/types.js";
 import { ExpressResponse } from "../shared/types.js";
 import { orm } from "../orm.js";
 import { dateFromString } from "../dateExtension.js";
 
-
-const repository = new UsuarioRepository()
 
 type _Body = Omit<Partial<Usuario>,"_id">;
 
