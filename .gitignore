@@ -29,3 +29,5 @@ dist/**/*
 ## built vscode extensions
 *.vsix
 .vercel
+
+temp
