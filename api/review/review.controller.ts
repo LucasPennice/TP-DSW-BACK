@@ -1,20 +1,22 @@
 import { Request, Response } from "express";
 import { Review } from "./review.entity.js";
-import { ReviewRepository } from "./review.repository.js";
 import { ExpressResponse, UserRole } from "../shared/types.js";
 import { Usuario } from "../usuario/usuario.entity.js";
-import { UsuarioRepository } from "../usuario/usuario.repository.js";
+import { findOneUsuario} from "../usuario/usuario.controller.js"
+import { findOneCursado} from "../cursado/cursado.controller.js"
+import { orm } from "../orm.js";
+import { Cursado } from "../cursado/cursado.entity.js";
 
-const repository = new ReviewRepository()
-const repositoryUsuarios = new UsuarioRepository()
-
-type _Body = Partial<Review>
 
 async function findAll(req: Request, res: Response){
     try {
-        const response : Review[] | undefined = await repository.findAll()
+        const reviews : Review[] | undefined = await orm.em.findAll(Review, {
+            populate: ['*'],
+          })
 
-        const reponse : ExpressResponse<Review[]> = {message: "Reviews encontradas:", data: response}
+        await orm.em.flush();
+
+        const reponse : ExpressResponse<Review[]> = {message: "Reviews encontradas:", data: reviews}
         res.json(reponse)
     } catch (error) {
         const response : ExpressResponse<Review> = {message: String(error), data: undefined}
@@ -26,8 +28,11 @@ async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
  
     try {
-        const review : Review | undefined = await repository.findOne({_id})
-    
+        const review : Review | null = await orm.em.findOne(Review, _id, {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();
         if (!review){
             const response : ExpressResponse<Review> = {message: "Review no encontrada", data: undefined}
             return res.status(404).send(response)
@@ -43,20 +48,30 @@ async function add(req: Request, res: Response){
     const descripcion = req.body.descripcion as string
     const puntuacion = req.body.puntuacion as number
     const usuarioId = req.body.usuarioId as string;
+    const cursadoId = req.body.cursadoId as string;
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const usuario : Usuario | undefined = await repositoryUsuarios.findOne({_id: usuarioId})
+    const usuario : Usuario | null = await findOneUsuario(usuarioId)
 
     if (!usuario){
         const response : ExpressResponse<Usuario> = {message: "Usuario no Válido", data: undefined}
         return res.status(404).send(response)
     }
 
-    const nuevaReview = new Review(descripcion, puntuacion, usuario)
+    const cursado : Cursado | null = await findOneCursado(cursadoId)
+
+
+    if (!cursado){
+        const response : ExpressResponse<Usuario> = {message: "Cursado no Válido", data: undefined}
+        return res.status(404).send(response)
+    }
+
+    const nuevaReview = new Review(descripcion, puntuacion, usuario, cursado)
 
     try {
-        const response : ExpressResponse<Review> = {message: "Review creada", data: await repository.add(nuevaReview)}
+        await orm.em.persist(nuevaReview).flush();
+        const response : ExpressResponse<Review> = {message: "Review creada", data: nuevaReview}
         res.status(201).send(response)
     } catch (error) {
         const response : ExpressResponse<Review> = {message: String(error), data: undefined}
@@ -72,21 +87,20 @@ async function modify(req: Request, res: Response){
     const descripcion = req.body.descripcion as string
     const puntuacion = req.body.puntuacion as number
 
-    
-    const body: _Body ={
-        descripcion: descripcion,
-        puntuacion: puntuacion
-    }
 
     try {
-        const profesorModificado = await repository.update({_id}, body)
+        const reviewAModificar = orm.em.getReference(Review, _id);
         
-        if (!profesorModificado){
+        if (!reviewAModificar){
             const response : ExpressResponse<Review> = {message: "Review  no encontrada", data: undefined}
             return res.status(404).send(response)
         }
         
-        res.status(200).send({message:"Review modificada", data: profesorModificado})
+        if (descripcion) reviewAModificar.descripcion = descripcion
+        if (puntuacion) reviewAModificar.puntuacion = puntuacion
+        await orm.em.flush()
+
+        res.status(200).send({message:"Review modificada", data: reviewAModificar})
     } catch (error) {
         const response : ExpressResponse<Review> = {message: String(error), data: undefined}
         res.status(500).send(response)
@@ -97,14 +111,15 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const reviewBorrada = await repository.delete({_id})
+        const reviewABorrar = orm.em.getReference(Review, _id);
         
-        if(!reviewBorrada){
-            const response : ExpressResponse<Review> = {message: "Review no encontrado", data: undefined}
+        if(!reviewABorrar){
+            const response : ExpressResponse<Review> = {message: "Review no encontrada", data: undefined}
             return res.status(404).send(response)
         }
 
-        const response : ExpressResponse<Review> = {message: "Review borrado", data: reviewBorrada}
+        await orm.em.remove(reviewABorrar).flush();
+        const response : ExpressResponse<Review> = {message: "Review borrado", data: reviewABorrar}
         res.status(200).send(response)
 
     } catch (error) {

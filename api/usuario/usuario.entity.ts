@@ -16,13 +16,13 @@ export class Usuario {
     nombre: string;
 
     @Property()
-    apellido: string;
-
-    @Property()
     username: string;
 
     @Property()
-    fechaNacimiento: string; // "DD/MM/YYY"
+    apellido: string;
+
+    @Property()
+    fechaNacimiento : Date // "DD/MM/YYY"
 
     @Property()
     sexo: Sexo;
@@ -36,26 +36,15 @@ export class Usuario {
     @OneToMany(() => Review, (review) => review.usuario)
     reviews = new Collection<Review>(this);
 
-    @ManyToMany(() => Cursado, (cursado) => cursado.usuarios)
-    cursados = new Collection<Cursado>(this);
-
-    constructor(
-        nombre: string,
-        legajo: string,
-        apellido: string,
-        username: string,
-        fechaNacimiento: string,
-        rol: UserRole,
-        sexo: Sexo,
-        contraseña: string
-    ) {
-        this.nombre = nombre;
-        this.legajo = legajo;
-        this.apellido = apellido;
-        this.username = username;
-        this.fechaNacimiento = fechaNacimiento;
-        this.rol = rol;
-        this.sexo = sexo;
-        this.contraseña = contraseña;
+    
+    constructor(nombre: string, legajo: string, apellido: string, username: string, fechaNacimiento: Date, rol: UserRole, sexo: Sexo, contraseña: string) { 
+        this.nombre = nombre
+        this.legajo = legajo
+        this.apellido = apellido
+        this.username = username
+        this.fechaNacimiento = fechaNacimiento
+        this.rol = rol
+        this.sexo = sexo
+        this.contraseña = contraseña
     }
 }

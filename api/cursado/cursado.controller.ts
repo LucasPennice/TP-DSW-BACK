@@ -1,23 +1,23 @@
 import { NextFunction, Request, Response } from "express";
 import { Cursado } from "./cursado.entity.js";
-import { CursadoRepository } from "./cursado.repository.js";
 import { ExpressResponse } from "../shared/types.js";
 import { Materia } from "../materia/materia.entity.js";
-import {MateriaRepository} from "../materia/materia.repository.js" ;
+import {findOneMateria} from "../materia/materia.controller.js"
 import { Profesor } from "../profesor/profesor.entity.js";
-import { ProfesorRepository } from "../profesor/profesor.repository.js";
+import { orm } from "../orm.js";
+import { findOneProfesor } from "../profesor/profesor.controller.js";
 
-const repository = new CursadoRepository()
-const repositoryMaterias = new MateriaRepository()
-const repositoryProfesor = new ProfesorRepository()
-
-type _Body = Omit<Partial<Cursado>,"_id">;
 
 async function findAll(req: Request, res: Response){
+    
     try {
-        const data : Cursado[] = await repository.findAll() ?? []
-     
-        const response : ExpressResponse<Cursado[]> = {message: "Cursados Encontrados", data}
+        const cursados : Cursado[] | undefined = await orm.em.findAll(Cursado, {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();
+
+        const response : ExpressResponse<Cursado[]> = {message: "Cursados Encontrados", data: cursados}
         res.json(response)
     } catch (error) {
         const response : ExpressResponse<Cursado[]> = {message: String(error), data: undefined}
@@ -29,7 +29,11 @@ async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
     try {
-        const cursado : Cursado | undefined = await repository.findOne({_id})
+        const cursado : Cursado | null  = await orm.em.findOne(Cursado, _id, {
+            populate: ['*'],
+          })
+
+          await orm.em.flush();
         
         if (!cursado){
             const response : ExpressResponse<Cursado> = {message: "Cursado no Encontrada", data: undefined}
@@ -46,7 +50,8 @@ async function findOne(req: Request, res: Response){
 async function add(req: Request, res: Response){
 
     const diaCursado = req.body.diaCursado as string
-    const horaCursado = req.body.horaCursado as string
+    const horaInicio = req.body.horaInicio as string
+    const horaFin = req.body.horaFin as string
     const comision = req.body.comision as number
     const turno = req.body.turno as string
     const año = req.body.año as number
@@ -54,9 +59,9 @@ async function add(req: Request, res: Response){
     const profesorId = req.body.profesorId as string;
 
 
-    const materia : Materia | undefined = await repositoryMaterias.findOne({_id: materiaId})
+    const materia : Materia | null = await findOneMateria(materiaId)
 
-    const profesor : Profesor | undefined = await repositoryProfesor.findOne({_id: profesorId})
+    const profesor : Profesor | null = await findOneProfesor(profesorId)
 
     if (!materia){
         const response : ExpressResponse<Cursado> = {message: "Materia no Válida", data: undefined}
@@ -67,12 +72,12 @@ async function add(req: Request, res: Response){
         return res.status(404).send(response)
     }
 
-    const nuevoCursado = new Cursado(diaCursado, horaCursado, comision, turno, año, materia, profesor)
+    const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, materia, profesor)
 
     try {
-        const data : Cursado | undefined = await repository.add(nuevoCursado)
+        await orm.em.persist(nuevoCursado).flush();
 
-        const response : ExpressResponse<Cursado> = {message: "Cursado Creada", data}
+        const response : ExpressResponse<Cursado> = {message: "Cursado Creada", data: nuevoCursado}
         res.status(201).send(response)
     } catch (error) {
         const response : ExpressResponse<Cursado> = {message: String(error), data: undefined}
@@ -85,28 +90,33 @@ async function modify(req: Request, res: Response){
     const _id =  req.params.id as string
 
     const diaCursado = req.body.diaCursado as string | undefined
-    const horaCursado = req.body.horaCursado as string | undefined
+    const horaInicio = req.body.horaInicio as string | undefined
+    const horaFin = req.body.horaFin as string | undefined
     const comision = req.body.comision as number | undefined
     const turno = req.body.turno as string | undefined
     const año = req.body.año as number | undefined
     
-    const body: _Body = {
-        diaCursado: diaCursado,
-        horaCursado : horaCursado,
-        comision : comision,
-        turno : turno,
-        año : año,
-    }
 
     try {
-        const cursadoModificado : Cursado | undefined = await repository.update({_id}, body)
+        const cursadoAModificar : Cursado | undefined = orm.em.getReference(Cursado, _id);
+    
+        if(cursadoAModificar){
+            if (diaCursado) cursadoAModificar.diaCursado = diaCursado
+            if (horaInicio) cursadoAModificar.horaInicio = horaInicio
+            if (horaFin) cursadoAModificar.horaFin = horaFin
+            if (comision) cursadoAModificar.comision = comision
+            if (turno) cursadoAModificar.turno = turno
+            if (año) cursadoAModificar.año = año
+        }
+
+        await orm.em.flush()
         
-        if (!cursadoModificado){
+        if (!cursadoAModificar){
             const response : ExpressResponse<Cursado> = {message: String("Cursado no encontrada"), data: undefined}
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Cursado> = {message: String("Cursado modificada"), data: cursadoModificado}
+        const response : ExpressResponse<Cursado> = {message: String("Cursado modificada"), data: cursadoAModificar}
         res.status(200).send(response)
     } catch (error) {
         const response : ExpressResponse<Cursado> = {message: String(error), data: undefined}
@@ -118,14 +128,18 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const cursadoBorrado : Cursado | undefined = await repository.delete({_id})
+        
+        const cursadoABorrar = orm.em.getReference(Cursado, _id);
+        
     
-        if(!cursadoBorrado){
-            const response : ExpressResponse<Cursado> = {message: "Cursado no encontrada", data: undefined}
+        if(!cursadoABorrar){
+            const response : ExpressResponse<Cursado> = {message: "Cursado no encontrado", data: undefined}
             return res.status(404).send(response)
         }
 
-        const response : ExpressResponse<Cursado> = {message: String("Cursado Borrada"), data: cursadoBorrado}
+        await orm.em.remove(cursadoABorrar).flush();
+
+        const response : ExpressResponse<Cursado> = {message: String("Cursado Borrado"), data: cursadoABorrar}
         res.status(200).send(response)
     } catch (error) {
         const response : ExpressResponse<Cursado> = {message: String(error), data: undefined}
@@ -133,4 +147,23 @@ async function delete_(req: Request, res: Response){
     }
 }
 
-export{findAll, findOne, add, modify, delete_}
+
+
+async function findOneCursado(_id: string ): Promise<Cursado | null> {
+    try {
+        const cursado: Cursado | null =  await orm.em.findOne(Cursado, _id, {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();
+        return cursado;
+
+    } catch (error) {
+        throw new Error("Error al buscar el cursado");
+    }
+}
+
+
+export{findAll, findOne, add, modify, delete_, findOneCursado}
+
+// agregar para buscar por comision + año + materia
