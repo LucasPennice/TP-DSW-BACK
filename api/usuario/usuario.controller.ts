@@ -3,6 +3,8 @@ import { Usuario } from "./usuario.entity.js";
 import { UsuarioRepository } from "./usuario.repository.js";
 import { Sexo, UserRole } from "../shared/types.js";
 import { ExpressResponse } from "../shared/types.js";
+import { orm } from "../orm.js";
+import { dateFromString } from "../dateExtension.js";
 
 
 const repository = new UsuarioRepository()
@@ -11,9 +13,13 @@ type _Body = Omit<Partial<Usuario>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {
-        const response : Usuario[] = await repository.findAll() ?? []
+        const usuarios : Usuario[] = await orm.em.findAll(Usuario, {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();
      
-        const reponse : ExpressResponse<Usuario[]> = {message: "Usuarios encontrados:", data: response}
+        const reponse : ExpressResponse<Usuario[]> = {message: "Usuarios encontrados:", data: usuarios}
         res.json(reponse)
     } catch (error) {
         const reponse : ExpressResponse<Usuario> = {message: String(error), data: undefined}
@@ -26,7 +32,7 @@ async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
     try {
-        const usuario : Usuario | undefined = await repository.findOne({_id})
+        const usuario = await findOneUsuario(_id)
         
         if (!usuario){
             const reponse : ExpressResponse<Usuario> = {message: "Usuario no encontrado", data: undefined}
@@ -47,14 +53,16 @@ async function add(req: Request, res: Response){
     const contraseña = req.body.contraseña as string
     const fechaNacimiento = req.body.fechaNacimiento as string
     const rol = req.body.rol as UserRole
-    const sexo = req.body.sexo as Sexo
+    const sexoTentativo = req.body.sexo as string
+    const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
 
     // 🚨 VALIDAR CON ZOD 🚨
     
-    const nuevoUsuario = new Usuario(nombre, legajo , apellido, username, fechaNacimiento, rol, sexo, contraseña)
+    const nuevoUsuario = new Usuario(nombre, legajo , apellido, username, dateFromString(fechaNacimiento), rol, sexo, contraseña)
 
     try {
-        const reponse : ExpressResponse<Usuario> = {message: "Usuario creada", data: await repository.add(nuevoUsuario)}
+        await orm.em.persist(nuevoUsuario).flush();
+        const reponse : ExpressResponse<Usuario> = {message: "Usuario creado", data: nuevoUsuario}
 
         res.status(201).send(reponse)
     } catch (error) {
@@ -72,31 +80,36 @@ async function modify(req: Request, res: Response){
     const legajo = req.body.legajo as string | undefined
     const apellido = req.body.apellido as string | undefined
     const username = req.body.username as string | undefined
-    const fechaNacimiento = req.body.fechaNacimiento as string | undefined
+    const fechaNacimiento = dateFromString(req.body.fechaNacimiento) as Date | undefined
     const rol = req.body.rol as UserRole | undefined
-    const sexo = req.body.sexo as Sexo | undefined
+    const sexoTentativo = req.body.sexo as string | undefined
     const contraseña = req.body.contraseña as string | undefined
     
-    const body: _Body ={
-        nombre: nombre,
-        legajo: legajo,
-        apellido: apellido,
-        username: username,
-        fechaNacimiento: fechaNacimiento,
-        rol: rol,
-        sexo: sexo
-    }
 
     try {
-        const usuarioModificado = await repository.update({_id}, body)
+        const usuarioAModificar =  orm.em.getReference(Usuario, _id);
         
-        if (!usuarioModificado){
+        if (!usuarioAModificar){
             const response : ExpressResponse<Usuario> = {message: "Usuario no encontrado", data: undefined}
             
             return res.status(404).send(response)
         }
+
+        if (nombre) usuarioAModificar.nombre = nombre
+        if (legajo) usuarioAModificar.legajo = legajo
+        if(apellido) usuarioAModificar.apellido = apellido
+        if(username) usuarioAModificar.username = username
+        if(contraseña) usuarioAModificar.contraseña = contraseña
+        if(fechaNacimiento) usuarioAModificar.fechaNacimiento = fechaNacimiento
+        if(rol) usuarioAModificar.rol = rol
+        if (sexoTentativo) 
+            {const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
+                usuarioAModificar.sexo = sexo
+            }
         
-        const response : ExpressResponse<Usuario> = {message: "Usuario modificado", data: usuarioModificado}
+        await orm.em.flush()
+
+        const response : ExpressResponse<Usuario> = {message: "Usuario modificado", data: usuarioAModificar}
         res.status(200).send(response)
     } catch (error) {
 
@@ -109,14 +122,16 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const usuarioBorrado = await repository.delete({_id})
+        const usuraioABorrar = orm.em.getReference(Usuario, _id);
     
-        if(!usuarioBorrado){
+        if(!usuraioABorrar){
             const response : ExpressResponse<Usuario> = {message: "Usuario no encontrado", data: undefined}
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Usuario> = {message: "Usuario borrado", data: usuarioBorrado}
+        await orm.em.remove(usuraioABorrar).flush();
+
+        const response : ExpressResponse<Usuario> = {message: "Usuario borrado", data: usuraioABorrar}
         res.status(200).send(response)
     } catch (error) {
 
@@ -125,4 +140,20 @@ async function delete_(req: Request, res: Response){
     }
 }
 
-export{findAll, findOne, add, modify, delete_}
+async function findOneUsuario(_id: string ): Promise<Usuario | null> {
+    try {
+        const usuario: Usuario | null =  await orm.em.findOne(Usuario, _id, {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();
+        return usuario;
+
+    } catch (error) {
+        throw new Error("Error al buscar el usuario");
+    }
+}
+
+
+
+export{findAll, findOne, add, modify, delete_, findOneUsuario}

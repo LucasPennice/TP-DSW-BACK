@@ -22,7 +22,7 @@ export class Usuario{
     username : string
 
     @Property()
-    fechaNacimiento : string // "DD/MM/YYY"
+    fechaNacimiento : Date // "DD/MM/YYY"
 
     @Property()
     sexo : Sexo
@@ -36,10 +36,8 @@ export class Usuario{
     @OneToMany(() => Review, review => review.usuario)
     reviews = new Collection<Review>(this);
 
-    @ManyToMany(() => Cursado, cursado => cursado.usuarios)
-    cursados = new Collection<Cursado>(this);
     
-    constructor(nombre: string, legajo: string, apellido: string, username: string, fechaNacimiento: string, rol: UserRole, sexo: Sexo, contraseña: string) { 
+    constructor(nombre: string, legajo: string, apellido: string, username: string, fechaNacimiento: Date, rol: UserRole, sexo: Sexo, contraseña: string) { 
         this.nombre = nombre
         this.legajo = legajo
         this.apellido = apellido

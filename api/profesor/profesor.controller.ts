@@ -2,20 +2,19 @@ import { Request, Response } from "express";
 import { dateFromString } from "../dateExtension.js";
 import { Sexo } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
-import { ProfesorRepository } from "./profesor.repository.js";
 import { ExpressResponse } from "../shared/types.js";
-import { Collection } from "@mikro-orm/core";
-import { Cursado } from "../cursado/cursado.entity.js";
+import { orm } from "../orm.js";
 
-const repository = new ProfesorRepository()
-
-type _Body = Omit<Partial<Profesor>,"_id">;
 
 async function findAll(req: Request, res: Response){
     try {
-        const response : Profesor[] | undefined = await repository.findAll()
+        const profesores : Profesor[] | undefined = await orm.em.findAll(Profesor, {
+            populate: ['*'],
+          })
 
-        const reponse : ExpressResponse<Profesor[]> = {message: "Profesores encontrados:", data: response}
+        await orm.em.flush();
+        
+        const reponse : ExpressResponse<Profesor[]> = {message: "Profesores encontrados:", data: profesores}
         res.json(reponse)
     } catch (error) {
         const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
@@ -27,7 +26,7 @@ async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
  
     try {
-        const profesor : Profesor | undefined = await repository.findOne({_id})
+        const profesor = await findOneProfesor(_id)
     
         if (!profesor){
             const response : ExpressResponse<Profesor> = {message: "Profesor no encontrado", data: undefined}
@@ -41,6 +40,7 @@ async function findOne(req: Request, res: Response){
 }
 
 async function add(req: Request, res: Response){
+    
     const nombre = req.body.nombre as string
     const apellido = req.body.apellido as string
     const fechaNacimiento = req.body.fechaNacimiento as string // DD/MM/AAAA
@@ -53,10 +53,10 @@ async function add(req: Request, res: Response){
     
     const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, puntuacionGeneral ?? 0, sexo)
 
-    console.log(JSON.stringify(nuevoProfesor))
     
     try {
-        const response : ExpressResponse<Profesor> = {message: "Profesor creado", data: await repository.add(nuevoProfesor)}
+        await orm.em.persist(nuevoProfesor).flush();
+        const response : ExpressResponse<Profesor> = {message: "Profesor creado", data: nuevoProfesor}
         res.status(201).send(response)
     } catch (error) {
         const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
@@ -71,22 +71,32 @@ async function modify(req: Request, res: Response){
 
     const nombre = req.body.nombre as string | undefined
     const apellido = req.body.apellido as string | undefined
+    const fechaNacimiento = dateFromString(req.body.fechaNacimiento) as Date | undefined // DD/MM/AAAA | undefined
+    const dni = req.body.dni as number | undefined
+    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
+    const sexoTentativo = req.body.sexo as string | undefined
 
     
-    const body: _Body ={
-        nombre: nombre,
-        apellido: apellido,
-    }
-
     try {
-        const profesorModificado = await repository.update({_id}, body)
+        const profesorAModificar = orm.em.getReference(Profesor, _id);
         
-        if (!profesorModificado){
+        if (!profesorAModificar){
             const response : ExpressResponse<Profesor> = {message: "Profesor  no encontrado", data: undefined}
             return res.status(404).send(response)
         }
+
+        if (fechaNacimiento) profesorAModificar.fechaNacimiento = fechaNacimiento
+        if (nombre) profesorAModificar.nombre = nombre
+        if (apellido) profesorAModificar.apellido = apellido
+        if (dni) profesorAModificar.dni = dni
+        if (puntuacionGeneral) profesorAModificar.puntuacionGeneral = puntuacionGeneral
+        if (sexoTentativo) 
+            {const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
+            profesorAModificar.sexo = sexo
+            }
         
-        res.status(200).send({message:"profesor modificado", data: profesorModificado})
+        await orm.em.flush()    
+        res.status(200).send({message:"Profesor modificado", data: profesorAModificar})
     } catch (error) {
         const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
         res.status(500).send(response)
@@ -97,14 +107,16 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const profesorBorrado = await repository.delete({_id})
+        const profesorABorrar = orm.em.getReference(Profesor, _id);
         
-        if(!profesorBorrado){
+        if(!profesorABorrar){
             const response : ExpressResponse<Profesor> = {message: "Profesor no encontrado", data: undefined}
             return res.status(404).send(response)
         }
 
-        const response : ExpressResponse<Profesor> = {message: "Profesor borrado", data: profesorBorrado}
+        await orm.em.remove(profesorABorrar).flush();
+
+        const response : ExpressResponse<Profesor> = {message: "Profesor borrado", data: profesorABorrar}
         res.status(200).send(response)
 
     } catch (error) {
@@ -113,4 +125,18 @@ async function delete_(req: Request, res: Response){
     }
 }
 
-export { add, delete_, findAll, findOne, modify };
+
+async function findOneProfesor(_id: string ): Promise<Profesor | null> {
+    try {
+        const profesor: Profesor | null = await orm.em.findOne(Profesor, _id,  {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();
+        return profesor;
+    } catch (error) {
+        throw new Error("Error al buscar al profesor");
+    }
+}
+
+export { add, delete_, findAll, findOne, modify, findOneProfesor };

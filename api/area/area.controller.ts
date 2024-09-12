@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import { Area } from "./area.entity.js";
-import { AreaRepository } from "./area.repository.js";
 import { ExpressResponse } from "../shared/types.js";
-
-const repository = new AreaRepository()
+import { orm } from "../orm.js";
 
 /*
 function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
@@ -20,13 +18,15 @@ function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
 }
 */ 
 
-type _Body = Omit<Partial<Area>,"_id">;
-
 async function findAll(req: Request, res: Response){
     try {
-        const response : Area[] = await repository.findAll() ?? []
+        const areas : Area[] = await orm.em.findAll(Area, {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();  
      
-        const reponse : ExpressResponse<Area[]> = {message: "Areas encontradas:", data: response}
+        const reponse : ExpressResponse<Area[]> = {message: "Areas encontradas:", data: areas}
         res.json(reponse)
     } catch (error) {
         const reponse : ExpressResponse<Area> = {message: String(error), data: undefined}
@@ -38,8 +38,7 @@ async function findOne(req: Request, res: Response){
     const _id =  req.params.id 
 
     try {
-        const area : Area | undefined = await repository.findOne({_id})
-        
+        const area = findOneArea(_id);
         if (!area){
             const reponse : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
             return res.status(404).send(reponse)
@@ -58,7 +57,12 @@ async function add(req: Request, res: Response){
     
     const nuevoArea = new Area(nombre)
     try {
-        const reponse : ExpressResponse<Area> = {message: "Area creada", data: await repository.add(nuevoArea)}
+        
+        // esta bien asi?
+
+        await orm.em.persist(nuevoArea).flush()
+
+        const reponse : ExpressResponse<Area> = {message: "Area creada", data: nuevoArea }
 
         res.status(201).send(reponse)
     } catch (error) {
@@ -74,18 +78,21 @@ async function modify(req: Request, res: Response){
 
     const nombre = req.body.nombre as string | undefined
     
-    const body: _Body = {nombre: nombre}
 
     try {
-        const areaModificada = await repository.update({_id}, body)
-        
-        if (!areaModificada){
+        const areaAModificar = orm.em.getReference(Area, _id)
+
+        if (!areaAModificar){
             const response : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
             
             return res.status(404).send(response)
         }
+       
+        if (nombre) areaAModificar.nombre = nombre
+            await orm.em.flush()
+    
         
-        const response : ExpressResponse<Area> = {message: "Area modificada", data: areaModificada}
+        const response : ExpressResponse<Area> = {message: "Area modificada", data: areaAModificar}
         res.status(200).send(response)
     } catch (error) {
 
@@ -98,14 +105,16 @@ async function delete_(req: Request, res: Response){
     const _id =  req.params.id as string;
 
     try {
-        const areaBorrada = await repository.delete({_id})
+        const areaABorrar = orm.em.getReference(Area, _id);
     
-        if(!areaBorrada){
+        if(!areaABorrar){
             const response : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
             return res.status(404).send(response)
         }
         
-        const response : ExpressResponse<Area> = {message: "Area borrada", data: areaBorrada}
+        await orm.em.remove(areaABorrar).flush();
+
+        const response : ExpressResponse<Area> = {message: "Area borrada", data: areaABorrar}
         res.status(200).send(response)
     } catch (error) {
 
@@ -114,4 +123,18 @@ async function delete_(req: Request, res: Response){
     }
 }
 
-export { add, delete_, findAll, findOne, modify };
+
+async function findOneArea(_id: string ): Promise<Area | null> {
+    try {
+        const area: Area | null = await orm.em.findOne(Area, _id, {
+            populate: ['*'],
+          })
+
+        await orm.em.flush();
+        return area ;
+    } catch (error) {
+        throw new Error("Error al buscar el area");
+    }
+}
+
+export { add, delete_, findAll, findOne, modify, findOneArea };

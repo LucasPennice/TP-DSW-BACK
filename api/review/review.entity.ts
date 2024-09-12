@@ -1,6 +1,7 @@
 import { Entity, ManyToOne, PrimaryKey, Property, Rel } from '@mikro-orm/core';
 import { v4 } from 'uuid';
 import { Usuario } from '../usuario/usuario.entity.js';
+import { Cursado } from '../cursado/cursado.entity.js';
 
 @Entity()
 export class Review{
@@ -16,10 +17,14 @@ export class Review{
     @ManyToOne({entity: () => Usuario})
     usuario!: Rel<Usuario>;
 
-    constructor(descripcion: string, puntuacion: number, usuario: Usuario) { 
+    @ManyToOne({entity: () => Cursado})
+    cursado!: Rel<Cursado>;
+
+    constructor(descripcion: string, puntuacion: number, usuario: Usuario, cursado: Cursado) { 
         this.descripcion = descripcion
         this.puntuacion = puntuacion
-        this.usuario = usuario
+        this.usuario = usuario,
+        this.cursado = cursado
     }
 
 }
