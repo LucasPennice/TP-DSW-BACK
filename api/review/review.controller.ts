@@ -6,6 +6,61 @@ import { findOneUsuario } from "../usuario/usuario.controller.js";
 import { findOneCursado } from "../cursado/cursado.controller.js";
 import { orm } from "../orm.js";
 import { Cursado } from "../cursado/cursado.entity.js";
+//@ts-ignore
+import profanity from "bad-words-es";
+
+var filter = new profanity({ languages: ["es"] });
+
+filter.addWords(
+    "boludo",
+    "boluda",
+    "pelotudo",
+    "pelotuda",
+    "forro",
+    "forra",
+    "ganso",
+    "gansa",
+    "mogolico",
+    "mogolica",
+    "mogólico",
+    "mogólica",
+    "choto",
+    "chota",
+    "gil",
+    "ñoqui",
+    "noqui",
+    "puto",
+    "puta",
+    "tarado",
+    "tarada",
+    "vago",
+    "vaga",
+    "estupido",
+    "estupida",
+    "estúpido",
+    "estúpida",
+    "idiota",
+    "imbecil",
+    "imbécil",
+    "pajero",
+    "pajera",
+    "cagon",
+    "cagona",
+    "cagón",
+    "cagona",
+    "chupamedias",
+    "alcahuete",
+    "alcahueta",
+    "cornudo",
+    "cornuda",
+    "facho",
+    "facha",
+    "bolacero",
+    "bolacera",
+    "pija",
+    "poronga",
+    "sorete"
+);
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -67,6 +122,9 @@ async function add(req: Request, res: Response) {
     const usuarioId = req.body.usuarioId as string;
     const cursadoId = req.body.cursadoId as string;
 
+    const reviewLimpia = filter.clean(descripcion);
+    const censurada = reviewLimpia != descripcion;
+
     // 🚨 VALIDAR CON ZOD 🚨
 
     const usuario: Usuario | null = await findOneUsuario(usuarioId);
@@ -83,7 +141,7 @@ async function add(req: Request, res: Response) {
         return res.status(404).send(response);
     }
 
-    const nuevaReview = new Review(descripcion, puntuacion, usuario, cursado);
+    const nuevaReview = new Review(reviewLimpia, puntuacion, usuario, cursado, censurada);
 
     try {
         await orm.em.persist(nuevaReview).flush();

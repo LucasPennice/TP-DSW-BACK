@@ -20,6 +20,9 @@ importers:
       '@mikro-orm/reflection':
         specifier: ^6.2.9
         version: 6.3.9(@mikro-orm/core@6.3.9)
+      bad-words-es:
+        specifier: ^1.0.0
+        version: 1.0.0
       body-parser:
         specifier: ^1.20.2
         version: 1.20.3
@@ -225,6 +228,13 @@ packages:
   array-union@2.1.0:
     resolution: {integrity: sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==}
     engines: {node: '>=8'}
+
+  bad-words-es@1.0.0:
+    resolution: {integrity: sha512-mz/lE8jkzWVwHBvh8tdhA0FItm4pm77INqekPgxhGuKyvmQk0onW5lwaJTVoT8uMBbZn27o8Gjh10sv2xpy83g==}
+    engines: {node: '>=8.0.0'}
+
+  badwords-list@1.0.0:
+    resolution: {integrity: sha512-oWhaSG67e+HQj3OGHQt2ucP+vAPm1wTbdp2aDHeuh4xlGXBdWwzZ//pfu6swf5gZ8iX0b7JgmSo8BhgybbqszA==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -1013,6 +1023,12 @@ snapshots:
   array-flatten@1.1.1: {}
 
   array-union@2.1.0: {}
+
+  bad-words-es@1.0.0:
+    dependencies:
+      badwords-list: 1.0.0
+
+  badwords-list@1.0.0: {}
 
   balanced-match@1.0.2: {}
 

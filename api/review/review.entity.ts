@@ -15,6 +15,9 @@ export class Review {
     puntuacion: number;
 
     @Property()
+    censurada: boolean;
+
+    @Property()
     borradoLogico: boolean;
 
     @ManyToOne({ entity: () => Usuario })
@@ -23,11 +26,12 @@ export class Review {
     @ManyToOne({ entity: () => Cursado })
     cursado!: Rel<Cursado>;
 
-    constructor(descripcion: string, puntuacion: number, usuario: Usuario, cursado: Cursado) {
+    constructor(descripcion: string, puntuacion: number, usuario: Usuario, cursado: Cursado, censurada: boolean) {
         this.descripcion = descripcion;
         this.puntuacion = puntuacion;
         this.usuario = usuario;
         this.cursado = cursado;
         this.borradoLogico = false;
+        this.censurada = censurada;
     }
 }
