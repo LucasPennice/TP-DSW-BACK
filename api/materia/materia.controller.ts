@@ -70,7 +70,13 @@ async function add(req: Request, res: Response) {
     }
 
     const nuevaMateria = new Materia(nombre, area);
+
     try {
+        let materiasMatch: Materia[] = await orm.em.findAll(Materia, { where: { nombre } });
+        if (materiasMatch.length != 0) {
+            throw new Error("Ya hay una materia con ese nombre");
+        }
+
         await orm.em.persist(nuevaMateria).flush();
 
         const response: ExpressResponse<Materia> = { message: "Materia Creada", data: nuevaMateria };

@@ -75,6 +75,11 @@ async function add(req: Request, res: Response) {
 
     const nuevoArea = new Area(nombre);
     try {
+        let areasMatch: Area[] = await orm.em.findAll(Area, { where: { nombre } });
+        if (areasMatch.length != 0) {
+            throw new Error("Ya hay un area con ese nombre");
+        }
+
         await orm.em.persist(nuevoArea).flush();
 
         const reponse: ExpressResponse<Area> = { message: "Area creada", data: nuevoArea };
