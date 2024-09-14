@@ -74,41 +74,54 @@ async function add(req: Request, res: Response) {
     const materiaId = req.body.materiaId as string;
     const profesorId = req.body.profesorId as string;
 
-    const materia: Materia | null = await findOneMateria(materiaId);
-
-    const profesor: Profesor | null = await findOneProfesor(profesorId);
-
-    if (tipoCursado != TipoCursado.Practica && tipoCursado != TipoCursado.Teoria) {
-        const response: ExpressResponse<Cursado> = {
-            message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
-            data: undefined,
-        };
-        return res.status(404).send(response);
-    }
-
-    if (!materia || materia.borradoLogico == true) {
-        const response: ExpressResponse<Cursado> = { message: "Materia no Válida", data: undefined };
-        return res.status(404).send(response);
-    }
-    if (!profesor || profesor.borradoLogico == true) {
-        const response: ExpressResponse<Cursado> = { message: "Profesor no Válido", data: undefined };
-        return res.status(404).send(response);
-    }
-
-    const cursadoSuperpuesto = profesor.cursados.find((cursado) => {
-        if (cursado.año == año && cursado.diaCursado == diaCursado && !(horaFin < cursado.horaInicio || cursado.horaFin < horaInicio)) return true;
-
-        return false;
-    });
-
-    if (cursadoSuperpuesto) {
-        const response: ExpressResponse<Cursado> = { message: "Este profesor ya tiene un cursado en ese dia y horario", data: undefined };
-        return res.status(404).send(response);
-    }
-
-    const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, materia, profesor, tipoCursado);
-
     try {
+        const materia: Materia | null = await findOneMateria(materiaId);
+
+        const profesor: Profesor | null = await findOneProfesor(profesorId);
+
+        if (tipoCursado != TipoCursado.Practica && tipoCursado != TipoCursado.Teoria) {
+            const response: ExpressResponse<Cursado> = {
+                message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
+                data: undefined,
+            };
+            return res.status(404).send(response);
+        }
+
+        if (!materia || materia.borradoLogico == true) {
+            const response: ExpressResponse<Cursado> = { message: "Materia no Válida", data: undefined };
+            return res.status(404).send(response);
+        }
+        if (!profesor || profesor.borradoLogico == true) {
+            const response: ExpressResponse<Cursado> = { message: "Profesor no Válido", data: undefined };
+            return res.status(404).send(response);
+        }
+
+        const matches = await buscarCursadosPorAtributos(comision, año, materia._id);
+
+        // No me deja meter mas de dos cursados por Comision + Año + Materia
+        if (matches.length >= 2) {
+            throw new Error("Ya hay dos cursados para esa Comision + Año + Materia");
+        }
+
+        // No me deja poner dos profesores del mismo tipo
+        if (matches.length != 0 && matches[0].tipoCursado == tipoCursado) {
+            throw new Error(`Ya existe un profesor del tipo ${tipoCursado} en esa Comision + Año + Materia`);
+        }
+
+        const cursadoSuperpuesto = profesor.cursados.find((cursado) => {
+            if (cursado.año == año && cursado.diaCursado == diaCursado && !(horaFin < cursado.horaInicio || cursado.horaFin < horaInicio))
+                return true;
+
+            return false;
+        });
+
+        if (cursadoSuperpuesto) {
+            const response: ExpressResponse<Cursado> = { message: "Este profesor ya tiene un cursado en ese dia y horario", data: undefined };
+            return res.status(404).send(response);
+        }
+
+        const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, materia, profesor, tipoCursado);
+
         await orm.em.persist(nuevoCursado).flush();
 
         const response: ExpressResponse<Cursado> = { message: "Cursado Creada", data: nuevoCursado };
@@ -209,4 +222,22 @@ async function findOneCursado(_id: string): Promise<Cursado | null> {
     }
 }
 
-export { findAll, findOne, add, modify, delete_, findOneCursado, findAllConBorrado };
+async function buscarCursadosPorAtributos(comision: number, año: number, materiaId: string): Promise<Cursado[]> {
+    try {
+        const materia: Materia | null = await findOneMateria(materiaId);
+
+        if (!materia) {
+            throw new Error("Materia borrada");
+        }
+
+        const cursados: Cursado[] = await orm.em.findAll(Cursado, { where: { comision, año, materia }, populate: ["*"] });
+
+        await orm.em.flush();
+        return cursados;
+    } catch (error) {
+        console.error(new Error("Error al buscar el cursado"));
+        return [];
+    }
+}
+
+export { findAll, findOne, add, modify, delete_, findOneCursado, findAllConBorrado, buscarCursadosPorAtributos };
