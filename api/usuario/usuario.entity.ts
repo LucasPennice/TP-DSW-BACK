@@ -1,8 +1,7 @@
-import { Collection, Entity, ManyToMany, OneToMany, PrimaryKey, Property } from "@mikro-orm/core";
+import { Collection, Entity, OneToMany, PrimaryKey, Property } from "@mikro-orm/core";
 import { v4 } from "uuid";
-import { Sexo, UserRole } from "../shared/types.js";
 import { Review } from "../review/review.entity.js";
-import { Cursado } from "../cursado/cursado.entity.js";
+import { Sexo, UserRole } from "../shared/types.js";
 
 @Entity()
 export class Usuario {
@@ -22,7 +21,7 @@ export class Usuario {
     apellido: string;
 
     @Property()
-    fechaNacimiento : Date // "DD/MM/YYY"
+    fechaNacimiento: Date; // "DD/MM/YYY"
 
     @Property()
     sexo: Sexo;
@@ -33,18 +32,30 @@ export class Usuario {
     @Property()
     contraseña: string;
 
+    @Property()
+    borradoLogico: boolean;
+
     @OneToMany(() => Review, (review) => review.usuario)
     reviews = new Collection<Review>(this);
 
-    
-    constructor(nombre: string, legajo: string, apellido: string, username: string, fechaNacimiento: Date, rol: UserRole, sexo: Sexo, contraseña: string) { 
-        this.nombre = nombre
-        this.legajo = legajo
-        this.apellido = apellido
-        this.username = username
-        this.fechaNacimiento = fechaNacimiento
-        this.rol = rol
-        this.sexo = sexo
-        this.contraseña = contraseña
+    constructor(
+        nombre: string,
+        legajo: string,
+        apellido: string,
+        username: string,
+        fechaNacimiento: Date,
+        rol: UserRole,
+        sexo: Sexo,
+        contraseña: string
+    ) {
+        this.nombre = nombre;
+        this.legajo = legajo;
+        this.apellido = apellido;
+        this.username = username;
+        this.fechaNacimiento = fechaNacimiento;
+        this.rol = rol;
+        this.sexo = sexo;
+        this.contraseña = contraseña;
+        this.borradoLogico = false;
     }
 }

@@ -16,124 +16,119 @@ function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
     })
     next()
 }
-*/ 
+*/
 
-async function findAll(req: Request, res: Response){
+async function findAll(req: Request, res: Response) {
     try {
-        const areas : Area[] = await orm.em.findAll(Area, {
-            populate: ['*'],
-          })
+        const areas: Area[] = await orm.em.findAll(Area, {
+            populate: ["*"],
+        });
 
-        await orm.em.flush();  
-     
-        const reponse : ExpressResponse<Area[]> = {message: "Areas encontradas:", data: areas}
-        res.json(reponse)
+        await orm.em.flush();
+
+        const reponse: ExpressResponse<Area[]> = { message: "Areas encontradas:", data: areas };
+        res.json(reponse);
     } catch (error) {
-        const reponse : ExpressResponse<Area> = {message: String(error), data: undefined}
-        res.status(500).send(reponse)   
+        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
+        res.status(500).send(reponse);
     }
 }
 
-async function findOne(req: Request, res: Response){
-    const _id =  req.params.id 
+async function findOne(req: Request, res: Response) {
+    const _id = req.params.id;
 
     try {
         const area = findOneArea(_id);
-        if (!area){
-            const reponse : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
-            return res.status(404).send(reponse)
+        if (!area) {
+            const reponse: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
+            return res.status(404).send(reponse);
         }
-        res.json({data:area})
+        res.json({ data: area });
     } catch (error) {
-        const reponse : ExpressResponse<Area> = {message: String(error), data: undefined}
-        res.status(500).send(reponse)   
+        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
+        res.status(500).send(reponse);
     }
 }
 
-async function add(req: Request, res: Response){
-    const nombre = req.body.nombre as string
+async function add(req: Request, res: Response) {
+    const nombre = req.body.nombre as string;
 
     // 🚨 VALIDAR CON ZOD 🚨
-    
-    const nuevoArea = new Area(nombre)
+
+    const nuevoArea = new Area(nombre);
     try {
-        
         // esta bien asi?
 
-        await orm.em.persist(nuevoArea).flush()
+        await orm.em.persist(nuevoArea).flush();
 
-        const reponse : ExpressResponse<Area> = {message: "Area creada", data: nuevoArea }
+        const reponse: ExpressResponse<Area> = { message: "Area creada", data: nuevoArea };
 
-        res.status(201).send(reponse)
+        res.status(201).send(reponse);
     } catch (error) {
-        const reponse : ExpressResponse<Area> = {message: String(error), data: undefined}
+        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
 
-        res.status(500).send(reponse)   
+        res.status(500).send(reponse);
     }
 }
 
+async function modify(req: Request, res: Response) {
+    const _id = req.params.id as string;
 
-async function modify(req: Request, res: Response){
-    const _id =  req.params.id as string
-
-    const nombre = req.body.nombre as string | undefined
-    
+    const nombre = req.body.nombre as string | undefined;
 
     try {
-        const areaAModificar = orm.em.getReference(Area, _id)
+        const areaAModificar = orm.em.getReference(Area, _id);
 
-        if (!areaAModificar){
-            const response : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
-            
-            return res.status(404).send(response)
+        if (!areaAModificar) {
+            const response: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
+
+            return res.status(404).send(response);
         }
-       
-        if (nombre) areaAModificar.nombre = nombre
-            await orm.em.flush()
-    
-        
-        const response : ExpressResponse<Area> = {message: "Area modificada", data: areaAModificar}
-        res.status(200).send(response)
-    } catch (error) {
 
-        const response : ExpressResponse<Area> = {message: String(error), data: undefined}
-        res.status(500).send(response)   
+        if (nombre) areaAModificar.nombre = nombre;
+        await orm.em.flush();
+
+        const response: ExpressResponse<Area> = { message: "Area modificada", data: areaAModificar };
+        res.status(200).send(response);
+    } catch (error) {
+        const response: ExpressResponse<Area> = { message: String(error), data: undefined };
+        res.status(500).send(response);
     }
 }
 
-async function delete_(req: Request, res: Response){
-    const _id =  req.params.id as string;
+async function delete_(req: Request, res: Response) {
+    const _id = req.params.id as string;
 
     try {
         const areaABorrar = orm.em.getReference(Area, _id);
-    
-        if(!areaABorrar){
-            const response : ExpressResponse<Area> = {message: "Area no encontrada", data: undefined}
-            return res.status(404).send(response)
+
+        if (!areaABorrar) {
+            const response: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
+            return res.status(404).send(response);
         }
-        
-        await orm.em.remove(areaABorrar).flush();
 
-        const response : ExpressResponse<Area> = {message: "Area borrada", data: areaABorrar}
-        res.status(200).send(response)
+        areaABorrar.borradoLogico = true;
+        await orm.em.flush();
+
+        const response: ExpressResponse<Area> = { message: "Area borrada", data: areaABorrar };
+        res.status(200).send(response);
     } catch (error) {
-
-        const response : ExpressResponse<Area> = {message: String(error), data: undefined}
-        res.status(500).send(response)   
+        const response: ExpressResponse<Area> = { message: String(error), data: undefined };
+        res.status(500).send(response);
     }
 }
 
-
-async function findOneArea(_id: string ): Promise<Area | null> {
+async function findOneArea(_id: string): Promise<Area | null> {
     try {
         const area: Area | null = await orm.em.findOne(Area, _id, {
-            populate: ['*'],
-          })
+            populate: ["*"],
+        });
 
         await orm.em.flush();
-        return area ;
+        return area;
     } catch (error) {
-        throw new Error("Error al buscar el area");
+        console.error(new Error("Error al buscar el area"));
+        return null;
     }
 }
 

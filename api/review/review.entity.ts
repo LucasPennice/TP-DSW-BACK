@@ -1,30 +1,32 @@
-import { Entity, ManyToOne, PrimaryKey, Property, Rel } from '@mikro-orm/core';
-import { v4 } from 'uuid';
-import { Usuario } from '../usuario/usuario.entity.js';
-import { Cursado } from '../cursado/cursado.entity.js';
+import { Entity, ManyToOne, PrimaryKey, Property, Rel } from "@mikro-orm/core";
+import { v4 } from "uuid";
+import { Usuario } from "../usuario/usuario.entity.js";
+import { Cursado } from "../cursado/cursado.entity.js";
 
 @Entity()
-export class Review{
-    @PrimaryKey({ type: 'uuid' })
+export class Review {
+    @PrimaryKey({ type: "uuid" })
     _id = v4();
 
     @Property()
-    descripcion : string
+    descripcion: string;
 
     @Property()
-    puntuacion : number
-    
-    @ManyToOne({entity: () => Usuario})
+    puntuacion: number;
+
+    @Property()
+    borradoLogico: boolean;
+
+    @ManyToOne({ entity: () => Usuario })
     usuario!: Rel<Usuario>;
 
-    @ManyToOne({entity: () => Cursado})
+    @ManyToOne({ entity: () => Cursado })
     cursado!: Rel<Cursado>;
 
-    constructor(descripcion: string, puntuacion: number, usuario: Usuario, cursado: Cursado) { 
-        this.descripcion = descripcion
-        this.puntuacion = puntuacion
-        this.usuario = usuario,
-        this.cursado = cursado
+    constructor(descripcion: string, puntuacion: number, usuario: Usuario, cursado: Cursado) {
+        this.descripcion = descripcion;
+        this.puntuacion = puntuacion;
+        (this.usuario = usuario), (this.cursado = cursado);
+        this.borradoLogico = false;
     }
-
 }

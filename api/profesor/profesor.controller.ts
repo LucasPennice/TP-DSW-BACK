@@ -5,137 +5,131 @@ import { Profesor } from "./profesor.entity.js";
 import { ExpressResponse } from "../shared/types.js";
 import { orm } from "../orm.js";
 
-
-async function findAll(req: Request, res: Response){
+async function findAll(req: Request, res: Response) {
     try {
-        const profesores : Profesor[] | undefined = await orm.em.findAll(Profesor, {
-            populate: ['*'],
-          })
+        const profesores: Profesor[] | undefined = await orm.em.findAll(Profesor, {
+            populate: ["*"],
+        });
 
         await orm.em.flush();
-        
-        const reponse : ExpressResponse<Profesor[]> = {message: "Profesores encontrados:", data: profesores}
-        res.json(reponse)
+
+        const reponse: ExpressResponse<Profesor[]> = { message: "Profesores encontrados:", data: profesores };
+        res.json(reponse);
     } catch (error) {
-        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
-        res.status(500).send(response)   
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        res.status(500).send(response);
     }
 }
 
-async function findOne(req: Request, res: Response){
-    const _id =  req.params.id 
- 
+async function findOne(req: Request, res: Response) {
+    const _id = req.params.id;
+
     try {
-        const profesor = await findOneProfesor(_id)
-    
-        if (!profesor){
-            const response : ExpressResponse<Profesor> = {message: "Profesor no encontrado", data: undefined}
-            return res.status(404).send(response)
+        const profesor = await findOneProfesor(_id);
+
+        if (!profesor) {
+            const response: ExpressResponse<Profesor> = { message: "Profesor no encontrado", data: undefined };
+            return res.status(404).send(response);
         }
-        res.json({data:profesor})
+        res.json({ data: profesor });
     } catch (error) {
-        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
-        res.status(500).send(response)   
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        res.status(500).send(response);
     }
 }
 
-async function add(req: Request, res: Response){
-    
-    const nombre = req.body.nombre as string
-    const apellido = req.body.apellido as string
-    const fechaNacimiento = req.body.fechaNacimiento as string // DD/MM/AAAA
-    const dni = req.body.dni as number
-    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
-    const sexoTentativo = req.body.sexo as string
-    const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
+async function add(req: Request, res: Response) {
+    const nombre = req.body.nombre as string;
+    const apellido = req.body.apellido as string;
+    const fechaNacimiento = req.body.fechaNacimiento as string; // DD/MM/AAAA
+    const dni = req.body.dni as number;
+    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined;
+    const sexoTentativo = req.body.sexo as string;
+    const sexo: Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer;
 
     // 🚨 VALIDAR CON ZOD 🚨
-    
-    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, puntuacionGeneral ?? 0, sexo)
 
-    
+    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, puntuacionGeneral ?? 0, sexo);
+
     try {
         await orm.em.persist(nuevoProfesor).flush();
-        const response : ExpressResponse<Profesor> = {message: "Profesor creado", data: nuevoProfesor}
-        res.status(201).send(response)
+        const response: ExpressResponse<Profesor> = { message: "Profesor creado", data: nuevoProfesor };
+        res.status(201).send(response);
     } catch (error) {
-        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
-        res.status(500).send(response)
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        res.status(500).send(response);
     }
-
 }
 
+async function modify(req: Request, res: Response) {
+    const _id = req.params.id as string;
 
-async function modify(req: Request, res: Response){
-    const _id =  req.params.id as string
+    const nombre = req.body.nombre as string | undefined;
+    const apellido = req.body.apellido as string | undefined;
+    const fechaNacimiento = dateFromString(req.body.fechaNacimiento) as Date | undefined; // DD/MM/AAAA | undefined
+    const dni = req.body.dni as number | undefined;
+    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined;
+    const sexoTentativo = req.body.sexo as string | undefined;
 
-    const nombre = req.body.nombre as string | undefined
-    const apellido = req.body.apellido as string | undefined
-    const fechaNacimiento = dateFromString(req.body.fechaNacimiento) as Date | undefined // DD/MM/AAAA | undefined
-    const dni = req.body.dni as number | undefined
-    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined
-    const sexoTentativo = req.body.sexo as string | undefined
-
-    
     try {
         const profesorAModificar = orm.em.getReference(Profesor, _id);
-        
-        if (!profesorAModificar){
-            const response : ExpressResponse<Profesor> = {message: "Profesor  no encontrado", data: undefined}
-            return res.status(404).send(response)
+
+        if (!profesorAModificar) {
+            const response: ExpressResponse<Profesor> = { message: "Profesor  no encontrado", data: undefined };
+            return res.status(404).send(response);
         }
 
-        if (fechaNacimiento) profesorAModificar.fechaNacimiento = fechaNacimiento
-        if (nombre) profesorAModificar.nombre = nombre
-        if (apellido) profesorAModificar.apellido = apellido
-        if (dni) profesorAModificar.dni = dni
-        if (puntuacionGeneral) profesorAModificar.puntuacionGeneral = puntuacionGeneral
-        if (sexoTentativo) 
-            {const sexo : Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer
-            profesorAModificar.sexo = sexo
-            }
-        
-        await orm.em.flush()    
-        res.status(200).send({message:"Profesor modificado", data: profesorAModificar})
+        if (fechaNacimiento) profesorAModificar.fechaNacimiento = fechaNacimiento;
+        if (nombre) profesorAModificar.nombre = nombre;
+        if (apellido) profesorAModificar.apellido = apellido;
+        if (dni) profesorAModificar.dni = dni;
+        if (puntuacionGeneral) profesorAModificar.puntuacionGeneral = puntuacionGeneral;
+        if (sexoTentativo) {
+            const sexo: Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer;
+            profesorAModificar.sexo = sexo;
+        }
+
+        await orm.em.flush();
+        res.status(200).send({ message: "Profesor modificado", data: profesorAModificar });
     } catch (error) {
-        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
-        res.status(500).send(response)
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        res.status(500).send(response);
     }
 }
 
-async function delete_(req: Request, res: Response){
-    const _id =  req.params.id as string;
+async function delete_(req: Request, res: Response) {
+    const _id = req.params.id as string;
 
     try {
         const profesorABorrar = orm.em.getReference(Profesor, _id);
-        
-        if(!profesorABorrar){
-            const response : ExpressResponse<Profesor> = {message: "Profesor no encontrado", data: undefined}
-            return res.status(404).send(response)
+
+        if (!profesorABorrar) {
+            const response: ExpressResponse<Profesor> = { message: "Profesor no encontrado", data: undefined };
+            return res.status(404).send(response);
         }
 
-        await orm.em.remove(profesorABorrar).flush();
+        profesorABorrar.borradoLogico = true;
+        await orm.em.flush();
 
-        const response : ExpressResponse<Profesor> = {message: "Profesor borrado", data: profesorABorrar}
-        res.status(200).send(response)
-
+        const response: ExpressResponse<Profesor> = { message: "Profesor borrado", data: profesorABorrar };
+        res.status(200).send(response);
     } catch (error) {
-        const response : ExpressResponse<Profesor> = {message: String(error), data: undefined}
-        res.status(500).send(response)   
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        res.status(500).send(response);
     }
 }
 
-
-async function findOneProfesor(_id: string ): Promise<Profesor | null> {
+async function findOneProfesor(_id: string): Promise<Profesor | null> {
     try {
-        const profesor: Profesor | null = await orm.em.findOne(Profesor, _id,  {
-            populate: ['*'],
-          })
+        const profesor: Profesor | null = await orm.em.findOne(Profesor, _id, {
+            populate: ["*"],
+        });
 
         await orm.em.flush();
         return profesor;
     } catch (error) {
-        throw new Error("Error al buscar al profesor");
+        console.error(new Error("Error al buscar al profesor"));
+        return null;
     }
 }
 
