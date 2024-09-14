@@ -15,6 +15,24 @@ async function findAll(req: Request, res: Response) {
 
         await orm.em.flush();
 
+        let usuariosSinBorradoLogico = usuarios.filter((u) => u.borradoLogico == false);
+
+        const reponse: ExpressResponse<Usuario[]> = { message: "Usuarios encontrados:", data: usuariosSinBorradoLogico };
+        res.json(reponse);
+    } catch (error) {
+        const reponse: ExpressResponse<Usuario> = { message: String(error), data: undefined };
+        res.status(500).send(reponse);
+    }
+}
+
+async function findAllConBorrado(req: Request, res: Response) {
+    try {
+        const usuarios: Usuario[] = await orm.em.findAll(Usuario, {
+            populate: ["*"],
+        });
+
+        await orm.em.flush();
+
         const reponse: ExpressResponse<Usuario[]> = { message: "Usuarios encontrados:", data: usuarios };
         res.json(reponse);
     } catch (error) {
@@ -53,7 +71,16 @@ async function add(req: Request, res: Response) {
 
     // 🚨 VALIDAR CON ZOD 🚨
 
-    const nuevoUsuario = new Usuario(nombre, legajo, apellido, username, dateFromString(fechaNacimiento), rol, sexo, contraseña);
+    const nuevoUsuario = new Usuario(
+        nombre,
+        legajo,
+        apellido,
+        username,
+        dateFromString(fechaNacimiento),
+        rol,
+        sexo,
+        Usuario.hashPassword(contraseña)
+    );
 
     try {
         await orm.em.persist(nuevoUsuario).flush();
@@ -92,7 +119,7 @@ async function modify(req: Request, res: Response) {
         if (legajo) usuarioAModificar.legajo = legajo;
         if (apellido) usuarioAModificar.apellido = apellido;
         if (username) usuarioAModificar.username = username;
-        if (contraseña) usuarioAModificar.contraseña = contraseña;
+        if (contraseña) usuarioAModificar.hashed_password = Usuario.hashPassword(contraseña);
         if (fechaNacimiento) usuarioAModificar.fechaNacimiento = fechaNacimiento;
         if (rol) usuarioAModificar.rol = rol;
         if (sexoTentativo) {
@@ -146,4 +173,4 @@ async function findOneUsuario(_id: string): Promise<Usuario | null> {
     }
 }
 
-export { findAll, findOne, add, modify, delete_, findOneUsuario };
+export { findAll, findOne, add, modify, delete_, findOneUsuario, findAllConBorrado };

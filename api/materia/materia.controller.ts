@@ -13,6 +13,24 @@ async function findAll(req: Request, res: Response) {
 
         await orm.em.flush();
 
+        let materiasSinBorradoLogico = materias.filter((m) => m.borradoLogico == false);
+
+        const response: ExpressResponse<Materia[]> = { message: "Materias Encontradas", data: materiasSinBorradoLogico };
+        res.json(response);
+    } catch (error) {
+        const response: ExpressResponse<Materia[]> = { message: String(error), data: undefined };
+        res.status(500).send(response);
+    }
+}
+
+async function findAllConBorrado(req: Request, res: Response) {
+    try {
+        const materias = await orm.em.findAll(Materia, {
+            populate: ["*"],
+        });
+
+        await orm.em.flush();
+
         const response: ExpressResponse<Materia[]> = { message: "Materias Encontradas", data: materias };
         res.json(response);
     } catch (error) {
@@ -110,8 +128,6 @@ async function delete_(req: Request, res: Response) {
     }
 }
 
-// CAMBIAR ESTA TMBN
-
 async function findOneMateria(_id: string): Promise<Materia | null> {
     try {
         const materia: Materia | null = await orm.em.findOne(Materia, _id, {
@@ -126,4 +142,4 @@ async function findOneMateria(_id: string): Promise<Materia | null> {
     }
 }
 
-export { findAll, findOne, add, modify, delete_, findOneMateria };
+export { findAll, findOne, add, modify, delete_, findOneMateria, findAllConBorrado };

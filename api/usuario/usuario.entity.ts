@@ -2,6 +2,8 @@ import { Collection, Entity, OneToMany, PrimaryKey, Property } from "@mikro-orm/
 import { v4 } from "uuid";
 import { Review } from "../review/review.entity.js";
 import { Sexo, UserRole } from "../shared/types.js";
+import crypto from "crypto";
+import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN } from "../constants.js";
 
 @Entity()
 export class Usuario {
@@ -30,7 +32,7 @@ export class Usuario {
     rol: UserRole;
 
     @Property()
-    contraseña: string;
+    hashed_password: string;
 
     @Property()
     borradoLogico: boolean;
@@ -46,7 +48,7 @@ export class Usuario {
         fechaNacimiento: Date,
         rol: UserRole,
         sexo: Sexo,
-        contraseña: string
+        hashed_password: string
     ) {
         this.nombre = nombre;
         this.legajo = legajo;
@@ -55,7 +57,11 @@ export class Usuario {
         this.fechaNacimiento = fechaNacimiento;
         this.rol = rol;
         this.sexo = sexo;
-        this.contraseña = contraseña;
+        this.hashed_password = hashed_password;
         this.borradoLogico = false;
+    }
+
+    public static hashPassword(unhashedPassword: string): string {
+        return crypto.pbkdf2Sync(unhashedPassword, SALT_CONSTANT, SALT_ITERATIONS, SALT_KEYLEN, SALT_DIGEST).toString();
     }
 }

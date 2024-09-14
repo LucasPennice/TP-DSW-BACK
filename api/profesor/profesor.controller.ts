@@ -13,6 +13,24 @@ async function findAll(req: Request, res: Response) {
 
         await orm.em.flush();
 
+        let profesoresSinBorradoLogico = profesores.filter((p) => p.borradoLogico == false);
+
+        const reponse: ExpressResponse<Profesor[]> = { message: "Profesores encontrados:", data: profesoresSinBorradoLogico };
+        res.json(reponse);
+    } catch (error) {
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        res.status(500).send(response);
+    }
+}
+
+async function findAllConBorrado(req: Request, res: Response) {
+    try {
+        const profesores: Profesor[] | undefined = await orm.em.findAll(Profesor, {
+            populate: ["*"],
+        });
+
+        await orm.em.flush();
+
         const reponse: ExpressResponse<Profesor[]> = { message: "Profesores encontrados:", data: profesores };
         res.json(reponse);
     } catch (error) {
@@ -133,4 +151,4 @@ async function findOneProfesor(_id: string): Promise<Profesor | null> {
     }
 }
 
-export { add, delete_, findAll, findOne, modify, findOneProfesor };
+export { add, delete_, findAll, findOne, modify, findOneProfesor, findAllConBorrado };

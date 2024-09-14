@@ -1,17 +1,18 @@
 import express from "express";
-import { findAll, findOne, add, modify, delete_} from "./cursado.controller.js";
+import { findAll, findOne, add, modify, delete_, findAllConBorrado } from "./cursado.controller.js";
 
 const cursadoRouter = express.Router();
 
-cursadoRouter.get("/", findAll)
+cursadoRouter.get("/", findAll);
 
-cursadoRouter.get("/:id", findOne)
+cursadoRouter.get("/conBorrado", findAllConBorrado);
 
-cursadoRouter.post("/", add)
+cursadoRouter.get("/:id", findOne);
 
-cursadoRouter.patch("/:id", modify)
+cursadoRouter.post("/", add);
 
-cursadoRouter.delete("/:id", delete_)
+cursadoRouter.patch("/:id", modify);
 
+cursadoRouter.delete("/:id", delete_);
 
 export default cursadoRouter;

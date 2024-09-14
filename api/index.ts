@@ -13,6 +13,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import crypto from "crypto";
+import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN, port } from "./constants.js";
 
 // Configure Passport Strategy
 passport.use(
@@ -67,12 +68,6 @@ function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
  *    res.send('This is a protected route');
  *  });
  */
-
-const SALT_CONSTANT: crypto.BinaryLike = crypto.randomBytes(128).toString("base64");
-const SALT_ITERATIONS: number = 310000;
-const SALT_KEYLEN: number = 32;
-const SALT_DIGEST: string = "sha256";
-const port = 3000;
 
 // Mock de base de datos real 🚨 Borrar despues 🚨
 type MockUserType = {

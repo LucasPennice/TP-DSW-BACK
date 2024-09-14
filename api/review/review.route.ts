@@ -1,17 +1,18 @@
 import express from "express";
-import { add, delete_, findAll, findOne, modify } from "./review.controller.js";
+import { add, delete_, findAll, findAllConBorrado, findOne, modify } from "./review.controller.js";
 
 const reviewRouter = express.Router();
 
-reviewRouter.get("/", findAll)
+reviewRouter.get("/", findAll);
 
-reviewRouter.get("/:id", findOne)
+reviewRouter.get("/conBorrado", findAllConBorrado);
 
-reviewRouter.post("/", add)
+reviewRouter.get("/:id", findOne);
 
-reviewRouter.patch("/:id", modify)
+reviewRouter.post("/", add);
 
-reviewRouter.delete("/:id", delete_)
+reviewRouter.patch("/:id", modify);
 
+reviewRouter.delete("/:id", delete_);
 
 export default reviewRouter;

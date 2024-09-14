@@ -15,6 +15,24 @@ async function findAll(req: Request, res: Response) {
 
         await orm.em.flush();
 
+        let cursadosSinBorradoLogico = cursados.filter((c) => c.borradoLogico == false);
+
+        const response: ExpressResponse<Cursado[]> = { message: "Cursados Encontrados", data: cursadosSinBorradoLogico };
+        res.json(response);
+    } catch (error) {
+        const response: ExpressResponse<Cursado[]> = { message: String(error), data: undefined };
+        res.status(500).send(response);
+    }
+}
+
+async function findAllConBorrado(req: Request, res: Response) {
+    try {
+        const cursados: Cursado[] | undefined = await orm.em.findAll(Cursado, {
+            populate: ["*"],
+        });
+
+        await orm.em.flush();
+
         const response: ExpressResponse<Cursado[]> = { message: "Cursados Encontrados", data: cursados };
         res.json(response);
     } catch (error) {
@@ -154,6 +172,4 @@ async function findOneCursado(_id: string): Promise<Cursado | null> {
     }
 }
 
-export { findAll, findOne, add, modify, delete_, findOneCursado };
-
-// agregar para buscar por comision + año + materia
+export { findAll, findOne, add, modify, delete_, findOneCursado, findAllConBorrado };

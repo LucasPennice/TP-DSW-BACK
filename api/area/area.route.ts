@@ -1,17 +1,18 @@
 import express from "express";
-import { findAll, findOne, add, modify, delete_} from "./area.controller.js";
+import { findAll, findOne, add, modify, delete_, findAllConBorrado } from "./area.controller.js";
 
 const areaRouter = express.Router();
 
-areaRouter.get("/", findAll)
+areaRouter.get("/", findAll);
 
-areaRouter.get("/:id", findOne)
+areaRouter.get("/conBorrado", findAllConBorrado);
 
-areaRouter.post("/", add)
+areaRouter.get("/:id", findOne);
 
-areaRouter.patch("/:id", modify)
+areaRouter.post("/", add);
 
-areaRouter.delete("/:id", delete_)
+areaRouter.patch("/:id", modify);
 
+areaRouter.delete("/:id", delete_);
 
 export default areaRouter;

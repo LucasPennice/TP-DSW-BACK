@@ -1,18 +1,18 @@
 import express from "express";
-import { findAll, findOne, add, modify, delete_ } from "./usuario.controller.js";
-
+import { findAll, findOne, add, modify, delete_, findAllConBorrado } from "./usuario.controller.js";
 
 const usuarioRouter = express.Router();
 
-usuarioRouter.get("/", findAll)
+usuarioRouter.get("/", findAll);
 
-usuarioRouter.get("/:id", findOne)
+usuarioRouter.get("/conBorrado", findAllConBorrado);
 
-usuarioRouter.post("/", add)
+usuarioRouter.get("/:id", findOne);
 
-usuarioRouter.patch("/:id", modify)
+usuarioRouter.post("/", add);
 
-usuarioRouter.delete("/:id", delete_)
+usuarioRouter.patch("/:id", modify);
 
+usuarioRouter.delete("/:id", delete_);
 
 export default usuarioRouter;

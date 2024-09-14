@@ -15,6 +15,24 @@ async function findAll(req: Request, res: Response) {
 
         await orm.em.flush();
 
+        let reviewsSinBorradoLogico = reviews.filter((r) => r.borradoLogico == false);
+
+        const reponse: ExpressResponse<Review[]> = { message: "Reviews encontradas:", data: reviewsSinBorradoLogico };
+        res.json(reponse);
+    } catch (error) {
+        const response: ExpressResponse<Review> = { message: String(error), data: undefined };
+        res.status(500).send(response);
+    }
+}
+
+async function findAllConBorrado(req: Request, res: Response) {
+    try {
+        const reviews: Review[] | undefined = await orm.em.findAll(Review, {
+            populate: ["*"],
+        });
+
+        await orm.em.flush();
+
         const reponse: ExpressResponse<Review[]> = { message: "Reviews encontradas:", data: reviews };
         res.json(reponse);
     } catch (error) {
@@ -124,4 +142,4 @@ async function delete_(req: Request, res: Response) {
     }
 }
 
-export { add, delete_, findAll, findOne, modify };
+export { add, delete_, findAll, findOne, modify, findAllConBorrado };

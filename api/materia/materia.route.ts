@@ -1,17 +1,18 @@
 import express from "express";
-import { findAll, findOne, add, modify, delete_} from "./materia.controller.js";
+import { findAll, findOne, add, modify, delete_, findAllConBorrado } from "./materia.controller.js";
 
 const materiaRouter = express.Router();
 
-materiaRouter.get("/", findAll)
+materiaRouter.get("/", findAll);
 
-materiaRouter.get("/:id", findOne)
+materiaRouter.get("/conBorrado", findAllConBorrado);
 
-materiaRouter.post("/", add)
+materiaRouter.get("/:id", findOne);
 
-materiaRouter.patch("/:id", modify)
+materiaRouter.post("/", add);
 
-materiaRouter.delete("/:id", delete_)
+materiaRouter.patch("/:id", modify);
 
+materiaRouter.delete("/:id", delete_);
 
 export default materiaRouter;

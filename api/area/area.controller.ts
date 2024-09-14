@@ -26,6 +26,24 @@ async function findAll(req: Request, res: Response) {
 
         await orm.em.flush();
 
+        let areasSinBorradoLogico = areas.filter((a) => a.borradoLogico == false);
+
+        const reponse: ExpressResponse<Area[]> = { message: "Areas encontradas:", data: areasSinBorradoLogico };
+        res.json(reponse);
+    } catch (error) {
+        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
+        res.status(500).send(reponse);
+    }
+}
+
+async function findAllConBorrado(req: Request, res: Response) {
+    try {
+        const areas: Area[] = await orm.em.findAll(Area, {
+            populate: ["*"],
+        });
+
+        await orm.em.flush();
+
         const reponse: ExpressResponse<Area[]> = { message: "Areas encontradas:", data: areas };
         res.json(reponse);
     } catch (error) {
@@ -132,4 +150,4 @@ async function findOneArea(_id: string): Promise<Area | null> {
     }
 }
 
-export { add, delete_, findAll, findOne, modify, findOneArea };
+export { add, delete_, findAll, findOne, modify, findOneArea, findAllConBorrado };
