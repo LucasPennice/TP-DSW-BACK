@@ -95,6 +95,17 @@ async function add(req: Request, res: Response) {
         return res.status(404).send(response);
     }
 
+    const cursadoSuperpuesto = profesor.cursados.find((cursado) => {
+        if (cursado.año == año && cursado.diaCursado == diaCursado && !(horaFin < cursado.horaInicio || cursado.horaFin < horaInicio)) return true;
+
+        return false;
+    });
+
+    if (cursadoSuperpuesto) {
+        const response: ExpressResponse<Cursado> = { message: "Este profesor ya tiene un cursado en ese dia y horario", data: undefined };
+        return res.status(404).send(response);
+    }
+
     const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, materia, profesor, tipoCursado);
 
     try {
