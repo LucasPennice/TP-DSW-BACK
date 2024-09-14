@@ -42,7 +42,7 @@ export class Cursado {
     profesor!: Rel<Profesor>;
 
     @OneToMany(() => Review, (review) => review.cursado)
-    reviewes = new Collection<Review>(this);
+    reviews = new Collection<Review>(this);
 
     constructor(
         diaCursado: string,

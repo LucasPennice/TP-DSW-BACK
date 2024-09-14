@@ -86,11 +86,11 @@ async function add(req: Request, res: Response) {
         return res.status(404).send(response);
     }
 
-    if (!materia) {
+    if (!materia || materia.borradoLogico == true) {
         const response: ExpressResponse<Cursado> = { message: "Materia no Válida", data: undefined };
         return res.status(404).send(response);
     }
-    if (!profesor) {
+    if (!profesor || profesor.borradoLogico == true) {
         const response: ExpressResponse<Cursado> = { message: "Profesor no Válido", data: undefined };
         return res.status(404).send(response);
     }
@@ -159,7 +159,7 @@ async function delete_(req: Request, res: Response) {
     const _id = req.params.id as string;
 
     try {
-        const cursadoABorrar = orm.em.getReference(Cursado, _id);
+        const cursadoABorrar: Cursado | null = await findOneCursado(_id);
 
         if (!cursadoABorrar) {
             const response: ExpressResponse<Cursado> = { message: "Cursado no encontrado", data: undefined };
@@ -167,6 +167,13 @@ async function delete_(req: Request, res: Response) {
         }
 
         cursadoABorrar.borradoLogico = true;
+
+        let cantReviews = await cursadoABorrar.reviews.load();
+
+        for (let index = 0; index < cantReviews.count(); index++) {
+            cursadoABorrar.reviews[index].borradoLogico = true;
+        }
+
         await orm.em.flush();
 
         const response: ExpressResponse<Cursado> = { message: String("Cursado Borrado"), data: cursadoABorrar };

@@ -119,7 +119,7 @@ async function delete_(req: Request, res: Response) {
     const _id = req.params.id as string;
 
     try {
-        const profesorABorrar = orm.em.getReference(Profesor, _id);
+        const profesorABorrar: Profesor | null = await findOneProfesor(_id);
 
         if (!profesorABorrar) {
             const response: ExpressResponse<Profesor> = { message: "Profesor no encontrado", data: undefined };
@@ -127,6 +127,13 @@ async function delete_(req: Request, res: Response) {
         }
 
         profesorABorrar.borradoLogico = true;
+
+        let cantCursados = await profesorABorrar.cursados.load();
+
+        for (let index = 0; index < cantCursados.count(); index++) {
+            profesorABorrar.cursados[index].borradoLogico = true;
+        }
+
         await orm.em.flush();
 
         const response: ExpressResponse<Profesor> = { message: "Profesor borrado", data: profesorABorrar };

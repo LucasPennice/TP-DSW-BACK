@@ -64,7 +64,7 @@ async function add(req: Request, res: Response) {
     const area: Area | null = await findOneArea(areaId);
 
     // 🚨 VALIDAR CON ZOD 🚨
-    if (!area) {
+    if (!area || area.borradoLogico == true) {
         const response: ExpressResponse<Area> = { message: "Area no Válida", data: undefined };
         return res.status(404).send(response);
     }
@@ -110,7 +110,7 @@ async function delete_(req: Request, res: Response) {
     const _id = req.params.id as string;
 
     try {
-        const materiaABorrar: Materia | undefined = orm.em.getReference(Materia, _id);
+        const materiaABorrar: Materia | null = await findOneMateria(_id);
 
         if (!materiaABorrar) {
             const response: ExpressResponse<Materia> = { message: "Materia no encontrada", data: undefined };
@@ -118,6 +118,13 @@ async function delete_(req: Request, res: Response) {
         }
 
         materiaABorrar.borradoLogico = true;
+
+        let cantCursados = await materiaABorrar.cursados.load();
+
+        for (let index = 0; index < cantCursados.count(); index++) {
+            materiaABorrar.cursados[index].borradoLogico = true;
+        }
+
         await orm.em.flush();
 
         const response: ExpressResponse<Materia> = { message: String("Materia Borrada"), data: materiaABorrar };

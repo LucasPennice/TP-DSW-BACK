@@ -71,14 +71,14 @@ async function add(req: Request, res: Response) {
 
     const usuario: Usuario | null = await findOneUsuario(usuarioId);
 
-    if (!usuario) {
+    if (!usuario || usuario.borradoLogico == true) {
         const response: ExpressResponse<Usuario> = { message: "Usuario no Válido", data: undefined };
         return res.status(404).send(response);
     }
 
     const cursado: Cursado | null = await findOneCursado(cursadoId);
 
-    if (!cursado) {
+    if (!cursado || cursado.borradoLogico == true) {
         const response: ExpressResponse<Usuario> = { message: "Cursado no Válido", data: undefined };
         return res.status(404).send(response);
     }

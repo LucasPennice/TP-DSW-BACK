@@ -141,7 +141,7 @@ async function delete_(req: Request, res: Response) {
     const _id = req.params.id as string;
 
     try {
-        const usuraioABorrar = orm.em.getReference(Usuario, _id);
+        const usuraioABorrar: Usuario | null = await findOneUsuario(_id);
 
         if (!usuraioABorrar) {
             const response: ExpressResponse<Usuario> = { message: "Usuario no encontrado", data: undefined };
@@ -149,6 +149,13 @@ async function delete_(req: Request, res: Response) {
         }
 
         usuraioABorrar.borradoLogico = true;
+
+        let cantReviews = await usuraioABorrar.reviews.load();
+
+        for (let index = 0; index < cantReviews.count(); index++) {
+            usuraioABorrar.reviews[index].borradoLogico = true;
+        }
+
         await orm.em.flush();
 
         const response: ExpressResponse<Usuario> = { message: "Usuario borrado", data: usuraioABorrar };

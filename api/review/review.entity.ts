@@ -26,7 +26,8 @@ export class Review {
     constructor(descripcion: string, puntuacion: number, usuario: Usuario, cursado: Cursado) {
         this.descripcion = descripcion;
         this.puntuacion = puntuacion;
-        (this.usuario = usuario), (this.cursado = cursado);
+        this.usuario = usuario;
+        this.cursado = cursado;
         this.borradoLogico = false;
     }
 }

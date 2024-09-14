@@ -56,7 +56,7 @@ async function findOne(req: Request, res: Response) {
     const _id = req.params.id;
 
     try {
-        const area = findOneArea(_id);
+        const area = await findOneArea(_id);
         if (!area) {
             const reponse: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
             return res.status(404).send(reponse);
@@ -75,8 +75,6 @@ async function add(req: Request, res: Response) {
 
     const nuevoArea = new Area(nombre);
     try {
-        // esta bien asi?
-
         await orm.em.persist(nuevoArea).flush();
 
         const reponse: ExpressResponse<Area> = { message: "Area creada", data: nuevoArea };
@@ -118,7 +116,7 @@ async function delete_(req: Request, res: Response) {
     const _id = req.params.id as string;
 
     try {
-        const areaABorrar = orm.em.getReference(Area, _id);
+        const areaABorrar: Area | null = await findOneArea(_id);
 
         if (!areaABorrar) {
             const response: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
@@ -126,6 +124,13 @@ async function delete_(req: Request, res: Response) {
         }
 
         areaABorrar.borradoLogico = true;
+
+        let cantMaterias = await areaABorrar.materias.load();
+
+        for (let index = 0; index < cantMaterias.count(); index++) {
+            areaABorrar.materias[index].borradoLogico = true;
+        }
+
         await orm.em.flush();
 
         const response: ExpressResponse<Area> = { message: "Area borrada", data: areaABorrar };
