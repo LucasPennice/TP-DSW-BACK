@@ -1,14 +1,19 @@
 export enum Sexo {
     Mujer = "Mujer",
-    Hombre = "Hombre"
+    Hombre = "Hombre",
+}
+
+export enum TipoCursado {
+    Practica = "Practica",
+    Teoria = "Teoria",
 }
 
 export enum UserRole {
     Regular = "Regular",
-    Administrador = "Administrador"
+    Administrador = "Administrador",
 }
 
 export type ExpressResponse<T> = {
-    message: string,
-    data: T | undefined
-}
+    message: string;
+    data: T | undefined;
+};

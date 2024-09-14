@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Cursado } from "./cursado.entity.js";
-import { ExpressResponse } from "../shared/types.js";
+import { ExpressResponse, TipoCursado } from "../shared/types.js";
 import { Materia } from "../materia/materia.entity.js";
 import { findOneMateria } from "../materia/materia.controller.js";
 import { Profesor } from "../profesor/profesor.entity.js";
@@ -70,12 +70,21 @@ async function add(req: Request, res: Response) {
     const comision = req.body.comision as number;
     const turno = req.body.turno as string;
     const año = req.body.año as number;
+    const tipoCursado = req.body.tipoCursado as TipoCursado;
     const materiaId = req.body.materiaId as string;
     const profesorId = req.body.profesorId as string;
 
     const materia: Materia | null = await findOneMateria(materiaId);
 
     const profesor: Profesor | null = await findOneProfesor(profesorId);
+
+    if (tipoCursado != TipoCursado.Practica && tipoCursado != TipoCursado.Teoria) {
+        const response: ExpressResponse<Cursado> = {
+            message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
+            data: undefined,
+        };
+        return res.status(404).send(response);
+    }
 
     if (!materia) {
         const response: ExpressResponse<Cursado> = { message: "Materia no Válida", data: undefined };
@@ -86,7 +95,7 @@ async function add(req: Request, res: Response) {
         return res.status(404).send(response);
     }
 
-    const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, materia, profesor);
+    const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, materia, profesor, tipoCursado);
 
     try {
         await orm.em.persist(nuevoCursado).flush();
@@ -108,8 +117,17 @@ async function modify(req: Request, res: Response) {
     const comision = req.body.comision as number | undefined;
     const turno = req.body.turno as string | undefined;
     const año = req.body.año as number | undefined;
+    const tipoCursado = req.body.tipoCursado as TipoCursado | undefined;
 
     try {
+        if (tipoCursado != TipoCursado.Practica && tipoCursado != TipoCursado.Teoria) {
+            const response: ExpressResponse<Cursado> = {
+                message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
+                data: undefined,
+            };
+            return res.status(404).send(response);
+        }
+
         const cursadoAModificar: Cursado | undefined = orm.em.getReference(Cursado, _id);
 
         if (cursadoAModificar) {
@@ -119,6 +137,7 @@ async function modify(req: Request, res: Response) {
             if (comision) cursadoAModificar.comision = comision;
             if (turno) cursadoAModificar.turno = turno;
             if (año) cursadoAModificar.año = año;
+            if (tipoCursado) cursadoAModificar.tipoCursado = tipoCursado;
         }
 
         await orm.em.flush();

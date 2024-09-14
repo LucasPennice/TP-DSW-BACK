@@ -4,6 +4,7 @@ import { v4 } from "uuid";
 import { Materia } from "../materia/materia.entity.js";
 import { Profesor } from "../profesor/profesor.entity.js";
 import { Review } from "../review/review.entity.js";
+import { TipoCursado } from "../shared/types.js";
 
 @Entity()
 export class Cursado {
@@ -29,6 +30,9 @@ export class Cursado {
     año!: number;
 
     @Property()
+    tipoCursado!: TipoCursado;
+
+    @Property()
     borradoLogico: boolean;
 
     @ManyToOne({ entity: () => Materia })
@@ -48,7 +52,8 @@ export class Cursado {
         turno: string,
         año: number,
         materia: Materia,
-        profesor: Profesor
+        profesor: Profesor,
+        tipoCursado: TipoCursado
     ) {
         this.diaCursado = diaCursado;
         this.horaInicio = horaInicio;
@@ -58,6 +63,7 @@ export class Cursado {
         this.año = año;
         this.materia = materia;
         this.profesor = profesor;
+        this.tipoCursado = tipoCursado;
         this.borradoLogico = false;
     }
 }
