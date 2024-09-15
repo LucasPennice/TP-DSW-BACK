@@ -175,6 +175,37 @@ async function findReviews(req: Request, res: Response) {
     }
 }
 
+async function findReviewsPorMateria(req: Request, res: Response) {
+    try {
+        const _id = req.params.id as string;
+        const _idMateria = req.params.idMateria as string;
+
+        const profesor: Profesor | null = await helpers.findOneProfesor(_id);
+
+        if (!profesor) {
+            throw new Error("Profesor borrado");
+        }
+
+        const cursados = profesor.cursados.filter((c) => c.materia._id == _idMateria).map((c) => c._id);
+
+        const reviews: Review[] = await orm.em.findAll(Review, {
+            where: {
+                cursado: {
+                    _id: { $in: cursados },
+                },
+            },
+        });
+
+        await orm.em.flush();
+
+        const response: ExpressResponse<Review[]> = { message: "Reviews Encontradas", data: reviews };
+        return res.status(200).send(response);
+    } catch (error) {
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        return res.status(500).send(response);
+    }
+}
+
 const helpers = {
     findOneProfesor: async function (_id: string): Promise<Profesor | null> {
         try {
@@ -191,4 +222,4 @@ const helpers = {
     },
 };
 
-export { add, delete_, findAll, findOne, modify, findAllConBorrado, findReviews, helpers };
+export { add, delete_, findAll, findOne, modify, findAllConBorrado, findReviews, helpers, findReviewsPorMateria };
