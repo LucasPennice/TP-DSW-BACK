@@ -5,6 +5,8 @@ import { Profesor } from "./profesor.entity.js";
 import { ExpressResponse } from "../shared/types.js";
 import { orm } from "../orm.js";
 import { Review } from "../review/review.entity.js";
+import { Materia } from "../materia/materia.entity.js";
+import { helpers as materiaHelper } from "../materia/materia.controller.js";
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -175,6 +177,33 @@ async function findReviews(req: Request, res: Response) {
     }
 }
 
+async function findPorMateriaYAno(req: Request, res: Response) {
+    try {
+        const _idMateria = req.params.idMateria as string;
+        const _Ano = parseInt(req.params.ano) as number;
+
+        const materia: Materia | null = await materiaHelper.findOneMateria(_idMateria);
+
+        if (!materia) {
+            throw new Error("Materia borrado");
+        }
+
+        const profesores: Profesor[] | undefined = await orm.em.findAll(Profesor, {
+            populate: ["*"],
+        });
+
+        const result = profesores.filter((p) => p.cursados.toArray().filter((c) => c.materia._id == _idMateria && c.año == _Ano).length != 0);
+
+        await orm.em.flush();
+
+        const response: ExpressResponse<Profesor[]> = { message: "Profesores Encontradas", data: profesores };
+        return res.status(200).send(response);
+    } catch (error) {
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        return res.status(500).send(response);
+    }
+}
+
 async function findReviewsPorMateria(req: Request, res: Response) {
     try {
         const _id = req.params.id as string;
@@ -222,4 +251,4 @@ const helpers = {
     },
 };
 
-export { add, delete_, findAll, findOne, modify, findAllConBorrado, findReviews, helpers, findReviewsPorMateria };
+export { add, delete_, findAll, findOne, modify, findAllConBorrado, findReviews, helpers, findReviewsPorMateria, findPorMateriaYAno };
