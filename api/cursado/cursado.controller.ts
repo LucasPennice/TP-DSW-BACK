@@ -5,7 +5,7 @@ import { Materia } from "../materia/materia.entity.js";
 import { findOneMateria } from "../materia/materia.controller.js";
 import { Profesor } from "../profesor/profesor.entity.js";
 import { orm } from "../orm.js";
-import { findOneProfesor } from "../profesor/profesor.controller.js";
+import { helpers as profesorHelper } from "../profesor/profesor.controller.js";
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -77,7 +77,7 @@ async function add(req: Request, res: Response) {
     try {
         const materia: Materia | null = await findOneMateria(materiaId);
 
-        const profesor: Profesor | null = await findOneProfesor(profesorId);
+        const profesor: Profesor | null = await profesorHelper.findOneProfesor(profesorId);
 
         if (tipoCursado != TipoCursado.Practica && tipoCursado != TipoCursado.Teoria) {
             const response: ExpressResponse<Cursado> = {

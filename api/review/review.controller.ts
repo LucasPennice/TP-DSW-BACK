@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { Review } from "./review.entity.js";
-import { ExpressResponse, UserRole } from "../shared/types.js";
-import { Usuario } from "../usuario/usuario.entity.js";
-import { findOneUsuario } from "../usuario/usuario.controller.js";
 import { findOneCursado } from "../cursado/cursado.controller.js";
-import { orm } from "../orm.js";
 import { Cursado } from "../cursado/cursado.entity.js";
+import { orm } from "../orm.js";
+import { ExpressResponse } from "../shared/types.js";
+import { findOneUsuario } from "../usuario/usuario.controller.js";
+import { Usuario } from "../usuario/usuario.entity.js";
+import { Review } from "./review.entity.js";
 //@ts-ignore
 import profanity from "bad-words-es";
 
@@ -200,4 +200,4 @@ async function delete_(req: Request, res: Response) {
     }
 }
 
-export { add, delete_, findAll, findOne, modify, findAllConBorrado };
+export { add, delete_, findAll, findAllConBorrado, findOne, modify };

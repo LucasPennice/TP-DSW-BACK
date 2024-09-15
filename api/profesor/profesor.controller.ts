@@ -4,6 +4,7 @@ import { Sexo } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
 import { ExpressResponse } from "../shared/types.js";
 import { orm } from "../orm.js";
+import { Review } from "../review/review.entity.js";
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -43,7 +44,7 @@ async function findOne(req: Request, res: Response) {
     const _id = req.params.id;
 
     try {
-        const profesor = await findOneProfesor(_id);
+        const profesor = await helpers.findOneProfesor(_id);
 
         if (!profesor) {
             const response: ExpressResponse<Profesor> = { message: "Profesor no encontrado", data: undefined };
@@ -119,7 +120,7 @@ async function delete_(req: Request, res: Response) {
     const _id = req.params.id as string;
 
     try {
-        const profesorABorrar: Profesor | null = await findOneProfesor(_id);
+        const profesorABorrar: Profesor | null = await helpers.findOneProfesor(_id);
 
         if (!profesorABorrar) {
             const response: ExpressResponse<Profesor> = { message: "Profesor no encontrado", data: undefined };
@@ -144,18 +145,50 @@ async function delete_(req: Request, res: Response) {
     }
 }
 
-async function findOneProfesor(_id: string): Promise<Profesor | null> {
+async function findReviews(req: Request, res: Response) {
     try {
-        const profesor: Profesor | null = await orm.em.findOne(Profesor, _id, {
-            populate: ["*"],
+        const _id = req.params.id as string;
+
+        const profesor: Profesor | null = await helpers.findOneProfesor(_id);
+
+        if (!profesor) {
+            throw new Error("Profesor borrado");
+        }
+
+        const cursados = profesor.cursados.map((c) => c._id);
+
+        const reviews: Review[] = await orm.em.findAll(Review, {
+            where: {
+                cursado: {
+                    _id: { $in: cursados },
+                },
+            },
         });
 
         await orm.em.flush();
-        return profesor;
+
+        const response: ExpressResponse<Review[]> = { message: "Reviews Encontradas", data: reviews };
+        return res.status(200).send(response);
     } catch (error) {
-        console.error(new Error("Error al buscar al profesor"));
-        return null;
+        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        return res.status(500).send(response);
     }
 }
 
-export { add, delete_, findAll, findOne, modify, findOneProfesor, findAllConBorrado };
+const helpers = {
+    findOneProfesor: async function (_id: string): Promise<Profesor | null> {
+        try {
+            const profesor: Profesor | null = await orm.em.findOne(Profesor, _id, {
+                populate: ["*"],
+            });
+
+            await orm.em.flush();
+            return profesor;
+        } catch (error) {
+            console.error(new Error("Error al buscar al profesor"));
+            return null;
+        }
+    },
+};
+
+export { add, delete_, findAll, findOne, modify, findAllConBorrado, findReviews, helpers };
