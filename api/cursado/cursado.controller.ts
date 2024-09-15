@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Cursado } from "./cursado.entity.js";
 import { ExpressResponse, TipoCursado } from "../shared/types.js";
 import { Materia } from "../materia/materia.entity.js";
-import { findOneMateria } from "../materia/materia.controller.js";
+import { helpers as materiaHelpers } from "../materia/materia.controller.js";
 import { Profesor } from "../profesor/profesor.entity.js";
 import { orm } from "../orm.js";
 import { helpers as profesorHelper } from "../profesor/profesor.controller.js";
@@ -75,7 +75,7 @@ async function add(req: Request, res: Response) {
     const profesorId = req.body.profesorId as string;
 
     try {
-        const materia: Materia | null = await findOneMateria(materiaId);
+        const materia: Materia | null = await materiaHelpers.findOneMateria(materiaId);
 
         const profesor: Profesor | null = await profesorHelper.findOneProfesor(profesorId);
 
@@ -224,7 +224,7 @@ async function findOneCursado(_id: string): Promise<Cursado | null> {
 
 async function buscarCursadosPorAtributos(comision: number, año: number, materiaId: string): Promise<Cursado[]> {
     try {
-        const materia: Materia | null = await findOneMateria(materiaId);
+        const materia: Materia | null = await materiaHelpers.findOneMateria(materiaId);
 
         if (!materia) {
             throw new Error("Materia borrada");

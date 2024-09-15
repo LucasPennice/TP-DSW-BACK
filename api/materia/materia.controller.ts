@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Materia } from "./materia.entity.js";
-import { ExpressResponse } from "../shared/types.js";
+import { ExpressResponse, TipoCursado } from "../shared/types.js";
 import { Area } from "../area/area.entity.js";
 import { orm } from "../orm.js";
 import { findOneArea } from "../area/area.controller.js";
@@ -43,7 +43,7 @@ async function findOne(req: Request, res: Response) {
     const _id = req.params.id;
 
     try {
-        const materia = await findOneMateria(_id);
+        const materia = await helpers.findOneMateria(_id);
 
         if (!materia) {
             const response: ExpressResponse<Materia[]> = { message: "Materia no Encontrada", data: undefined };
@@ -116,7 +116,7 @@ async function delete_(req: Request, res: Response) {
     const _id = req.params.id as string;
 
     try {
-        const materiaABorrar: Materia | null = await findOneMateria(_id);
+        const materiaABorrar: Materia | null = await helpers.findOneMateria(_id);
 
         if (!materiaABorrar) {
             const response: ExpressResponse<Materia> = { message: "Materia no encontrada", data: undefined };
@@ -141,18 +141,40 @@ async function delete_(req: Request, res: Response) {
     }
 }
 
-async function findOneMateria(_id: string): Promise<Materia | null> {
+async function findMateriasPorAno(req: Request, res: Response) {
     try {
-        const materia: Materia | null = await orm.em.findOne(Materia, _id, {
+        const _idAno = parseInt(req.params.id);
+
+        const materias: Materia[] = await orm.em.findAll(Materia, {
             populate: ["*"],
         });
 
+        let resultado = materias.filter((m) => m.cursados.toArray().filter((x) => x.comision.toString()[0] == _idAno.toString()).length != 0);
+
         await orm.em.flush();
-        return materia;
+
+        const response: ExpressResponse<Materia[]> = { message: "Materias Encontradas", data: resultado };
+        return res.status(200).send(response);
     } catch (error) {
-        console.error(new Error("Error al buscar la materia"));
-        return null;
+        const response: ExpressResponse<Materia> = { message: String(error), data: undefined };
+        return res.status(500).send(response);
     }
 }
 
-export { findAll, findOne, add, modify, delete_, findOneMateria, findAllConBorrado };
+const helpers = {
+    findOneMateria: async function (_id: string): Promise<Materia | null> {
+        try {
+            const materia: Materia | null = await orm.em.findOne(Materia, _id, {
+                populate: ["*"],
+            });
+
+            await orm.em.flush();
+            return materia;
+        } catch (error) {
+            console.error(new Error("Error al buscar la materia"));
+            return null;
+        }
+    },
+};
+
+export { findAll, findOne, add, modify, delete_, helpers, findAllConBorrado, findMateriasPorAno };
