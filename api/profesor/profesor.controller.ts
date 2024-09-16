@@ -7,6 +7,7 @@ import { orm } from "../orm.js";
 import { Review } from "../review/review.entity.js";
 import { Materia } from "../materia/materia.entity.js";
 import { helpers as materiaHelper } from "../materia/materia.controller.js";
+import { Cursado } from "../cursado/cursado.entity.js";
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -188,15 +189,26 @@ async function findPorMateriaYAno(req: Request, res: Response) {
             throw new Error("Materia borrado");
         }
 
-        const profesores: Profesor[] | undefined = await orm.em.findAll(Profesor, {
+        const cursados: Cursado[] = await orm.em.findAll(Cursado, {
             populate: ["*"],
+            where: {
+                materia: { _id: _idMateria },
+                año: _Ano,
+            },
         });
 
-        const result = profesores.filter((p) => p.cursados.toArray().filter((c) => c.materia._id == _idMateria && c.año == _Ano).length != 0);
+        const idsProf = cursados.map((c) => c.profesor._id);
+
+        const resultado: Profesor[] = await orm.em.findAll(Profesor, {
+            populate: ["*"],
+            where: {
+                _id: { $in: idsProf },
+            },
+        });
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Profesor[]> = { message: "Profesores Encontradas", data: profesores };
+        const response: ExpressResponse<Profesor[]> = { message: "Profesores Encontradas", data: resultado };
         return res.status(200).send(response);
     } catch (error) {
         const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
