@@ -189,11 +189,15 @@ async function findPorMateriaYAno(req: Request, res: Response) {
             throw new Error("Materia borrado");
         }
 
+        console.log("👍👍", _Ano);
+        console.log("🧠", _idMateria);
+
         const cursados: Cursado[] = await orm.em.findAll(Cursado, {
             populate: ["*"],
+            //@ts-ignore
             where: {
                 materia: { _id: _idMateria },
-                año: _Ano,
+                comision: { $re: new RegExp(`^${_Ano}`) },
             },
         });
 
