@@ -18,6 +18,9 @@ export class Review {
     censurada: boolean;
 
     @Property()
+    fecha: Date;
+
+    @Property()
     borradoLogico: boolean;
 
     @ManyToOne({ entity: () => Usuario })
@@ -33,5 +36,6 @@ export class Review {
         this.cursado = cursado;
         this.borradoLogico = false;
         this.censurada = censurada;
+        this.fecha = new Date();
     }
 }

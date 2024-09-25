@@ -119,8 +119,11 @@ async function findOne(req: Request, res: Response) {
 async function add(req: Request, res: Response) {
     const descripcion = req.body.descripcion as string;
     const puntuacion = req.body.puntuacion as number;
-    const usuarioId = req.body.usuarioId as string;
-    const cursadoId = req.body.cursadoId as string;
+    // const usuarioId = req.body.usuarioId as string;
+    const usuarioId = "90fad765-ac3b-4eb5-97ba-3333d4527309";
+    const anio = req.body.anio as string;
+    const profesorId = req.body.profesorId as string;
+    const materiaId = req.body.materiaId as string;
 
     const reviewLimpia = filter.clean(descripcion);
     const censurada = reviewLimpia != descripcion;
@@ -134,7 +137,12 @@ async function add(req: Request, res: Response) {
         return res.status(404).send(response);
     }
 
-    const cursado: Cursado | null = await findOneCursado(cursadoId);
+    //@ts-ignore
+    const cursado: Cursado | null = await orm.em.findOne(Cursado, {
+        profesor: { _id: profesorId },
+        materia: { _id: materiaId },
+        comision: { $re: new RegExp(`^${anio}`) },
+    });
 
     if (!cursado || cursado.borradoLogico == true) {
         const response: ExpressResponse<Usuario> = { message: "Cursado no Válido", data: undefined };

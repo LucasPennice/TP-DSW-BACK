@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
+import { Cursado } from "../cursado/cursado.entity.js";
 import { dateFromString } from "../dateExtension.js";
-import { Sexo } from "../shared/types.js";
-import { Profesor } from "./profesor.entity.js";
-import { ExpressResponse } from "../shared/types.js";
+import { helpers as materiaHelper } from "../materia/materia.controller.js";
+import { Materia } from "../materia/materia.entity.js";
 import { orm } from "../orm.js";
 import { Review } from "../review/review.entity.js";
-import { Materia } from "../materia/materia.entity.js";
-import { helpers as materiaHelper } from "../materia/materia.controller.js";
-import { Cursado } from "../cursado/cursado.entity.js";
+import { ExpressResponse, Sexo } from "../shared/types.js";
+import { Profesor } from "./profesor.entity.js";
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -160,12 +159,8 @@ async function findReviews(req: Request, res: Response) {
 
         const cursados = profesor.cursados.map((c) => c._id);
 
-        const reviews: Review[] = await orm.em.findAll(Review, {
-            where: {
-                cursado: {
-                    _id: { $in: cursados },
-                },
-            },
+        const reviews: Review[] = await orm.em.find(Review, {
+            cursado: { $in: cursados.map((cursado) => cursado) },
         });
 
         await orm.em.flush();
@@ -188,9 +183,6 @@ async function findPorMateriaYAno(req: Request, res: Response) {
         if (!materia) {
             throw new Error("Materia borrado");
         }
-
-        console.log("👍👍", _Ano);
-        console.log("🧠", _idMateria);
 
         const cursados: Cursado[] = await orm.em.findAll(Cursado, {
             populate: ["*"],
@@ -233,12 +225,8 @@ async function findReviewsPorMateria(req: Request, res: Response) {
 
         const cursados = profesor.cursados.filter((c) => c.materia._id == _idMateria).map((c) => c._id);
 
-        const reviews: Review[] = await orm.em.findAll(Review, {
-            where: {
-                cursado: {
-                    _id: { $in: cursados },
-                },
-            },
+        const reviews: Review[] = await orm.em.find(Review, {
+            cursado: { $in: cursados.map((cursado) => cursado) },
         });
 
         await orm.em.flush();
@@ -267,4 +255,4 @@ const helpers = {
     },
 };
 
-export { add, delete_, findAll, findOne, modify, findAllConBorrado, findReviews, helpers, findReviewsPorMateria, findPorMateriaYAno };
+export { add, delete_, findAll, findAllConBorrado, findOne, findPorMateriaYAno, findReviews, findReviewsPorMateria, helpers, modify };
