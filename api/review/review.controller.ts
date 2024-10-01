@@ -8,6 +8,7 @@ import { Usuario } from "../usuario/usuario.entity.js";
 import { Review } from "./review.entity.js";
 //@ts-ignore
 import profanity from "bad-words-es";
+import { helpers as profesorHelpers } from "../profesor/profesor.controller.js";
 
 var filter = new profanity({ languages: ["es"] });
 
@@ -119,8 +120,7 @@ async function findOne(req: Request, res: Response) {
 async function add(req: Request, res: Response) {
     const descripcion = req.body.descripcion as string;
     const puntuacion = req.body.puntuacion as number;
-    // const usuarioId = req.body.usuarioId as string;
-    const usuarioId = "90fad765-ac3b-4eb5-97ba-3333d4527309";
+    const usuarioId = req.body.usuarioId as string;
     const anio = req.body.anio as string;
     const profesorId = req.body.profesorId as string;
     const materiaId = req.body.materiaId as string;
@@ -154,6 +154,19 @@ async function add(req: Request, res: Response) {
     try {
         await orm.em.persist(nuevaReview).flush();
         const response: ExpressResponse<Review> = { message: "Review creada", data: nuevaReview };
+
+        /// Actualizar el promedio de calificacion del profesor
+
+        let profesor = await profesorHelpers.findOneProfesor(profesorId);
+
+        if (profesor) {
+            profesor.puntuacionGeneral =
+                (profesor.puntuacionGeneral * profesor.reviewsRecibidas + nuevaReview.puntuacion) / (profesor.reviewsRecibidas + 1);
+            profesor.reviewsRecibidas = profesor.reviewsRecibidas + 1;
+
+            await orm.em.flush();
+        }
+
         res.status(201).send(response);
     } catch (error) {
         const response: ExpressResponse<Review> = { message: String(error), data: undefined };

@@ -14,27 +14,26 @@ import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import crypto from "crypto";
 import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN, port } from "./constants.js";
+import { ExpressResponse, Sexo, UserRole } from "./shared/types.js";
+import { Usuario } from "./usuario/usuario.entity.js";
+import { dateFromString } from "./dateExtension.js";
+import { findOneUsuarioByUsername } from "./usuario/usuario.controller.js";
 
 // Configure Passport Strategy
 passport.use(
-    new LocalStrategy((username, contraseña, done) => {
+    new LocalStrategy(async (username, contraseña, done) => {
         // Buscar el usuario en la base de datos 🚨 Cambiar por buscar en la base de datos real despues 🚨
-        const user = users.find((u) => u.username === username);
+        const user = await findOneUsuarioByUsername(username);
 
         if (!user) {
             return done(null, false, { message: "Username incorrecto" });
         }
 
-        crypto.pbkdf2(contraseña, SALT_CONSTANT, SALT_ITERATIONS, SALT_KEYLEN, SALT_DIGEST, function (err, hashedPassword) {
-            if (err) {
-                return done(err);
-            }
+        if (Usuario.hashPassword(contraseña) != user.hashed_password) {
+            return done(null, false, { message: "Incorrect username or password." });
+        }
 
-            if (hashedPassword.toString() != user.hashed_password) {
-                return done(null, false, { message: "Incorrect username or password." });
-            }
-            return done(null, user);
-        });
+        return done(null, user);
     })
 );
 
@@ -46,7 +45,7 @@ passport.serializeUser(function (user, cb) {
     });
 });
 
-passport.deserializeUser(function (user: MockUserType, cb) {
+passport.deserializeUser(function (user: Usuario, cb) {
     process.nextTick(function () {
         return cb(null, user);
     });
@@ -68,20 +67,6 @@ function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
  *    res.send('This is a protected route');
  *  });
  */
-
-// Mock de base de datos real 🚨 Borrar despues 🚨
-type MockUserType = {
-    _id: string;
-    username: string;
-    hashed_password: string;
-};
-const users: [MockUserType] = [
-    {
-        _id: "1",
-        username: "user",
-        hashed_password: crypto.pbkdf2Sync("letmein", SALT_CONSTANT, SALT_ITERATIONS, SALT_KEYLEN, SALT_DIGEST).toString(),
-    },
-];
 
 const app = express();
 
@@ -142,17 +127,19 @@ app.get("/login", (req, res) => {
 // Como body del post esto quiere dos campos {username: string; password:string}
 app.post("/login", (req, res, next) => {
     // ⚠️ SUPONGO que estos son los tipos
-    passport.authenticate("local", (error: string | null, user: MockUserType | false, message: { message: string }) => {
+    passport.authenticate("local", (error: string | null, user: Usuario | false, message: { message: string }) => {
         if (error) {
             return res.status(401).json({ message: error, succeed: false });
         } else if (!user) {
-            return res.status(200).json({ message: message.message, succeed: false });
+            return res.status(500).json({ message: message.message, succeed: false });
         } else {
             req.login(user, (err) => {
                 if (err) {
                     return res.status(500).json({ message: "Failed to login", succeed: false });
                 } else {
-                    return res.status(200).json({ message: "Success", succeed: true });
+                    const reponse: ExpressResponse<Usuario> = { message: "Usuario log", data: user };
+
+                    return res.status(200).send(reponse);
                 }
             });
         }
@@ -171,29 +158,51 @@ app.post("/logout", function (req, res, next) {
 
 // ⚠️ Importante que esta ruta este por debajo de POST - con ruta /logout ⚠️
 // Como body del post esto quiere dos campos {username: string; password:string}
-app.post("/signup", function (req, res, next) {
-    crypto.pbkdf2(req.body.password, SALT_CONSTANT, SALT_ITERATIONS, SALT_KEYLEN, SALT_DIGEST, function (err, hashedPassword) {
+app.post("/signup", async function (req, res, next) {
+    crypto.pbkdf2(req.body.password, SALT_CONSTANT, SALT_ITERATIONS, SALT_KEYLEN, SALT_DIGEST, async function (err, hashedPassword) {
         if (err) {
             return next(err);
         }
+        const nombre = req.body.nombre as string;
+        const legajo = req.body.legajo as string;
+        const apellido = req.body.apellido as string;
+        const username = req.body.username as string;
+        const password = req.body.password as string;
+        const fechaNacimiento = req.body.fechaNacimiento as string;
+        const rol = UserRole.Regular;
+        const sexoTentativo = req.body.sexo as string;
+        const sexo: Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer;
 
-        // 🚨 ESTO ES UN MOCK 🚨
-        // 🚨 ACA ES CUANDO METEMOS AL USUARIO EN NUESTRA BASE DE DATOS 🚨
-        // 🚨 Y DESPUES LO LOGUEAMOS 🚨
+        try {
+            const nuevoUsuario = new Usuario(
+                nombre,
+                legajo,
+                apellido,
+                username,
+                dateFromString(fechaNacimiento),
+                rol,
+                sexo,
+                Usuario.hashPassword(password)
+            );
 
-        let newUser: MockUserType = {
-            _id: "1",
-            username: "user2",
-            hashed_password: hashedPassword.toString(),
-        };
+            await orm.em.persist(nuevoUsuario).flush();
 
-        req.login(newUser, (err) => {
-            if (err) {
-                return res.status(500).json({ message: "Failed to login", succeed: false });
-            } else {
-                return res.status(200).json({ message: "Success", succeed: true });
-            }
-        });
+            req.login(nuevoUsuario, (err) => {
+                if (err) {
+                    const reponse: ExpressResponse<Usuario> = { message: "Error al crear usuario", data: undefined };
+
+                    return res.status(500).json(reponse);
+                } else {
+                    const reponse: ExpressResponse<Usuario> = { message: "Usuario creado", data: nuevoUsuario };
+
+                    return res.status(201).send(reponse);
+                }
+            });
+        } catch (error) {
+            const reponse: ExpressResponse<Usuario> = { message: String(error), data: undefined };
+
+            res.status(500).send(reponse);
+        }
     });
 });
 

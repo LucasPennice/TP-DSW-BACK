@@ -180,7 +180,7 @@ async function findPorMateriaYAno(req: Request, res: Response) {
 
         const materia: Materia | null = await materiaHelper.findOneMateria(_idMateria);
 
-        if (!materia) {
+        if (!materia || materia.borradoLogico == true) {
             throw new Error("Materia borrado");
         }
 
@@ -188,7 +188,9 @@ async function findPorMateriaYAno(req: Request, res: Response) {
             populate: ["*"],
             //@ts-ignore
             where: {
+                borradoLogico: false,
                 materia: { _id: _idMateria },
+                //@ts-ignore
                 comision: { $re: new RegExp(`^${_Ano}`) },
             },
         });
@@ -199,6 +201,7 @@ async function findPorMateriaYAno(req: Request, res: Response) {
             populate: ["*"],
             where: {
                 _id: { $in: idsProf },
+                borradoLogico: false,
             },
         });
 

@@ -63,26 +63,32 @@ async function add(req: Request, res: Response) {
     const legajo = req.body.legajo as string;
     const apellido = req.body.apellido as string;
     const username = req.body.username as string;
-    const contraseña = req.body.contraseña as string;
+    const password = req.body.password as string;
     const fechaNacimiento = req.body.fechaNacimiento as string;
-    const rol = req.body.rol as UserRole;
+    const rol = UserRole.Regular;
     const sexoTentativo = req.body.sexo as string;
     const sexo: Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer;
 
-    // 🚨 VALIDAR CON ZOD 🚨
-
-    const nuevoUsuario = new Usuario(
-        nombre,
-        legajo,
-        apellido,
-        username,
-        dateFromString(fechaNacimiento),
-        rol,
-        sexo,
-        Usuario.hashPassword(contraseña)
-    );
-
     try {
+        let usuarioConMismoUsername = await findOneUsuarioByUsername(username);
+
+        if (usuarioConMismoUsername != null) {
+            const reponse: ExpressResponse<Usuario> = { message: "Ya existe un usuario con ese nombre", data: undefined };
+
+            return res.status(500).send(reponse);
+        }
+
+        const nuevoUsuario = new Usuario(
+            nombre,
+            legajo,
+            apellido,
+            username,
+            dateFromString(fechaNacimiento),
+            rol,
+            sexo,
+            Usuario.hashPassword(password)
+        );
+
         await orm.em.persist(nuevoUsuario).flush();
         const reponse: ExpressResponse<Usuario> = { message: "Usuario creado", data: nuevoUsuario };
 
@@ -104,7 +110,7 @@ async function modify(req: Request, res: Response) {
     const fechaNacimiento = dateFromString(req.body.fechaNacimiento) as Date | undefined;
     const rol = req.body.rol as UserRole | undefined;
     const sexoTentativo = req.body.sexo as string | undefined;
-    const contraseña = req.body.contraseña as string | undefined;
+    const password = req.body.password as string | undefined;
 
     try {
         const usuarioAModificar = orm.em.getReference(Usuario, _id);
@@ -119,7 +125,7 @@ async function modify(req: Request, res: Response) {
         if (legajo) usuarioAModificar.legajo = legajo;
         if (apellido) usuarioAModificar.apellido = apellido;
         if (username) usuarioAModificar.username = username;
-        if (contraseña) usuarioAModificar.hashed_password = Usuario.hashPassword(contraseña);
+        if (password) usuarioAModificar.hashed_password = Usuario.hashPassword(password);
         if (fechaNacimiento) usuarioAModificar.fechaNacimiento = fechaNacimiento;
         if (rol) usuarioAModificar.rol = rol;
         if (sexoTentativo) {
@@ -180,4 +186,16 @@ async function findOneUsuario(_id: string): Promise<Usuario | null> {
     }
 }
 
-export { findAll, findOne, add, modify, delete_, findOneUsuario, findAllConBorrado };
+async function findOneUsuarioByUsername(username: string): Promise<Usuario | null> {
+    try {
+        const usuario: Usuario | null = await orm.em.findOne(Usuario, { username });
+
+        await orm.em.flush();
+        return usuario;
+    } catch (error) {
+        console.error(new Error("Error al buscar el usuario"));
+        return null;
+    }
+}
+
+export { findAll, findOne, add, modify, delete_, findOneUsuario, findAllConBorrado, findOneUsuarioByUsername };

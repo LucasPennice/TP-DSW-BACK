@@ -30,6 +30,9 @@ export class Profesor {
     puntuacionGeneral: number;
 
     @Property()
+    reviewsRecibidas: number;
+
+    @Property()
     sexo: Sexo;
 
     constructor(nombre: string, apellido: string, fechaNacimiento: Date, dni: number, puntuacionGeneral: number, sexo: Sexo) {
@@ -40,5 +43,6 @@ export class Profesor {
         this.puntuacionGeneral = puntuacionGeneral;
         this.sexo = sexo;
         this.borradoLogico = false;
+        this.reviewsRecibidas = 0;
     }
 }
