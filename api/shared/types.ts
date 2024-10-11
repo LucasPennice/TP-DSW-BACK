@@ -16,4 +16,5 @@ export enum UserRole {
 export type ExpressResponse<T> = {
     message: string;
     data: T | undefined;
+    totalPages: number | undefined;
 };

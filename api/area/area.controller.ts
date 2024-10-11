@@ -28,26 +28,57 @@ async function findAll(req: Request, res: Response) {
 
         let areasSinBorradoLogico = areas.filter((a) => a.borradoLogico == false);
 
-        const reponse: ExpressResponse<Area[]> = { message: "Areas encontradas:", data: areasSinBorradoLogico };
+        const reponse: ExpressResponse<Area[]> = {
+            message: "Areas encontradas:",
+            data: areasSinBorradoLogico,
+            totalPages: undefined,
+        };
         res.json(reponse);
     } catch (error) {
-        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
+        const reponse: ExpressResponse<Area> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(reponse);
     }
 }
 
 async function findAllConBorrado(req: Request, res: Response) {
     try {
-        const areas: Area[] = await orm.em.findAll(Area, {
-            populate: ["*"],
-        });
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const offset = (page - 1) * limit;
+
+        const [areas, total] = await orm.em.findAndCount(
+            Area,
+            {},
+            {
+                populate: ["*"],
+                limit,
+                offset,
+            }
+        );
+        // const cursados: Cursado[] | undefined = await orm.em.findAll(Cursado, {
+        //     populate: ["*"],
+        // });
 
         await orm.em.flush();
 
-        const reponse: ExpressResponse<Area[]> = { message: "Areas encontradas:", data: areas };
+        const totalPages = Math.ceil(total / limit);
+
+        const reponse: ExpressResponse<Area[]> = {
+            message: "Areas encontradas:",
+            data: areas,
+            totalPages: totalPages,
+        };
         res.json(reponse);
     } catch (error) {
-        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
+        const reponse: ExpressResponse<Area> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(reponse);
     }
 }
@@ -58,12 +89,20 @@ async function findOne(req: Request, res: Response) {
     try {
         const area = await findOneArea(_id);
         if (!area) {
-            const reponse: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
+            const reponse: ExpressResponse<Area> = {
+                message: "Area no encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(reponse);
         }
         res.json({ data: area });
     } catch (error) {
-        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
+        const reponse: ExpressResponse<Area> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(reponse);
     }
 }
@@ -82,11 +121,19 @@ async function add(req: Request, res: Response) {
 
         await orm.em.persist(nuevoArea).flush();
 
-        const reponse: ExpressResponse<Area> = { message: "Area creada", data: nuevoArea };
+        const reponse: ExpressResponse<Area> = {
+            message: "Area creada",
+            data: nuevoArea,
+            totalPages: undefined,
+        };
 
         res.status(201).send(reponse);
     } catch (error) {
-        const reponse: ExpressResponse<Area> = { message: String(error), data: undefined };
+        const reponse: ExpressResponse<Area> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
 
         res.status(500).send(reponse);
     }
@@ -101,7 +148,11 @@ async function modify(req: Request, res: Response) {
         const areaAModificar = orm.em.getReference(Area, _id);
 
         if (!areaAModificar) {
-            const response: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
+            const response: ExpressResponse<Area> = {
+                message: "Area no encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
 
             return res.status(404).send(response);
         }
@@ -109,10 +160,18 @@ async function modify(req: Request, res: Response) {
         if (nombre) areaAModificar.nombre = nombre;
         await orm.em.flush();
 
-        const response: ExpressResponse<Area> = { message: "Area modificada", data: areaAModificar };
+        const response: ExpressResponse<Area> = {
+            message: "Area modificada",
+            data: areaAModificar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Area> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Area> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -124,7 +183,11 @@ async function delete_(req: Request, res: Response) {
         const areaABorrar: Area | null = await findOneArea(_id);
 
         if (!areaABorrar) {
-            const response: ExpressResponse<Area> = { message: "Area no encontrada", data: undefined };
+            const response: ExpressResponse<Area> = {
+                message: "Area no encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -138,10 +201,18 @@ async function delete_(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Area> = { message: "Area borrada", data: areaABorrar };
+        const response: ExpressResponse<Area> = {
+            message: "Area borrada",
+            data: areaABorrar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Area> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Area> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }

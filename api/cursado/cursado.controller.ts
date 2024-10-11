@@ -17,26 +17,49 @@ async function findAll(req: Request, res: Response) {
 
         let cursadosSinBorradoLogico = cursados.filter((c) => c.borradoLogico == false);
 
-        const response: ExpressResponse<Cursado[]> = { message: "Cursados Encontrados", data: cursadosSinBorradoLogico };
+        const response: ExpressResponse<Cursado[]> = {
+            message: "Cursados Encontrados",
+            data: cursadosSinBorradoLogico,
+            totalPages: undefined,
+        };
         res.json(response);
     } catch (error) {
-        const response: ExpressResponse<Cursado[]> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Cursado[]> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
 
 async function findAllConBorrado(req: Request, res: Response) {
     try {
-        const cursados: Cursado[] | undefined = await orm.em.findAll(Cursado, {
-            populate: ["*"],
-        });
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const offset = (page - 1) * limit;
+
+        const [cursados, total] = await orm.em.findAndCount(
+            Cursado,
+            {},
+            {
+                populate: ["*"],
+                limit,
+                offset,
+            }
+        );
+        // const cursados: Cursado[] | undefined = await orm.em.findAll(Cursado, {
+        //     populate: ["*"],
+        // });
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Cursado[]> = { message: "Cursados Encontrados", data: cursados };
+        const totalPages = Math.ceil(total / limit);
+
+        const response: ExpressResponse<Cursado[]> = { message: "Cursados Encontrados", data: cursados, totalPages: totalPages };
         res.json(response);
     } catch (error) {
-        const response: ExpressResponse<Cursado[]> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Cursado[]> = { message: String(error), data: undefined, totalPages: undefined };
         res.status(500).send(response);
     }
 }
@@ -52,13 +75,25 @@ async function findOne(req: Request, res: Response) {
         await orm.em.flush();
 
         if (!cursado) {
-            const response: ExpressResponse<Cursado> = { message: "Cursado no Encontrada", data: undefined };
+            const response: ExpressResponse<Cursado> = {
+                message: "Cursado no Encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
-        const response: ExpressResponse<Cursado> = { message: "Cursado Encontrado", data: cursado };
+        const response: ExpressResponse<Cursado> = {
+            message: "Cursado Encontrado",
+            data: cursado,
+            totalPages: undefined,
+        };
         res.json(response);
     } catch (error) {
-        const response: ExpressResponse<Cursado> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Cursado> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -83,16 +118,25 @@ async function add(req: Request, res: Response) {
             const response: ExpressResponse<Cursado> = {
                 message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
                 data: undefined,
+                totalPages: undefined,
             };
             return res.status(404).send(response);
         }
 
         if (!materia || materia.borradoLogico == true) {
-            const response: ExpressResponse<Cursado> = { message: "Materia no Válida", data: undefined };
+            const response: ExpressResponse<Cursado> = {
+                message: "Materia no Válida",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
         if (!profesor || profesor.borradoLogico == true) {
-            const response: ExpressResponse<Cursado> = { message: "Profesor no Válido", data: undefined };
+            const response: ExpressResponse<Cursado> = {
+                message: "Profesor no Válido",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -116,7 +160,11 @@ async function add(req: Request, res: Response) {
         });
 
         if (cursadoSuperpuesto) {
-            const response: ExpressResponse<Cursado> = { message: "Este profesor ya tiene un cursado en ese dia y horario", data: undefined };
+            const response: ExpressResponse<Cursado> = {
+                message: "Este profesor ya tiene un cursado en ese dia y horario",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -124,10 +172,18 @@ async function add(req: Request, res: Response) {
 
         await orm.em.persist(nuevoCursado).flush();
 
-        const response: ExpressResponse<Cursado> = { message: "Cursado Creada", data: nuevoCursado };
+        const response: ExpressResponse<Cursado> = {
+            message: "Cursado Creada",
+            data: nuevoCursado,
+            totalPages: undefined,
+        };
         res.status(201).send(response);
     } catch (error) {
-        const response: ExpressResponse<Cursado> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Cursado> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -148,6 +204,7 @@ async function modify(req: Request, res: Response) {
             const response: ExpressResponse<Cursado> = {
                 message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
                 data: undefined,
+                totalPages: undefined,
             };
             return res.status(404).send(response);
         }
@@ -167,14 +224,26 @@ async function modify(req: Request, res: Response) {
         await orm.em.flush();
 
         if (!cursadoAModificar) {
-            const response: ExpressResponse<Cursado> = { message: String("Cursado no encontrada"), data: undefined };
+            const response: ExpressResponse<Cursado> = {
+                message: String("Cursado no encontrada"),
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
-        const response: ExpressResponse<Cursado> = { message: String("Cursado modificada"), data: cursadoAModificar };
+        const response: ExpressResponse<Cursado> = {
+            message: String("Cursado modificada"),
+            data: cursadoAModificar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Cursado> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Cursado> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -186,7 +255,11 @@ async function delete_(req: Request, res: Response) {
         const cursadoABorrar: Cursado | null = await findOneCursado(_id);
 
         if (!cursadoABorrar) {
-            const response: ExpressResponse<Cursado> = { message: "Cursado no encontrado", data: undefined };
+            const response: ExpressResponse<Cursado> = {
+                message: "Cursado no encontrado",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -200,10 +273,18 @@ async function delete_(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Cursado> = { message: String("Cursado Borrado"), data: cursadoABorrar };
+        const response: ExpressResponse<Cursado> = {
+            message: String("Cursado Borrado"),
+            data: cursadoABorrar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Cursado> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Cursado> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }

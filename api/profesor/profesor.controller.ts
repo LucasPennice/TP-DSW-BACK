@@ -18,26 +18,57 @@ async function findAll(req: Request, res: Response) {
 
         let profesoresSinBorradoLogico = profesores.filter((p) => p.borradoLogico == false);
 
-        const reponse: ExpressResponse<Profesor[]> = { message: "Profesores encontrados:", data: profesoresSinBorradoLogico };
+        const reponse: ExpressResponse<Profesor[]> = {
+            message: "Profesores encontrados:",
+            data: profesoresSinBorradoLogico,
+            totalPages: undefined,
+        };
         res.json(reponse);
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
 
 async function findAllConBorrado(req: Request, res: Response) {
     try {
-        const profesores: Profesor[] | undefined = await orm.em.findAll(Profesor, {
-            populate: ["*"],
-        });
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const offset = (page - 1) * limit;
+
+        const [profesores, total] = await orm.em.findAndCount(
+            Profesor,
+            {},
+            {
+                populate: ["*"],
+                limit,
+                offset,
+            }
+        );
+        // const cursados: Cursado[] | undefined = await orm.em.findAll(Cursado, {
+        //     populate: ["*"],
+        // });
 
         await orm.em.flush();
 
-        const reponse: ExpressResponse<Profesor[]> = { message: "Profesores encontrados:", data: profesores };
-        res.json(reponse);
+        const totalPages = Math.ceil(total / limit);
+
+        const response: ExpressResponse<Profesor[]> = {
+            message: "Profesores encontrados:",
+            data: profesores,
+            totalPages: totalPages,
+        };
+        res.json(response);
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -49,12 +80,20 @@ async function findOne(req: Request, res: Response) {
         const profesor = await helpers.findOneProfesor(_id);
 
         if (!profesor) {
-            const response: ExpressResponse<Profesor> = { message: "Profesor no encontrado", data: undefined };
+            const response: ExpressResponse<Profesor> = {
+                message: "Profesor no encontrado",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
         res.json({ data: profesor });
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -74,10 +113,18 @@ async function add(req: Request, res: Response) {
 
     try {
         await orm.em.persist(nuevoProfesor).flush();
-        const response: ExpressResponse<Profesor> = { message: "Profesor creado", data: nuevoProfesor };
+        const response: ExpressResponse<Profesor> = {
+            message: "Profesor creado",
+            data: nuevoProfesor,
+            totalPages: undefined,
+        };
         res.status(201).send(response);
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -96,7 +143,11 @@ async function modify(req: Request, res: Response) {
         const profesorAModificar = orm.em.getReference(Profesor, _id);
 
         if (!profesorAModificar) {
-            const response: ExpressResponse<Profesor> = { message: "Profesor  no encontrado", data: undefined };
+            const response: ExpressResponse<Profesor> = {
+                message: "Profesor  no encontrado",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -113,7 +164,11 @@ async function modify(req: Request, res: Response) {
         await orm.em.flush();
         res.status(200).send({ message: "Profesor modificado", data: profesorAModificar });
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -125,7 +180,11 @@ async function delete_(req: Request, res: Response) {
         const profesorABorrar: Profesor | null = await helpers.findOneProfesor(_id);
 
         if (!profesorABorrar) {
-            const response: ExpressResponse<Profesor> = { message: "Profesor no encontrado", data: undefined };
+            const response: ExpressResponse<Profesor> = {
+                message: "Profesor no encontrado",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -139,10 +198,18 @@ async function delete_(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Profesor> = { message: "Profesor borrado", data: profesorABorrar };
+        const response: ExpressResponse<Profesor> = {
+            message: "Profesor borrado",
+            data: profesorABorrar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -165,10 +232,18 @@ async function findReviews(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Review[]> = { message: "Reviews Encontradas", data: reviews };
+        const response: ExpressResponse<Review[]> = {
+            message: "Reviews Encontradas",
+            data: reviews,
+            totalPages: undefined,
+        };
         return res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         return res.status(500).send(response);
     }
 }
@@ -207,10 +282,18 @@ async function findPorMateriaYAno(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Profesor[]> = { message: "Profesores Encontradas", data: resultado };
+        const response: ExpressResponse<Profesor[]> = {
+            message: "Profesores Encontradas",
+            data: resultado,
+            totalPages: undefined,
+        };
         return res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         return res.status(500).send(response);
     }
 }
@@ -234,10 +317,18 @@ async function findReviewsPorMateria(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Review[]> = { message: "Reviews Encontradas", data: reviews };
+        const response: ExpressResponse<Review[]> = {
+            message: "Reviews Encontradas",
+            data: reviews,
+            totalPages: undefined,
+        };
         return res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Profesor> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         return res.status(500).send(response);
     }
 }

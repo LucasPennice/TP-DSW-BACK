@@ -12,6 +12,7 @@ import { helpers as profesorHelpers } from "../profesor/profesor.controller.js";
 
 var filter = new profanity({ languages: ["es"] });
 
+// ES POSIBLE MOVER ESTO A OTRO ARCHIVO???
 filter.addWords(
     "boludo",
     "boluda",
@@ -65,18 +66,37 @@ filter.addWords(
 
 async function findAll(req: Request, res: Response) {
     try {
-        const reviews: Review[] | undefined = await orm.em.findAll(Review, {
-            populate: ["*"],
-        });
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const offset = (page - 1) * limit;
 
+        const [reviews, total] = await orm.em.findAndCount(
+            Review,
+            {},
+            {
+                populate: ["*"],
+                limit,
+                offset,
+            }
+        );
         await orm.em.flush();
+
+        const totalPages = Math.ceil(total / limit);
 
         let reviewsSinBorradoLogico = reviews.filter((r) => r.borradoLogico == false);
 
-        const reponse: ExpressResponse<Review[]> = { message: "Reviews encontradas:", data: reviewsSinBorradoLogico };
+        const reponse: ExpressResponse<Review[]> = {
+            message: "Reviews encontradas:",
+            data: reviewsSinBorradoLogico,
+            totalPages: totalPages,
+        };
         res.json(reponse);
     } catch (error) {
-        const response: ExpressResponse<Review> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Review> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -89,10 +109,18 @@ async function findAllConBorrado(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const reponse: ExpressResponse<Review[]> = { message: "Reviews encontradas:", data: reviews };
+        const reponse: ExpressResponse<Review[]> = {
+            message: "Reviews encontradas:",
+            data: reviews,
+            totalPages: undefined,
+        };
         res.json(reponse);
     } catch (error) {
-        const response: ExpressResponse<Review> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Review> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -107,12 +135,20 @@ async function findOne(req: Request, res: Response) {
 
         await orm.em.flush();
         if (!review) {
-            const response: ExpressResponse<Review> = { message: "Review no encontrada", data: undefined };
+            const response: ExpressResponse<Review> = {
+                message: "Review no encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
         res.json({ data: review });
     } catch (error) {
-        const response: ExpressResponse<Review> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Review> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -133,7 +169,11 @@ async function add(req: Request, res: Response) {
     const usuario: Usuario | null = await findOneUsuario(usuarioId);
 
     if (!usuario || usuario.borradoLogico == true) {
-        const response: ExpressResponse<Usuario> = { message: "Usuario no Válido", data: undefined };
+        const response: ExpressResponse<Usuario> = {
+            message: "Usuario no Válido",
+            data: undefined,
+            totalPages: undefined,
+        };
         return res.status(404).send(response);
     }
 
@@ -145,7 +185,11 @@ async function add(req: Request, res: Response) {
     });
 
     if (!cursado || cursado.borradoLogico == true) {
-        const response: ExpressResponse<Usuario> = { message: "Cursado no Válido", data: undefined };
+        const response: ExpressResponse<Usuario> = {
+            message: "Cursado no Válido",
+            data: undefined,
+            totalPages: undefined,
+        };
         return res.status(404).send(response);
     }
 
@@ -153,7 +197,11 @@ async function add(req: Request, res: Response) {
 
     try {
         await orm.em.persist(nuevaReview).flush();
-        const response: ExpressResponse<Review> = { message: "Review creada", data: nuevaReview };
+        const response: ExpressResponse<Review> = {
+            message: "Review creada",
+            data: nuevaReview,
+            totalPages: undefined,
+        };
 
         /// Actualizar el promedio de calificacion del profesor
 
@@ -169,7 +217,11 @@ async function add(req: Request, res: Response) {
 
         res.status(201).send(response);
     } catch (error) {
-        const response: ExpressResponse<Review> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Review> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -184,7 +236,11 @@ async function modify(req: Request, res: Response) {
         const reviewAModificar = orm.em.getReference(Review, _id);
 
         if (!reviewAModificar) {
-            const response: ExpressResponse<Review> = { message: "Review  no encontrada", data: undefined };
+            const response: ExpressResponse<Review> = {
+                message: "Review  no encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -194,7 +250,11 @@ async function modify(req: Request, res: Response) {
 
         res.status(200).send({ message: "Review modificada", data: reviewAModificar });
     } catch (error) {
-        const response: ExpressResponse<Review> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Review> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -206,17 +266,29 @@ async function delete_(req: Request, res: Response) {
         const reviewABorrar = orm.em.getReference(Review, _id);
 
         if (!reviewABorrar) {
-            const response: ExpressResponse<Review> = { message: "Review no encontrada", data: undefined };
+            const response: ExpressResponse<Review> = {
+                message: "Review no encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
         reviewABorrar.borradoLogico = true;
         await orm.em.flush();
 
-        const response: ExpressResponse<Review> = { message: "Review borrado", data: reviewABorrar };
+        const response: ExpressResponse<Review> = {
+            message: "Review borrado",
+            data: reviewABorrar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Review> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Review> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }

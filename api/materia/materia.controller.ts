@@ -15,26 +15,57 @@ async function findAll(req: Request, res: Response) {
 
         let materiasSinBorradoLogico = materias.filter((m) => m.borradoLogico == false);
 
-        const response: ExpressResponse<Materia[]> = { message: "Materias Encontradas", data: materiasSinBorradoLogico };
+        const response: ExpressResponse<Materia[]> = {
+            message: "Materias Encontradas",
+            data: materiasSinBorradoLogico,
+            totalPages: undefined,
+        };
         res.json(response);
     } catch (error) {
-        const response: ExpressResponse<Materia[]> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Materia[]> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
 
 async function findAllConBorrado(req: Request, res: Response) {
     try {
-        const materias = await orm.em.findAll(Materia, {
-            populate: ["*"],
-        });
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const offset = (page - 1) * limit;
+
+        const [materias, total] = await orm.em.findAndCount(
+            Materia,
+            {},
+            {
+                populate: ["*"],
+                limit,
+                offset,
+            }
+        );
+        // const cursados: Cursado[] | undefined = await orm.em.findAll(Cursado, {
+        //     populate: ["*"],
+        // });
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Materia[]> = { message: "Materias Encontradas", data: materias };
+        const totalPages = Math.ceil(total / limit);
+
+        const response: ExpressResponse<Materia[]> = {
+            message: "Materias Encontradas",
+            data: materias,
+            totalPages: totalPages,
+        };
         res.json(response);
     } catch (error) {
-        const response: ExpressResponse<Materia[]> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Materia[]> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -46,13 +77,25 @@ async function findOne(req: Request, res: Response) {
         const materia = await helpers.findOneMateria(_id);
 
         if (!materia) {
-            const response: ExpressResponse<Materia[]> = { message: "Materia no Encontrada", data: undefined };
+            const response: ExpressResponse<Materia[]> = {
+                message: "Materia no Encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
-        const response: ExpressResponse<Materia> = { message: "Materia Encontrada", data: materia };
+        const response: ExpressResponse<Materia> = {
+            message: "Materia Encontrada",
+            data: materia,
+            totalPages: undefined,
+        };
         res.json(response);
     } catch (error) {
-        const response: ExpressResponse<Materia> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Materia> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -65,7 +108,11 @@ async function add(req: Request, res: Response) {
 
     // 🚨 VALIDAR CON ZOD 🚨
     if (!area || area.borradoLogico == true) {
-        const response: ExpressResponse<Area> = { message: "Area no Válida", data: undefined };
+        const response: ExpressResponse<Area> = {
+            message: "Area no Válida",
+            data: undefined,
+            totalPages: undefined,
+        };
         return res.status(404).send(response);
     }
 
@@ -79,10 +126,18 @@ async function add(req: Request, res: Response) {
 
         await orm.em.persist(nuevaMateria).flush();
 
-        const response: ExpressResponse<Materia> = { message: "Materia Creada", data: nuevaMateria };
+        const response: ExpressResponse<Materia> = {
+            message: "Materia Creada",
+            data: nuevaMateria,
+            totalPages: undefined,
+        };
         res.status(201).send(response);
     } catch (error) {
-        const response: ExpressResponse<Materia> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Materia> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -96,7 +151,11 @@ async function modify(req: Request, res: Response) {
         const materiaAModificar: Materia | undefined = orm.em.getReference(Materia, _id);
 
         if (!materiaAModificar) {
-            const response: ExpressResponse<Materia> = { message: String("Materia no encontrada"), data: undefined };
+            const response: ExpressResponse<Materia> = {
+                message: String("Materia no encontrada"),
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -104,10 +163,18 @@ async function modify(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Materia> = { message: String("Materia modificada"), data: materiaAModificar };
+        const response: ExpressResponse<Materia> = {
+            message: String("Materia modificada"),
+            data: materiaAModificar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Materia> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Materia> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -119,7 +186,11 @@ async function delete_(req: Request, res: Response) {
         const materiaABorrar: Materia | null = await helpers.findOneMateria(_id);
 
         if (!materiaABorrar) {
-            const response: ExpressResponse<Materia> = { message: "Materia no encontrada", data: undefined };
+            const response: ExpressResponse<Materia> = {
+                message: "Materia no encontrada",
+                data: undefined,
+                totalPages: undefined,
+            };
             return res.status(404).send(response);
         }
 
@@ -133,10 +204,18 @@ async function delete_(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Materia> = { message: String("Materia Borrada"), data: materiaABorrar };
+        const response: ExpressResponse<Materia> = {
+            message: String("Materia Borrada"),
+            data: materiaABorrar,
+            totalPages: undefined,
+        };
         res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Materia> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Materia> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         res.status(500).send(response);
     }
 }
@@ -153,10 +232,18 @@ async function findMateriasPorAno(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        const response: ExpressResponse<Materia[]> = { message: "Materias Encontradas", data: resultado };
+        const response: ExpressResponse<Materia[]> = {
+            message: "Materias Encontradas",
+            data: resultado,
+            totalPages: undefined,
+        };
         return res.status(200).send(response);
     } catch (error) {
-        const response: ExpressResponse<Materia> = { message: String(error), data: undefined };
+        const response: ExpressResponse<Materia> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
         return res.status(500).send(response);
     }
 }
