@@ -7,6 +7,25 @@ import { orm } from "../orm.js";
 import { Review } from "../review/review.entity.js";
 import { ExpressResponse, Sexo } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
+import { z } from "zod";
+
+const profesorSchema = z.object({
+    nombre: z.string().regex(/^[a-zA-Z]+$/, "El nombre es requerido"),
+    apellido: z.string().regex(/^[a-zA-Z]+$/, "El apellido es requerido"),
+    fechaNacimiento: z.string().min(10, "La fecha de nacimiento debe seguir el formato aaaa/mm/dd"),
+    dni: z.number().refine((value) => value >= 10000000 && value <= 99999999, {
+        message: "El DNI debe tener exactamente 7 dígitos",
+    }),
+    sexo: z
+        .string()
+        .transform((value) => value.toLowerCase())
+        .refine((value) => ["mujer", "hombre"].includes(value), {
+            message: "El sexo debe ser 'Mujer' o 'Hombre'",
+        })
+        .transform((value) => {
+            return value === "mujer" ? Sexo.Mujer : Sexo.Hombre;
+        }),
+});
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -99,17 +118,18 @@ async function findOne(req: Request, res: Response) {
 }
 
 async function add(req: Request, res: Response) {
-    const nombre = req.body.nombre as string;
-    const apellido = req.body.apellido as string;
-    const fechaNacimiento = req.body.fechaNacimiento as string; // DD/MM/AAAA
-    const dni = req.body.dni as number;
-    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined;
-    const sexoTentativo = req.body.sexo as string;
-    const sexo: Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer;
+    const profesorValidation = profesorSchema.safeParse(req.body);
 
-    // 🚨 VALIDAR CON ZOD 🚨
+    if (!profesorValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: profesorValidation.error.errors,
+        });
+    }
 
-    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, puntuacionGeneral ?? 0, sexo);
+    const { nombre, apellido, fechaNacimiento, dni, sexo } = profesorValidation.data;
+
+    const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, 0, sexo);
 
     try {
         await orm.em.persist(nuevoProfesor).flush();
@@ -132,12 +152,16 @@ async function add(req: Request, res: Response) {
 async function modify(req: Request, res: Response) {
     const _id = req.params.id as string;
 
-    const nombre = req.body.nombre as string | undefined;
-    const apellido = req.body.apellido as string | undefined;
-    const fechaNacimiento = dateFromString(req.body.fechaNacimiento) as Date | undefined; // DD/MM/AAAA | undefined
-    const dni = req.body.dni as number | undefined;
-    const puntuacionGeneral = req.body.puntuacionGeneral as number | undefined;
-    const sexoTentativo = req.body.sexo as string | undefined;
+    const profesorValidation = profesorSchema.safeParse(req.body);
+
+    if (!profesorValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: profesorValidation.error.errors,
+        });
+    }
+
+    const { nombre, apellido, fechaNacimiento, dni, sexo } = profesorValidation.data;
 
     try {
         const profesorAModificar = orm.em.getReference(Profesor, _id);
@@ -151,13 +175,11 @@ async function modify(req: Request, res: Response) {
             return res.status(404).send(response);
         }
 
-        if (fechaNacimiento) profesorAModificar.fechaNacimiento = fechaNacimiento;
+        if (fechaNacimiento) profesorAModificar.fechaNacimiento = dateFromString(fechaNacimiento);
         if (nombre) profesorAModificar.nombre = nombre;
         if (apellido) profesorAModificar.apellido = apellido;
         if (dni) profesorAModificar.dni = dni;
-        if (puntuacionGeneral) profesorAModificar.puntuacionGeneral = puntuacionGeneral;
-        if (sexoTentativo) {
-            const sexo: Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer;
+        if (sexo) {
             profesorAModificar.sexo = sexo;
         }
 

@@ -4,6 +4,12 @@ import { ExpressResponse, TipoCursado } from "../shared/types.js";
 import { Area } from "../area/area.entity.js";
 import { orm } from "../orm.js";
 import { findOneArea } from "../area/area.controller.js";
+import { z } from "zod";
+
+const materiaSchema = z.object({
+    nombre: z.string().min(1, "El nombre es requerido"),
+    areaId: z.string().min(1, "El id de area es requerido"),
+});
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -101,12 +107,19 @@ async function findOne(req: Request, res: Response) {
 }
 
 async function add(req: Request, res: Response) {
-    const nombre = req.body.nombre as string;
-    const areaId = req.body.areaId as string;
+    const materiaValidation = materiaSchema.safeParse(req.body);
+
+    if (!materiaValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: materiaValidation.error.errors,
+        });
+    }
+
+    const { nombre, areaId } = materiaValidation.data;
 
     const area: Area | null = await findOneArea(areaId);
 
-    // 🚨 VALIDAR CON ZOD 🚨
     if (!area || area.borradoLogico == true) {
         const response: ExpressResponse<Area> = {
             message: "Area no Válida",
@@ -145,7 +158,16 @@ async function add(req: Request, res: Response) {
 async function modify(req: Request, res: Response) {
     const _id = req.params.id as string;
 
-    const nombre = req.body.nombre as string | undefined;
+    const materiaValidation = materiaSchema.partial().safeParse(req.body);
+
+    if (!materiaValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: materiaValidation.error.errors,
+        });
+    }
+
+    const { nombre } = materiaValidation.data;
 
     try {
         const materiaAModificar: Materia | undefined = orm.em.getReference(Materia, _id);

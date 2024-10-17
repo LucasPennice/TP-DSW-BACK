@@ -9,10 +9,10 @@ import { Review } from "./review.entity.js";
 //@ts-ignore
 import profanity from "bad-words-es";
 import { helpers as profesorHelpers } from "../profesor/profesor.controller.js";
+import { z } from "zod";
 
 var filter = new profanity({ languages: ["es"] });
 
-// ES POSIBLE MOVER ESTO A OTRO ARCHIVO???
 filter.addWords(
     "boludo",
     "boluda",
@@ -63,6 +63,15 @@ filter.addWords(
     "poronga",
     "sorete"
 );
+
+const reviewSchema = z.object({
+    descripcion: z.string().min(1, "La descripcion es obligatoria"),
+    puntuacion: z.number().refine((value) => value >= 0 && value <= 5, {
+        message: "El puntaje debe estar entre 0-5",
+    }),
+    usuarioId: z.string().min(1, "El id de usuario es requerido"),
+    cursadoId: z.string().min(1, "El id de cursado es requerido"),
+});
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -154,6 +163,16 @@ async function findOne(req: Request, res: Response) {
 }
 
 async function add(req: Request, res: Response) {
+    const reviewValidation = reviewSchema.safeParse(req.body);
+
+    if (!reviewValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: reviewValidation.error.errors,
+        });
+    }
+
+    // const { descripcion, puntuacion, usuarioId, materiaId, profesorId } = reviewValidation.data;
     const descripcion = req.body.descripcion as string;
     const puntuacion = req.body.puntuacion as number;
     const usuarioId = req.body.usuarioId as string;

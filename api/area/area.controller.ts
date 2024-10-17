@@ -2,21 +2,11 @@ import { Request, Response } from "express";
 import { Area } from "./area.entity.js";
 import { ExpressResponse } from "../shared/types.js";
 import { orm } from "../orm.js";
+import { z } from "zod";
 
-/*
-function sanitizeCatedraInput(req: Request, res: Response, next: NextFunction){
-    req.body.sanitizeCatedraInput = {
-        "name": req.body.name
-    }
-    
-    Object.keys(req.body.sanitizeCatedraInput).forEach(key =>{
-        if(req.body.sanitizeCatedraInput[key] == undefined){
-            delete req.body.sanitizeCatedraInput[key]
-        }
-    })
-    next()
-}
-*/
+const areaSchema = z.object({
+    nombre: z.string().min(1, "El nombre es requerido"),
+});
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -108,9 +98,16 @@ async function findOne(req: Request, res: Response) {
 }
 
 async function add(req: Request, res: Response) {
-    const nombre = req.body.nombre as string;
+    const areaValidation = areaSchema.safeParse(req.body);
 
-    // 🚨 VALIDAR CON ZOD 🚨
+    if (!areaValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: areaValidation.error.errors,
+        });
+    }
+
+    const { nombre } = areaValidation.data;
 
     const nuevoArea = new Area(nombre);
     try {
@@ -142,7 +139,16 @@ async function add(req: Request, res: Response) {
 async function modify(req: Request, res: Response) {
     const _id = req.params.id as string;
 
-    const nombre = req.body.nombre as string | undefined;
+    const areaValidation = areaSchema.partial().safeParse(req.body);
+
+    if (!areaValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: areaValidation.error.errors,
+        });
+    }
+
+    const { nombre } = areaValidation.data;
 
     try {
         const areaAModificar = orm.em.getReference(Area, _id);

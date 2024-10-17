@@ -6,6 +6,45 @@ import { helpers as materiaHelpers } from "../materia/materia.controller.js";
 import { Profesor } from "../profesor/profesor.entity.js";
 import { orm } from "../orm.js";
 import { helpers as profesorHelper } from "../profesor/profesor.controller.js";
+import { z } from "zod";
+
+const primeraLetraMayuscula = (str: string): string => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+const cursadoSchema = z.object({
+    diaCursado: z
+        .string()
+        .refine((value) => ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado"].includes(value.toLowerCase()), {
+            message: "El día debe ser uno de los días válidos.",
+        })
+        .transform((value) => primeraLetraMayuscula(value.toLowerCase())),
+    horaInicio: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora de inicio debe ser del tipo xx:xx"),
+    horaFin: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora de fin debe ser del tipo xx:xx"),
+    comision: z.number().refine((value) => value >= 100 && value <= 999, {
+        message: "La comisión debe tener exactamente 3 dígitos",
+    }),
+    turno: z
+        .string()
+        .refine((value) => ["mañana", "tarde", "noche"].includes(value.toLowerCase()), {
+            message: "El turno debe ser mañana, tarde o noche.",
+        })
+        .transform((value) => primeraLetraMayuscula(value.toLowerCase())),
+    año: z.number().refine((value) => value >= 2000 && value <= 9999, {
+        message: "El año debe tener exactamente 4 dígitos",
+    }),
+    tipoCursado: z
+        .string()
+        .transform((value) => value.toLowerCase())
+        .refine((value) => ["teoria", "practica"].includes(value), {
+            message: "El tipo debe ser 'Teoria' o 'Practica'",
+        })
+        .transform((value) => {
+            return value === "teoria" ? TipoCursado.Teoria : TipoCursado.Practica;
+        }),
+    materiaId: z.string().min(1, "El id de materia es requerido"),
+    profesorId: z.string().min(1, "El id de profesor es requerido"),
+});
 
 async function findAll(req: Request, res: Response) {
     try {
@@ -99,29 +138,21 @@ async function findOne(req: Request, res: Response) {
 }
 
 async function add(req: Request, res: Response) {
-    const diaCursado = req.body.diaCursado as string;
-    const horaInicio = req.body.horaInicio as string;
-    const horaFin = req.body.horaFin as string;
-    const comision = req.body.comision as number;
-    const turno = req.body.turno as string;
-    const año = req.body.año as number;
-    const tipoCursado = req.body.tipoCursado as TipoCursado;
-    const materiaId = req.body.materiaId as string;
-    const profesorId = req.body.profesorId as string;
+    const cursadoValidation = cursadoSchema.safeParse(req.body);
+
+    if (!cursadoValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: cursadoValidation.error.errors,
+        });
+    }
+
+    const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado, materiaId, profesorId } = cursadoValidation.data;
 
     try {
         const materia: Materia | null = await materiaHelpers.findOneMateria(materiaId);
 
         const profesor: Profesor | null = await profesorHelper.findOneProfesor(profesorId);
-
-        if (tipoCursado != TipoCursado.Practica && tipoCursado != TipoCursado.Teoria) {
-            const response: ExpressResponse<Cursado> = {
-                message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
-                data: undefined,
-                totalPages: undefined,
-            };
-            return res.status(404).send(response);
-        }
 
         if (!materia || materia.borradoLogico == true) {
             const response: ExpressResponse<Cursado> = {
@@ -191,24 +222,18 @@ async function add(req: Request, res: Response) {
 async function modify(req: Request, res: Response) {
     const _id = req.params.id as string;
 
-    const diaCursado = req.body.diaCursado as string | undefined;
-    const horaInicio = req.body.horaInicio as string | undefined;
-    const horaFin = req.body.horaFin as string | undefined;
-    const comision = req.body.comision as number | undefined;
-    const turno = req.body.turno as string | undefined;
-    const año = req.body.año as number | undefined;
-    const tipoCursado = req.body.tipoCursado as TipoCursado | undefined;
+    const cursadoValidation = cursadoSchema.partial().safeParse(req.body);
+
+    if (!cursadoValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: cursadoValidation.error.errors,
+        });
+    }
+
+    const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = cursadoValidation.data;
 
     try {
-        if (tipoCursado != TipoCursado.Practica && tipoCursado != TipoCursado.Teoria) {
-            const response: ExpressResponse<Cursado> = {
-                message: `Tipo cursado no valido elegir ${TipoCursado.Practica} o ${TipoCursado.Teoria}`,
-                data: undefined,
-                totalPages: undefined,
-            };
-            return res.status(404).send(response);
-        }
-
         const cursadoAModificar: Cursado | undefined = orm.em.getReference(Cursado, _id);
 
         if (cursadoAModificar) {
