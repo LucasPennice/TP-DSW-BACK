@@ -42,8 +42,8 @@ const cursadoSchema = z.object({
         .transform((value) => {
             return value === "teoria" ? TipoCursado.Teoria : TipoCursado.Practica;
         }),
-    materiaId: z.string().min(1, "El id de materia es requerido"),
-    profesorId: z.string().min(1, "El id de profesor es requerido"),
+    materiaId: z.string().min(1, "Es necesario seleccionar una materia"),
+    profesorId: z.string().min(1, "Es necesario seleccionar un profesor"),
 });
 
 async function findAll(req: Request, res: Response) {
@@ -207,6 +207,8 @@ async function add(req: Request, res: Response) {
             message: "Cursado Creada",
             data: nuevoCursado,
             totalPages: undefined,
+            // @ts-ignore
+            // errors: cursadoValidation.error.errors,
         };
         res.status(201).send(response);
     } catch (error) {

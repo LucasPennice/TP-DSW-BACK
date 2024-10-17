@@ -14,7 +14,7 @@ const profesorSchema = z.object({
     apellido: z.string().regex(/^[a-zA-Z]+$/, "El apellido es requerido"),
     fechaNacimiento: z.string().min(10, "La fecha de nacimiento debe seguir el formato aaaa/mm/dd"),
     dni: z.number().refine((value) => value >= 10000000 && value <= 99999999, {
-        message: "El DNI debe tener exactamente 7 dígitos",
+        message: "El DNI debe tener exactamente 8 dígitos",
     }),
     sexo: z
         .string()

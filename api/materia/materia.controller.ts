@@ -8,7 +8,7 @@ import { z } from "zod";
 
 const materiaSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
-    areaId: z.string().min(1, "El id de area es requerido"),
+    areaId: z.string().min(1, "Es necesario seleccionar un área"),
 });
 
 async function findAll(req: Request, res: Response) {
