@@ -273,7 +273,8 @@ async function findReviews(req: Request, res: Response) {
 async function findPorMateriaYAno(req: Request, res: Response) {
     try {
         const _idMateria = req.params.idMateria as string;
-        const _Ano = parseInt(req.params.ano) as number;
+        const anoMateria = parseInt(req.params.ano) as number;
+        const anoCursado = parseInt(req.params.anoCursado) as number;
 
         const materia: Materia | null = await materiaHelper.findOneMateria(_idMateria);
 
@@ -288,7 +289,9 @@ async function findPorMateriaYAno(req: Request, res: Response) {
                 borradoLogico: false,
                 materia: { _id: _idMateria },
                 //@ts-ignore
-                comision: { $re: new RegExp(`^${_Ano}`) },
+                comision: { $re: new RegExp(`^${anoMateria}`) },
+                //@ts-ignore
+                año: `${anoCursado}`,
             },
         });
 

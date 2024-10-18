@@ -22,7 +22,6 @@ import { findOneUsuarioByUsername } from "./usuario/usuario.controller.js";
 // Configure Passport Strategy
 passport.use(
     new LocalStrategy(async (username, contraseña, done) => {
-        // Buscar el usuario en la base de datos 🚨 Cambiar por buscar en la base de datos real despues 🚨
         const user = await findOneUsuarioByUsername(username);
 
         if (!user) {
@@ -51,12 +50,27 @@ passport.deserializeUser(function (user: Usuario, cb) {
     });
 });
 
-function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
+export function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
     if (req.isAuthenticated()) {
+        console.log("🧠🧠🧠", JSON.stringify(req.user));
         return next();
     }
 
-    return res.status(401).send({ message: "Not Allowed", succeed: false });
+    return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
+}
+
+export function ensureAdmin(req: Request, res: Response, next: NextFunction) {
+    if (!req.isAuthenticated()) {
+        return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
+    }
+
+    let user = req.user as Usuario;
+
+    if (user.rol != UserRole.Administrador) {
+        return res.status(401).send({ message: "El usuario no tiene los permisos necesarios", succeed: false });
+    }
+
+    return next();
 }
 /**
  * Registers a function used to deserialize user objects out of the session.
@@ -70,7 +84,7 @@ function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: ["http://localhost:3001", "https://tpdsw.lpenn.dev"], credentials: true }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -137,7 +151,7 @@ app.post("/login", (req, res, next) => {
                 if (err) {
                     return res.status(500).json({ message: "Failed to login", succeed: false });
                 } else {
-                    const reponse: ExpressResponse<Usuario> = { message: "Usuario log", data: user };
+                    const reponse: ExpressResponse<Usuario> = { message: "Usuario log", data: user, totalPages: undefined };
 
                     return res.status(200).send(reponse);
                 }
@@ -189,17 +203,17 @@ app.post("/signup", async function (req, res, next) {
 
             req.login(nuevoUsuario, (err) => {
                 if (err) {
-                    const reponse: ExpressResponse<Usuario> = { message: "Error al crear usuario", data: undefined };
+                    const reponse: ExpressResponse<Usuario> = { message: "Error al crear usuario", data: undefined, totalPages: undefined };
 
                     return res.status(500).json(reponse);
                 } else {
-                    const reponse: ExpressResponse<Usuario> = { message: "Usuario creado", data: nuevoUsuario };
+                    const reponse: ExpressResponse<Usuario> = { message: "Usuario creado", data: nuevoUsuario, totalPages: undefined };
 
                     return res.status(201).send(reponse);
                 }
             });
         } catch (error) {
-            const reponse: ExpressResponse<Usuario> = { message: String(error), data: undefined };
+            const reponse: ExpressResponse<Usuario> = { message: String(error), data: undefined, totalPages: undefined };
 
             res.status(500).send(reponse);
         }
