@@ -16,7 +16,8 @@ const profesorRouter = express.Router();
 
 profesorRouter.get("/", findAll);
 
-profesorRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
+// profesorRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
+profesorRouter.get("/conBorrado", findAllConBorrado);
 
 profesorRouter.get("/:id/reviews", findReviews);
 
@@ -26,10 +27,12 @@ profesorRouter.get("/:id/reviewsDeMateria/:idMateria", findReviewsPorMateria);
 
 profesorRouter.get("/:id", findOne);
 
-profesorRouter.post("/", ensureAdmin, add);
+profesorRouter.post("/", add);
 
-profesorRouter.patch("/:id", ensureAdmin, modify);
+profesorRouter.patch("/:id", modify);
+// profesorRouter.patch("/:id", ensureAdmin, modify);
 
-profesorRouter.delete("/:id", ensureAdmin, delete_);
+// profesorRouter.delete("/:id", ensureAdmin, delete_);
+profesorRouter.delete("/:id", delete_);
 
 export default profesorRouter;

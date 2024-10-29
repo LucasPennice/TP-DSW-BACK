@@ -12,7 +12,28 @@ import { z } from "zod";
 const profesorSchema = z.object({
     nombre: z.string().regex(/^[a-zA-Z]+$/, "El nombre es requerido"),
     apellido: z.string().regex(/^[a-zA-Z]+$/, "El apellido es requerido"),
-    fechaNacimiento: z.string().min(10, "La fecha de nacimiento debe seguir el formato aaaa/mm/dd"),
+    // fechaNacimiento: z.string().min(10, "La fecha de nacimiento debe seguir el formato aaaa/mm/dd"),
+    fechaNacimiento: z
+        .string()
+        .regex(/^(19|20)\d{2}\/(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/, {
+            message: "La fecha debe estar en formato YYYY/MM/DD.",
+        })
+        .refine(
+            (dateString) => {
+                const inputDate = new Date(dateString.replace(/\//g, "-")); // Cambia '/' a '-' para compatibilidad con `Date`
+                const today = new Date();
+
+                // Verifica si la fecha es válida
+                if (isNaN(inputDate.getTime())) return false;
+
+                // Restar 16 años a la fecha actual para la verificación
+                today.setFullYear(today.getFullYear() - 18);
+                return inputDate <= today;
+            },
+            {
+                message: "Los profesores deben ser mayores de 18 años",
+            }
+        ),
     dni: z.number().refine((value) => value >= 10000000 && value <= 99999999, {
         message: "El DNI debe tener exactamente 8 dígitos",
     }),
@@ -152,7 +173,7 @@ async function add(req: Request, res: Response) {
 async function modify(req: Request, res: Response) {
     const _id = req.params.id as string;
 
-    const profesorValidation = profesorSchema.safeParse(req.body);
+    const profesorValidation = profesorSchema.partial().safeParse(req.body);
 
     if (!profesorValidation.success) {
         return res.status(400).send({

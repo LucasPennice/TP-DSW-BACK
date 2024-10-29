@@ -11,7 +11,27 @@ const usuarioSchema = z.object({
     nombre: z.string().regex(/^[a-zA-Z]+$/, "El nombre es requerido"),
     apellido: z.string().regex(/^[a-zA-Z]+$/, "El apellido es requerido"),
     username: z.string().min(1, "El username es requerido"),
-    fechaNacimiento: z.string().min(10, "La fecha de nacimiento debe seguir el formato aaaa/mm/dd"),
+    fechaNacimiento: z
+        .string()
+        .regex(/^(19|20)\d{2}\/(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/, {
+            message: "La fecha debe estar en formato YYYY/MM/DD.",
+        })
+        .refine(
+            (dateString) => {
+                const inputDate = new Date(dateString.replace(/\//g, "-")); // Cambia '/' a '-' para compatibilidad con `Date`
+                const today = new Date();
+
+                // Verifica si la fecha es válida
+                if (isNaN(inputDate.getTime())) return false;
+
+                // Restar 16 años a la fecha actual para la verificación
+                today.setFullYear(today.getFullYear() - 18);
+                return inputDate <= today;
+            },
+            {
+                message: "Los usuarios deben ser mayores de 18 años",
+            }
+        ),
     password: z.string().min(1, "La contraseña es requerida"),
     sexo: z
         .string()
