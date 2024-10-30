@@ -21,7 +21,7 @@ const cursadoSchema = z.object({
         .transform((value) => primeraLetraMayuscula(value.toLowerCase())),
     horaInicio: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora de inicio debe ser del tipo xx:xx"),
     horaFin: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora de fin debe ser del tipo xx:xx"),
-    comision: z.number().refine((value) => value >= 100 && value <= 999, {
+    comision: z.number().refine((value) => value >= 100 && value <= 510, {
         message: "La comisión debe tener exactamente 3 dígitos",
     }),
     turno: z
@@ -30,7 +30,7 @@ const cursadoSchema = z.object({
             message: "El turno debe ser mañana, tarde o noche.",
         })
         .transform((value) => primeraLetraMayuscula(value.toLowerCase())),
-    año: z.number().refine((value) => value >= 2000 && value <= 9999, {
+    año: z.number().refine((value) => value >= 2000 && value <= 2024, {
         message: "El año debe tener exactamente 4 dígitos",
     }),
     tipoCursado: z
@@ -222,21 +222,30 @@ async function add(req: Request, res: Response) {
 }
 
 async function modify(req: Request, res: Response) {
-    const _id = req.params.id as string;
-
-    const cursadoValidation = cursadoSchema.partial().safeParse(req.body);
-
-    if (!cursadoValidation.success) {
-        return res.status(400).send({
-            message: "Error de validación",
-            errors: cursadoValidation.error.errors,
-        });
-    }
-
-    const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = cursadoValidation.data;
-
     try {
-        const cursadoAModificar: Cursado | undefined = orm.em.getReference(Cursado, _id);
+        const _id = req.params.id as string;
+
+        const cursadoValidation = cursadoSchema.partial().safeParse(req.body);
+
+        if (!cursadoValidation.success) {
+            return res.status(400).send({
+                message: "Error de validación",
+                errors: cursadoValidation.error.errors,
+            });
+        }
+
+        const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = cursadoValidation.data;
+
+        const cursadoAModificar = orm.em.getReference(Cursado, _id);
+
+        if (!cursadoAModificar) {
+            const response: ExpressResponse<Cursado> = {
+                message: String("Cursado no encontrada"),
+                data: undefined,
+                totalPages: undefined,
+            };
+            return res.status(404).send(response);
+        }
 
         if (cursadoAModificar) {
             if (diaCursado) cursadoAModificar.diaCursado = diaCursado;
@@ -250,21 +259,7 @@ async function modify(req: Request, res: Response) {
 
         await orm.em.flush();
 
-        if (!cursadoAModificar) {
-            const response: ExpressResponse<Cursado> = {
-                message: String("Cursado no encontrada"),
-                data: undefined,
-                totalPages: undefined,
-            };
-            return res.status(404).send(response);
-        }
-
-        const response: ExpressResponse<Cursado> = {
-            message: String("Cursado modificada"),
-            data: cursadoAModificar,
-            totalPages: undefined,
-        };
-        res.status(200).send(response);
+        res.status(200).send({ message: "Cursado modificada", data: cursadoAModificar });
     } catch (error) {
         const response: ExpressResponse<Cursado> = {
             message: String(error),

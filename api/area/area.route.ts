@@ -4,16 +4,28 @@ import { add, delete_, findAll, findAllConBorrado, findOne, modify } from "./are
 
 const areaRouter = express.Router();
 
+// areaRouter.get("/", findAll);
+
+// areaRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
+
+// areaRouter.get("/:id", findOne);
+
+// areaRouter.post("/", ensureAdmin, add);
+
+// areaRouter.patch("/:id", ensureAdmin, modify);
+
+// areaRouter.delete("/:id", ensureAdmin, delete_);
+
 areaRouter.get("/", findAll);
 
-areaRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
+areaRouter.get("/conBorrado", findAllConBorrado);
 
 areaRouter.get("/:id", findOne);
 
-areaRouter.post("/", ensureAdmin, add);
+areaRouter.post("/", add);
 
-areaRouter.patch("/:id", ensureAdmin, modify);
+areaRouter.patch("/:id", modify);
 
-areaRouter.delete("/:id", ensureAdmin, delete_);
+areaRouter.delete("/:id", delete_);
 
 export default areaRouter;

@@ -12,28 +12,27 @@ import { z } from "zod";
 const profesorSchema = z.object({
     nombre: z.string().regex(/^[a-zA-Z]+$/, "El nombre es requerido"),
     apellido: z.string().regex(/^[a-zA-Z]+$/, "El apellido es requerido"),
-    // fechaNacimiento: z.string().min(10, "La fecha de nacimiento debe seguir el formato aaaa/mm/dd"),
-    fechaNacimiento: z
-        .string()
-        .regex(/^(19|20)\d{2}\/(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/, {
-            message: "La fecha debe estar en formato YYYY/MM/DD.",
-        })
-        .refine(
-            (dateString) => {
-                const inputDate = new Date(dateString.replace(/\//g, "-")); // Cambia '/' a '-' para compatibilidad con `Date`
-                const today = new Date();
+    fechaNacimiento: z.string().refine(
+        (dateString) => {
+            const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/;
+            if (!datePattern.test(dateString)) return false;
 
-                // Verifica si la fecha es válida
-                if (isNaN(inputDate.getTime())) return false;
+            const [day, month, year] = dateString.split("/").map(Number);
+            const inputDate = new Date(year, month - 1, day);
 
-                // Restar 16 años a la fecha actual para la verificación
-                today.setFullYear(today.getFullYear() - 18);
-                return inputDate <= today;
-            },
-            {
-                message: "Los profesores deben ser mayores de 18 años",
+            if (inputDate.getFullYear() !== year || inputDate.getMonth() !== month - 1 || inputDate.getDate() !== day) {
+                return false;
             }
-        ),
+
+            const today = new Date();
+            today.setFullYear(today.getFullYear() - 18);
+            return inputDate <= today;
+        },
+        {
+            message: "La fecha debe ser válida, y los profesores deben ser mayores de 18 años",
+        }
+    ),
+
     dni: z.number().refine((value) => value >= 10000000 && value <= 99999999, {
         message: "El DNI debe tener exactamente 8 dígitos",
     }),
@@ -140,7 +139,6 @@ async function findOne(req: Request, res: Response) {
 
 async function add(req: Request, res: Response) {
     const profesorValidation = profesorSchema.safeParse(req.body);
-
     if (!profesorValidation.success) {
         return res.status(400).send({
             message: "Error de validación",

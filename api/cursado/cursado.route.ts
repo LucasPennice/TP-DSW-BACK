@@ -4,16 +4,28 @@ import { add, delete_, findAll, findAllConBorrado, findOne, modify } from "./cur
 
 const cursadoRouter = express.Router();
 
+// cursadoRouter.get("/", findAll);
+
+// cursadoRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
+
+// cursadoRouter.get("/:id", findOne);
+
+// cursadoRouter.post("/", ensureAdmin, add);
+
+// cursadoRouter.patch("/:id", ensureAdmin, modify);
+
+// cursadoRouter.delete("/:id", ensureAdmin, delete_);
+
 cursadoRouter.get("/", findAll);
 
-cursadoRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
+cursadoRouter.get("/conBorrado", findAllConBorrado);
 
 cursadoRouter.get("/:id", findOne);
 
-cursadoRouter.post("/", ensureAdmin, add);
+cursadoRouter.post("/", add);
 
-cursadoRouter.patch("/:id", ensureAdmin, modify);
+cursadoRouter.patch("/:id", modify);
 
-cursadoRouter.delete("/:id", ensureAdmin, delete_);
+cursadoRouter.delete("/:id", delete_);
 
 export default cursadoRouter;
