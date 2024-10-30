@@ -70,7 +70,10 @@ const reviewSchema = z.object({
         message: "El puntaje debe estar entre 0-5",
     }),
     usuarioId: z.string().min(1, "El id de usuario es requerido"),
-    cursadoId: z.string().min(1, "El id de cursado es requerido"),
+    profesorId: z.string().min(1, "El id de profesor es requerido"),
+    materiaId: z.string().min(1, "El id de materia es requerido"),
+    anio: z.string().min(1, "El año es requerido requerido"),
+    anoCursado: z.number().min(1, { message: "El año de cursado es requerido" }),
 });
 
 async function findAll(req: Request, res: Response) {
@@ -179,6 +182,7 @@ async function add(req: Request, res: Response) {
     const anio = req.body.anio as string;
     const profesorId = req.body.profesorId as string;
     const materiaId = req.body.materiaId as string;
+    const anoCursado = parseInt(req.body.anoCursado) as number;
 
     const reviewLimpia = filter.clean(descripcion);
     const censurada = reviewLimpia != descripcion;
@@ -201,6 +205,7 @@ async function add(req: Request, res: Response) {
         profesor: { _id: profesorId },
         materia: { _id: materiaId },
         comision: { $re: new RegExp(`^${anio}`) },
+        año: `${anoCursado}`,
     });
 
     if (!cursado || cursado.borradoLogico == true) {
@@ -247,9 +252,17 @@ async function add(req: Request, res: Response) {
 
 async function modify(req: Request, res: Response) {
     const _id = req.params.id as string;
-
     const descripcion = req.body.descripcion as string;
     const puntuacion = req.body.puntuacion as number;
+
+    const reviewValidation = reviewSchema.partial().safeParse(req.body);
+
+    if (!reviewValidation.success) {
+        return res.status(400).send({
+            message: "Error de validación",
+            errors: reviewValidation.error.errors,
+        });
+    }
 
     try {
         const reviewAModificar = orm.em.getReference(Review, _id);
