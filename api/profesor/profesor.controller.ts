@@ -303,14 +303,11 @@ async function findPorMateriaYAno(req: Request, res: Response) {
 
         const cursados: Cursado[] = await orm.em.findAll(Cursado, {
             populate: ["*"],
-            //@ts-ignore
             where: {
                 borradoLogico: false,
                 materia: { _id: _idMateria },
-                //@ts-ignore
-                comision: { $re: new RegExp(`^${anoMateria}`) },
-                //@ts-ignore
-                año: `${anoCursado}`,
+                año: anoCursado,
+                comision: { $gte: anoMateria * 100, $lt: (anoMateria + 1) * 100 },
             },
         });
 
