@@ -179,7 +179,7 @@ async function add(req: Request, res: Response) {
     const descripcion = req.body.descripcion as string;
     const puntuacion = req.body.puntuacion as number;
     const usuarioId = req.body.usuarioId as string;
-    const anio = req.body.anio as string;
+    const anio = parseInt(req.body.anio) as number;
     const profesorId = req.body.profesorId as string;
     const materiaId = req.body.materiaId as string;
     const anoCursado = parseInt(req.body.anoCursado) as number;
@@ -204,8 +204,8 @@ async function add(req: Request, res: Response) {
     const cursado: Cursado | null = await orm.em.findOne(Cursado, {
         profesor: { _id: profesorId },
         materia: { _id: materiaId },
-        comision: { $re: new RegExp(`^${anio}`) },
-        año: `${anoCursado}`,
+        comision: { $gte: anio * 100, $lt: (anio + 1) * 100 },
+        año: anoCursado,
     });
 
     if (!cursado || cursado.borradoLogico == true) {

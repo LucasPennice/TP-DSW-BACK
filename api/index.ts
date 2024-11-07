@@ -84,7 +84,15 @@ export function ensureAdmin(req: Request, res: Response, next: NextFunction) {
 
 const app = express();
 
-app.use(cors({ origin: ["http://localhost:3001", "https://tpdsw.lpenn.dev"], credentials: true }));
+var options = {
+    origin: ["http://localhost:3001", "https://tpdsw.lpenn.dev"],
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+};
+
+app.use(cors(options));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

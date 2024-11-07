@@ -138,6 +138,8 @@ async function findOne(req: Request, res: Response) {
 }
 
 async function add(req: Request, res: Response) {
+    console.log(JSON.stringify(req.body));
+
     const profesorValidation = profesorSchema.safeParse(req.body);
     if (!profesorValidation.success) {
         return res.status(400).send({
