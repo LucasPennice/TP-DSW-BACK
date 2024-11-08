@@ -291,7 +291,7 @@ async function findReviews(req: Request, res: Response) {
     }
 }
 
-async function findPorMateriaYAno(req: Request, res: Response) {
+async function findPorMateriaYAnoYAnoCursado(req: Request, res: Response) {
     try {
         const _idMateria = req.params.idMateria as string;
         const anoMateria = parseInt(req.params.ano) as number;
@@ -309,6 +309,54 @@ async function findPorMateriaYAno(req: Request, res: Response) {
                 borradoLogico: false,
                 materia: { _id: _idMateria },
                 año: anoCursado,
+                comision: { $gte: anoMateria * 100, $lt: (anoMateria + 1) * 100 },
+            },
+        });
+
+        const idsProf = cursados.map((c) => c.profesor._id);
+
+        const resultado: Profesor[] = await orm.em.findAll(Profesor, {
+            populate: ["*"],
+            where: {
+                _id: { $in: idsProf },
+                borradoLogico: false,
+            },
+        });
+
+        await orm.em.flush();
+
+        const response: ExpressResponse<Profesor[]> = {
+            message: "Profesores Encontradas",
+            data: resultado,
+            totalPages: undefined,
+        };
+        return res.status(200).send(response);
+    } catch (error) {
+        const response: ExpressResponse<Profesor> = {
+            message: String(error),
+            data: undefined,
+            totalPages: undefined,
+        };
+        return res.status(500).send(response);
+    }
+}
+
+async function findPorMateriaYAno(req: Request, res: Response) {
+    try {
+        const _idMateria = req.params.idMateria as string;
+        const anoMateria = parseInt(req.params.ano) as number;
+
+        const materia: Materia | null = await materiaHelper.findOneMateria(_idMateria);
+
+        if (!materia || materia.borradoLogico == true) {
+            throw new Error("Materia borrado");
+        }
+
+        const cursados: Cursado[] = await orm.em.findAll(Cursado, {
+            populate: ["*"],
+            where: {
+                borradoLogico: false,
+                materia: { _id: _idMateria },
                 comision: { $gte: anoMateria * 100, $lt: (anoMateria + 1) * 100 },
             },
         });
@@ -392,4 +440,16 @@ const helpers = {
     },
 };
 
-export { add, delete_, findAll, findAllConBorrado, findOne, findPorMateriaYAno, findReviews, findReviewsPorMateria, helpers, modify };
+export {
+    add,
+    delete_,
+    findAll,
+    findAllConBorrado,
+    findOne,
+    findPorMateriaYAnoYAnoCursado,
+    findReviews,
+    findReviewsPorMateria,
+    helpers,
+    modify,
+    findPorMateriaYAno,
+};

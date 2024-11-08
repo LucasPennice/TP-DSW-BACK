@@ -6,6 +6,7 @@ import {
     findAllConBorrado,
     findOne,
     findPorMateriaYAno,
+    findPorMateriaYAnoYAnoCursado,
     findReviews,
     findReviewsPorMateria,
     modify,
@@ -21,7 +22,8 @@ profesorRouter.get("/conBorrado", findAllConBorrado);
 
 profesorRouter.get("/:id/reviews", findReviews);
 
-profesorRouter.get("/porMateriaYAno/:ano/:idMateria/:anoCursado", findPorMateriaYAno);
+profesorRouter.get("/porMateriaYAno/:ano/:idMateria/:anoCursado", findPorMateriaYAnoYAnoCursado);
+profesorRouter.get("/porMateriaYAno/:ano/:idMateria", findPorMateriaYAno);
 
 profesorRouter.get("/:id/reviewsDeMateria/:idMateria", findReviewsPorMateria);
 
