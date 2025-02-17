@@ -125,7 +125,6 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     app.use("/api/area", areaRouter);
 
     const usuarioRouter = new UsuarioRouter(em).instance;
-    console.log("EM ANTES DE RUTEAR A USUARIO", em);
     app.use("/api/usuario", usuarioRouter);
 
     const materiaRouter = new MateriaRouter(em).instance;

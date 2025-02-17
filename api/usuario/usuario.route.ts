@@ -10,8 +10,6 @@ export class UsuarioRouter {
         this.instance = express.Router();
         this.controller = new UsuarioController(em);
 
-        console.log("EM ADENTRO DE USUARIO", em);
-
         this.instance.get("/", this.controller.findAll);
 
         this.instance.get("/conBorrado", this.controller.findAllConBorrado);

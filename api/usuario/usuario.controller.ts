@@ -49,8 +49,6 @@ export class UsuarioController {
 
     findAll = async (req: Request, res: Response) => {
         try {
-            console.log("EM ADENTRO DE USUARIO-FINDALL", this.em);
-
             const usuarios: Usuario[] = await this.em.findAll(Usuario, {
                 populate: ["*"],
             });
@@ -303,7 +301,5 @@ export class UsuarioController {
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
-        console.log("EM EN CONSTRUCTOR", em);
-        console.log("thisEM EN CONSTRUCTOR", this.em);
     }
 }
