@@ -24,118 +24,64 @@ export class AreaRouter {
 
         /**
          * @swagger
-         * /reviews:
+         * /api/review:
          *   get:
          *     summary: Retrieve a list of reviews
          *     responses:
          *       200:
          *         description: A list of reviews
-         *         content:
-         *           application/json:
-         *             schema:
-         *               type: array
-         *               items:
-         *                 type: object
          */
         this.instance.get("/", this.controller.findAll);
 
         /**
          * @swagger
-         * /reviews/conBorrado:
+         * /api/review/conBorrado:
          *   get:
          *     summary: Retrieve a list of reviews including deleted ones
          *     responses:
          *       200:
          *         description: A list of reviews including deleted ones
-         *         content:
-         *           application/json:
-         *             schema:
-         *               type: array
-         *               items:
-         *                 type: object
          */
         this.instance.get("/conBorrado", this.controller.findAllConBorrado);
 
         /**
          * @swagger
-         * /reviews/{id}:
+         * /api/review/{id}:
          *   get:
          *     summary: Retrieve a single review by ID
-         *     parameters:
-         *       - in: path
-         *         name: id
-         *         required: true
-         *         schema:
-         *           type: string
          *     responses:
          *       200:
          *         description: A single review
-         *         content:
-         *           application/json:
-         *             schema:
-         *               type: object
          */
         this.instance.get("/:id", this.controller.findOne);
 
         /**
          * @swagger
-         * /reviews:
+         * /api/review:
          *   post:
          *     summary: Create a new review
-         *     requestBody:
-         *       required: true
-         *       content:
-         *         application/json:
-         *           schema:
-         *             type: object
          *     responses:
          *       201:
          *         description: The created review
-         *         content:
-         *           application/json:
-         *             schema:
-         *               type: object
          */
         this.instance.post("/", this.controller.add);
 
         /**
          * @swagger
-         * /reviews/{id}:
+         * /api/review/{id}:
          *   patch:
          *     summary: Update a review by ID
-         *     parameters:
-         *       - in: path
-         *         name: id
-         *         required: true
-         *         schema:
-         *           type: string
-         *     requestBody:
-         *       required: true
-         *       content:
-         *         application/json:
-         *           schema:
-         *             type: object
          *     responses:
          *       200:
          *         description: The updated review
-         *         content:
-         *           application/json:
-         *             schema:
-         *               type: object
          */
         this.instance.patch("/:id", this.controller.modify);
 
         /**
          * @swagger
-         * /reviews/{id}:
+         * /api/review/{id}:
          *   delete:
          *     summary: Delete a review by ID
-         *     parameters:
-         *       - in: path
-         *         name: id
-         *         required: true
-         *         schema:
-         *           type: string
          *     responses:
          *       204:
          *         description: No content
