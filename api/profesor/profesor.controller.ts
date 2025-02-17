@@ -51,7 +51,7 @@ export class ProfesorController {
     private em: MongoEntityManager<MongoDriver>;
     private materiaController: MateriaController;
 
-    async findAll(req: Request, res: Response) {
+    findAll = async (req: Request, res: Response) => {
         try {
             const profesores: Profesor[] | undefined = await this.em.findAll(Profesor, {
                 populate: ["*"],
@@ -75,9 +75,9 @@ export class ProfesorController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findAllConBorrado(req: Request, res: Response) {
+    findAllConBorrado = async (req: Request, res: Response) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -114,9 +114,9 @@ export class ProfesorController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findOne(req: Request, res: Response) {
+    findOne = async (req: Request, res: Response) => {
         const _id = req.params.id;
 
         try {
@@ -139,9 +139,9 @@ export class ProfesorController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async add(req: Request, res: Response) {
+    add = async (req: Request, res: Response) => {
         console.log(JSON.stringify(req.body));
 
         const profesorValidation = profesorSchema.safeParse(req.body);
@@ -172,9 +172,9 @@ export class ProfesorController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async modify(req: Request, res: Response) {
+    modify = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         const profesorValidation = profesorSchema.partial().safeParse(req.body);
@@ -218,9 +218,9 @@ export class ProfesorController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async delete_(req: Request, res: Response) {
+    delete_ = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         try {
@@ -259,9 +259,9 @@ export class ProfesorController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findReviews(req: Request, res: Response) {
+    findReviews = async (req: Request, res: Response) => {
         try {
             const _id = req.params.id as string;
 
@@ -293,9 +293,9 @@ export class ProfesorController {
             };
             return res.status(500).send(response);
         }
-    }
+    };
 
-    async findPorMateriaYAnoYAnoCursado(req: Request, res: Response) {
+    findPorMateriaYAnoYAnoCursado = async (req: Request, res: Response) => {
         try {
             const _idMateria = req.params.idMateria as string;
             const anoMateria = parseInt(req.params.ano) as number;
@@ -343,9 +343,9 @@ export class ProfesorController {
             };
             return res.status(500).send(response);
         }
-    }
+    };
 
-    async findPorMateriaYAno(req: Request, res: Response) {
+    findPorMateriaYAno = async (req: Request, res: Response) => {
         try {
             const _idMateria = req.params.idMateria as string;
             const anoMateria = parseInt(req.params.ano) as number;
@@ -391,9 +391,9 @@ export class ProfesorController {
             };
             return res.status(500).send(response);
         }
-    }
+    };
 
-    async findReviewsPorMateria(req: Request, res: Response) {
+    findReviewsPorMateria = async (req: Request, res: Response) => {
         try {
             const _id = req.params.id as string;
             const _idMateria = req.params.idMateria as string;
@@ -426,9 +426,9 @@ export class ProfesorController {
             };
             return res.status(500).send(response);
         }
-    }
+    };
 
-    async findOneProfesor(_id: string): Promise<Profesor | null> {
+    findOneProfesor = async (_id: string): Promise<Profesor | null> => {
         try {
             const profesor: Profesor | null = await this.em.findOne(Profesor, _id, {
                 populate: ["*"],
@@ -440,7 +440,7 @@ export class ProfesorController {
             console.error(new Error("Error al buscar al profesor"));
             return null;
         }
-    }
+    };
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;

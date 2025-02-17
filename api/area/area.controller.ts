@@ -11,7 +11,7 @@ const areaSchema = z.object({
 export class AreaController {
     private em: MongoEntityManager<MongoDriver>;
 
-    async findAll(req: Request, res: Response) {
+    findAll = async (req: Request, res: Response) => {
         try {
             const areas: Area[] = await this.em.findAll(Area, {
                 populate: ["*"],
@@ -35,9 +35,9 @@ export class AreaController {
             };
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async findAllConBorrado(req: Request, res: Response) {
+    findAllConBorrado = async (req: Request, res: Response) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -74,9 +74,9 @@ export class AreaController {
             };
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async findOne(req: Request, res: Response) {
+    findOne = async (req: Request, res: Response) => {
         const _id = req.params.id;
 
         try {
@@ -98,9 +98,9 @@ export class AreaController {
             };
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async add(req: Request, res: Response) {
+    add = async (req: Request, res: Response) => {
         const areaValidation = areaSchema.safeParse(req.body);
 
         if (!areaValidation.success) {
@@ -137,9 +137,9 @@ export class AreaController {
 
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async modify(req: Request, res: Response) {
+    modify = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         const areaValidation = areaSchema.partial().safeParse(req.body);
@@ -183,9 +183,9 @@ export class AreaController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async delete_(req: Request, res: Response) {
+    delete_ = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         try {
@@ -224,8 +224,8 @@ export class AreaController {
             };
             res.status(500).send(response);
         }
-    }
-    async findOneArea(_id: string): Promise<Area | null> {
+    };
+    findOneArea = async (_id: string): Promise<Area | null> => {
         try {
             const area: Area | null = await this.em.findOne(Area, _id, {
                 populate: ["*"],
@@ -237,7 +237,8 @@ export class AreaController {
             console.error(new Error("Error al buscar el area"));
             return null;
         }
-    }
+    };
+
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
     }

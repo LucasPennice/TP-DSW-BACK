@@ -51,7 +51,7 @@ export class CursadoController {
     private materiaController: MateriaController;
     private profesorController: ProfesorController;
 
-    async findAll(req: Request, res: Response) {
+    findAll = async (req: Request, res: Response) => {
         try {
             const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
                 populate: ["*"],
@@ -75,9 +75,9 @@ export class CursadoController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findAllConBorrado(req: Request, res: Response) {
+    findAllConBorrado = async (req: Request, res: Response) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -106,9 +106,9 @@ export class CursadoController {
             const response: ExpressResponse<Cursado[]> = { message: String(error), data: undefined, totalPages: undefined };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findOne(req: Request, res: Response) {
+    findOne = async (req: Request, res: Response) => {
         const _id = req.params.id;
 
         try {
@@ -140,9 +140,9 @@ export class CursadoController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async add(req: Request, res: Response) {
+    add = async (req: Request, res: Response) => {
         const cursadoValidation = cursadoSchema.safeParse(req.body);
 
         if (!cursadoValidation.success) {
@@ -224,9 +224,9 @@ export class CursadoController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async modify(req: Request, res: Response) {
+    modify = async (req: Request, res: Response) => {
         try {
             const _id = req.params.id as string;
 
@@ -273,9 +273,9 @@ export class CursadoController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async delete_(req: Request, res: Response) {
+    delete_ = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         try {
@@ -314,7 +314,7 @@ export class CursadoController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
     async findOneCursado(_id: string): Promise<Cursado | null> {
         try {
@@ -330,7 +330,7 @@ export class CursadoController {
         }
     }
 
-    async buscarCursadosPorAtributos(comision: number, año: number, materiaId: string): Promise<Cursado[]> {
+    buscarCursadosPorAtributos = async (comision: number, año: number, materiaId: string): Promise<Cursado[]> => {
         try {
             const materia: Materia | null = await this.materiaController.findOneMateria(materiaId);
 
@@ -346,7 +346,7 @@ export class CursadoController {
             console.error(new Error("Error al buscar el cursado"));
             return [];
         }
-    }
+    };
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
         this.materiaController = new MateriaController(em);

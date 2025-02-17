@@ -47,10 +47,10 @@ const usuarioSchema = z.object({
 export class UsuarioController {
     private em: MongoEntityManager<MongoDriver>;
 
-    async findAll(req: Request, res: Response) {
-        console.log("ayuda");
-
+    findAll = async (req: Request, res: Response) => {
         try {
+            console.log("EM ADENTRO DE USUARIO-FINDALL", this.em);
+
             const usuarios: Usuario[] = await this.em.findAll(Usuario, {
                 populate: ["*"],
             });
@@ -73,9 +73,9 @@ export class UsuarioController {
             };
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async findAllConBorrado(req: Request, res: Response) {
+    findAllConBorrado = async (req: Request, res: Response) => {
         try {
             const usuarios: Usuario[] = await this.em.findAll(Usuario, {
                 populate: ["*"],
@@ -97,9 +97,9 @@ export class UsuarioController {
             };
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async findOne(req: Request, res: Response) {
+    findOne = async (req: Request, res: Response) => {
         const _id = req.params.id;
 
         try {
@@ -122,9 +122,9 @@ export class UsuarioController {
             };
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async add(req: Request, res: Response) {
+    add = async (req: Request, res: Response) => {
         const usuarioValidation = usuarioSchema.safeParse(req.body);
 
         if (!usuarioValidation.success) {
@@ -179,9 +179,9 @@ export class UsuarioController {
 
             res.status(500).send(reponse);
         }
-    }
+    };
 
-    async modify(req: Request, res: Response) {
+    modify = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         const usuarioValidation = usuarioSchema.partial().safeParse(req.body);
@@ -232,9 +232,9 @@ export class UsuarioController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async delete_(req: Request, res: Response) {
+    delete_ = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         try {
@@ -273,9 +273,9 @@ export class UsuarioController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findOneUsuario(_id: string): Promise<Usuario | null> {
+    findOneUsuario = async (_id: string): Promise<Usuario | null> => {
         try {
             const usuario: Usuario | null = await this.em.findOne(Usuario, _id, {
                 populate: ["*"],
@@ -287,9 +287,9 @@ export class UsuarioController {
             console.error(new Error("Error al buscar el usuario"));
             return null;
         }
-    }
+    };
 
-    async findOneUsuarioByUsername(username: string): Promise<Usuario | null> {
+    findOneUsuarioByUsername = async (username: string): Promise<Usuario | null> => {
         try {
             const usuario: Usuario | null = await this.em.findOne(Usuario, { username });
 
@@ -299,10 +299,11 @@ export class UsuarioController {
             console.error(new Error("Error al buscar el usuario"));
             return null;
         }
-    }
+    };
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
-        console.log(this.em);
+        console.log("EM EN CONSTRUCTOR", em);
+        console.log("thisEM EN CONSTRUCTOR", this.em);
     }
 }

@@ -15,7 +15,7 @@ export class MateriaController {
     private em: MongoEntityManager<MongoDriver>;
     private areaController: AreaController;
 
-    async findAll(req: Request, res: Response) {
+    findAll = async (req: Request, res: Response) => {
         try {
             const materias = await this.em.findAll(Materia, {
                 populate: ["*"],
@@ -39,9 +39,9 @@ export class MateriaController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findAllConBorrado(req: Request, res: Response) {
+    findAllConBorrado = async (req: Request, res: Response) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -78,9 +78,9 @@ export class MateriaController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findOne(req: Request, res: Response) {
+    findOne = async (req: Request, res: Response) => {
         const _id = req.params.id;
 
         try {
@@ -108,9 +108,9 @@ export class MateriaController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async add(req: Request, res: Response) {
+    add = async (req: Request, res: Response) => {
         const materiaValidation = materiaSchema.safeParse(req.body);
 
         if (!materiaValidation.success) {
@@ -157,9 +157,9 @@ export class MateriaController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async modify(req: Request, res: Response) {
+    modify = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         const materiaValidation = materiaSchema.partial().safeParse(req.body);
@@ -203,9 +203,9 @@ export class MateriaController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async delete_(req: Request, res: Response) {
+    delete_ = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         try {
@@ -244,9 +244,9 @@ export class MateriaController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findMateriasPorAno(req: Request, res: Response) {
+    findMateriasPorAno = async (req: Request, res: Response) => {
         try {
             const _idAno = parseInt(req.params.id);
 
@@ -272,8 +272,8 @@ export class MateriaController {
             };
             return res.status(500).send(response);
         }
-    }
-    async findOneMateria(_id: string): Promise<Materia | null> {
+    };
+    findOneMateria = async (_id: string): Promise<Materia | null> => {
         try {
             const materia: Materia | null = await this.em.findOne(Materia, _id, {
                 populate: ["*"],
@@ -285,7 +285,7 @@ export class MateriaController {
             console.error(new Error("Error al buscar la materia"));
             return null;
         }
-    }
+    };
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;

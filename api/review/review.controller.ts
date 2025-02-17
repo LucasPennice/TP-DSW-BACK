@@ -81,7 +81,7 @@ export class ReviewController {
     private usuarioController: UsuarioController;
     private profesorController: ProfesorController;
 
-    async findAll(req: Request, res: Response) {
+    findAll = async (req: Request, res: Response) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -116,9 +116,9 @@ export class ReviewController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findAllConBorrado(req: Request, res: Response) {
+    findAllConBorrado = async (req: Request, res: Response) => {
         try {
             const reviews: Review[] | undefined = await this.em.findAll(Review, {
                 populate: ["*"],
@@ -140,9 +140,9 @@ export class ReviewController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async findOne(req: Request, res: Response) {
+    findOne = async (req: Request, res: Response) => {
         const _id = req.params.id;
 
         try {
@@ -168,9 +168,9 @@ export class ReviewController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async add(req: Request, res: Response) {
+    add = async (req: Request, res: Response) => {
         const reviewValidation = reviewSchema.safeParse(req.body);
 
         if (!reviewValidation.success) {
@@ -253,9 +253,9 @@ export class ReviewController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async modify(req: Request, res: Response) {
+    modify = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
         const descripcion = req.body.descripcion as string;
         const puntuacion = req.body.puntuacion as number;
@@ -294,9 +294,9 @@ export class ReviewController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
-    async delete_(req: Request, res: Response) {
+    delete_ = async (req: Request, res: Response) => {
         const _id = req.params.id as string;
 
         try {
@@ -328,7 +328,7 @@ export class ReviewController {
             };
             res.status(500).send(response);
         }
-    }
+    };
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
