@@ -18,6 +18,8 @@ import { UsuarioRouter } from "./usuario/usuario.route.js";
 import { MateriaRouter } from "./materia/materia.route.js";
 import { ReviewRouter } from "./review/review.route.js";
 import { CursadoRouter } from "./cursado/cursado.route.js";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 export async function startServer(port: number, em: MongoEntityManager<MongoDriver>) {
     const orm = await initORM();
@@ -253,6 +255,20 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
         /api/materia \n
     `);
     });
+
+    const swaggerOptions: swaggerJsdoc.Options = {
+        definition: {
+            openapi: "3.0.0",
+            info: {
+                title: "API Documentation",
+                version: "1.0.0",
+            },
+        },
+        apis: ["./api/*/**.route.ts"], // Ruta a tus archivos de rutas
+    };
+
+    const specs = swaggerJsdoc(swaggerOptions);
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
     const server = app.listen(port, () => {
         console.log(`⚡️ App corriendo en puerto: ${port} ⚡️`);
