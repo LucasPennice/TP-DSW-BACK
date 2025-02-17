@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { AreaController } from "./area.controller.js";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
+import { Area } from "./area.entity.js";
 
 // areaRouter.get("/", findAll);
 
@@ -31,7 +32,13 @@ export class AreaRouter {
          *       200:
          *         description: A list of reviews
          */
-        this.instance.get("/", this.controller.findAll);
+        this.instance.get("/", async (req, res) => {
+            const result = await this.controller.findAll();
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -42,7 +49,17 @@ export class AreaRouter {
          *       200:
          *         description: A list of reviews including deleted ones
          */
-        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
+        this.instance.get("/conBorrado", async (req, res) => {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const offset = (page - 1) * limit;
+
+            const result = await this.controller.findAllConBorrado(limit, offset);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -53,7 +70,13 @@ export class AreaRouter {
          *       200:
          *         description: A single review
          */
-        this.instance.get("/:id", this.controller.findOne);
+        this.instance.get("/:id", async (req, res) => {
+            const result = await this.controller.findOne(req.params.id);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -64,7 +87,17 @@ export class AreaRouter {
          *       201:
          *         description: The created review
          */
-        this.instance.post("/", this.controller.add);
+        this.instance.post("/", async (req, res) => {
+            const parseResult = Area.parseSchema(req.body);
+
+            if (!parseResult.success) return res.status(500).json(parseResult);
+
+            const result = await this.controller.add(parseResult.data!);
+
+            if (!result.success) return res.status(500).send(result);
+
+            res.status(201).send(result);
+        });
 
         /**
          * @swagger
@@ -75,7 +108,17 @@ export class AreaRouter {
          *       200:
          *         description: The updated review
          */
-        this.instance.patch("/:id", this.controller.modify);
+        this.instance.patch("/:id", async (req, res) => {
+            const parseResult = Area.parseSchema(req.body);
+
+            if (!parseResult.success) return res.status(500).json(parseResult);
+
+            const result = await this.controller.modify(parseResult.data!);
+
+            if (!result.success) return res.status(500).send(result);
+
+            res.status(201).send(result);
+        });
 
         /**
          * @swagger
@@ -86,6 +129,14 @@ export class AreaRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", this.controller.delete_);
+        this.instance.delete("/:id", async (req, res) => {
+            const idToDelete = req.params.id as string;
+
+            const result = await this.controller.delete_(idToDelete);
+
+            if (!result.success) return res.status(500).send(result);
+
+            res.status(204).send(result);
+        });
     }
 }

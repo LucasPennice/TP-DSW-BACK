@@ -18,3 +18,11 @@ export type ExpressResponse<T> = {
     data: T | undefined;
     totalPages: number | undefined;
 };
+
+export type ExpressResponse_Migration<T> = {
+    success: boolean;
+    message: string;
+    data: T | null;
+    totalPages: number | undefined;
+    error?: string;
+};

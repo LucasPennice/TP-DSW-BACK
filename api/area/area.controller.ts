@@ -1,17 +1,11 @@
-import { Request, Response } from "express";
-import { Area } from "./area.entity.js";
-import { ExpressResponse } from "../shared/types.js";
-import { z } from "zod";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
-
-const areaSchema = z.object({
-    nombre: z.string().min(1, "El nombre es requerido"),
-});
+import { ExpressResponse_Migration } from "../shared/types.js";
+import { Area } from "./area.entity.js";
 
 export class AreaController {
     private em: MongoEntityManager<MongoDriver>;
 
-    findAll = async (req: Request, res: Response) => {
+    findAll = async (): Promise<ExpressResponse_Migration<Area[]>> => {
         try {
             const areas: Area[] = await this.em.findAll(Area, {
                 populate: ["*"],
@@ -21,28 +15,25 @@ export class AreaController {
 
             let areasSinBorradoLogico = areas.filter((a) => a.borradoLogico == false);
 
-            const reponse: ExpressResponse<Area[]> = {
-                message: "Areas encontradas:",
+            return {
+                message: "Areas found successfully",
+                success: true,
                 data: areasSinBorradoLogico,
                 totalPages: undefined,
             };
-            res.json(reponse);
         } catch (error) {
-            const reponse: ExpressResponse<Area> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(reponse);
         }
     };
 
-    findAllConBorrado = async (req: Request, res: Response) => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Area[]>> => {
         try {
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const offset = (page - 1) * limit;
-
             const [areas, total] = await this.em.findAndCount(
                 Area,
                 {},
@@ -60,144 +51,124 @@ export class AreaController {
 
             const totalPages = Math.ceil(total / limit);
 
-            const reponse: ExpressResponse<Area[]> = {
-                message: "Areas encontradas:",
+            return {
+                message: "Areas found successfully",
+                success: true,
                 data: areas,
                 totalPages: totalPages,
             };
-            res.json(reponse);
         } catch (error) {
-            const reponse: ExpressResponse<Area> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(reponse);
         }
     };
 
-    findOne = async (req: Request, res: Response) => {
-        const _id = req.params.id;
-
+    findOne = async (id: string): Promise<ExpressResponse_Migration<Area>> => {
         try {
-            const area = await this.findOneArea(_id);
-            if (!area) {
-                const reponse: ExpressResponse<Area> = {
-                    message: "Area no encontrada",
-                    data: undefined,
+            const area = await this.findOneArea(id);
+
+            if (!area)
+                return {
+                    message: "Area not found",
+                    success: false,
+                    data: null,
                     totalPages: undefined,
                 };
-                return res.status(404).send(reponse);
-            }
-            res.json({ data: area });
-        } catch (error) {
-            const reponse: ExpressResponse<Area> = {
-                message: String(error),
-                data: undefined,
+
+            return {
+                message: "Area found successfully",
+                success: true,
+                data: area,
                 totalPages: undefined,
             };
-            res.status(500).send(reponse);
+        } catch (error) {
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+                totalPages: undefined,
+            };
         }
     };
 
-    add = async (req: Request, res: Response) => {
-        const areaValidation = areaSchema.safeParse(req.body);
-
-        if (!areaValidation.success) {
-            return res.status(400).send({
-                message: "Error de validación",
-                errors: areaValidation.error.errors,
-            });
-        }
-
-        const { nombre } = areaValidation.data;
-
-        const nuevoArea = new Area(nombre);
+    add = async (newArea: Area): Promise<ExpressResponse_Migration<Area>> => {
         try {
-            let areasMatch: Area[] = await this.em.findAll(Area, { where: { nombre } });
+            let areasMatch: Area[] = await this.em.findAll(Area, { where: { nombre: newArea.nombre } });
+
             if (areasMatch.length != 0) {
                 throw new Error("Ya hay un area con ese nombre");
             }
 
-            await this.em.persist(nuevoArea).flush();
+            await this.em.persist(newArea).flush();
 
-            const reponse: ExpressResponse<Area> = {
-                message: "Area creada",
-                data: nuevoArea,
+            return {
+                message: "Area created",
+                data: newArea,
                 totalPages: undefined,
+                success: true,
             };
-
-            res.status(201).send(reponse);
         } catch (error) {
-            const reponse: ExpressResponse<Area> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error adding the new area",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-
-            res.status(500).send(reponse);
         }
     };
 
-    modify = async (req: Request, res: Response) => {
-        const _id = req.params.id as string;
-
-        const areaValidation = areaSchema.partial().safeParse(req.body);
-
-        if (!areaValidation.success) {
-            return res.status(400).send({
-                message: "Error de validación",
-                errors: areaValidation.error.errors,
-            });
-        }
-
-        const { nombre } = areaValidation.data;
-
+    modify = async (newArea: Area): Promise<ExpressResponse_Migration<Area>> => {
         try {
-            const areaAModificar = this.em.getReference(Area, _id);
+            const areaAModificar = this.em.getReference(Area, newArea._id);
 
-            if (!areaAModificar) {
-                const response: ExpressResponse<Area> = {
+            if (!areaAModificar)
+                return {
                     message: "Area no encontrada",
-                    data: undefined,
+                    data: null,
+                    success: false,
+                    error: "Area no encontrada",
                     totalPages: undefined,
                 };
 
-                return res.status(404).send(response);
-            }
-
-            if (nombre) areaAModificar.nombre = nombre;
+            areaAModificar.nombre = newArea.nombre;
             await this.em.flush();
 
-            const response: ExpressResponse<Area> = {
-                message: "Area modificada",
+            return {
+                message: "Area modified successfully",
                 data: areaAModificar,
                 totalPages: undefined,
+                success: true,
             };
-            res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Area> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error modifying the area",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    delete_ = async (req: Request, res: Response) => {
-        const _id = req.params.id as string;
-
+    delete_ = async (id: string): Promise<ExpressResponse_Migration<null>> => {
         try {
-            const areaABorrar: Area | null = await this.findOneArea(_id);
+            const areaABorrar: Area | null = await this.findOneArea(id);
 
             if (!areaABorrar) {
-                const response: ExpressResponse<Area> = {
-                    message: "Area no encontrada",
-                    data: undefined,
+                return {
+                    message: "Area not found",
+                    error: "Area not found",
+                    data: null,
                     totalPages: undefined,
+                    success: false,
                 };
-                return res.status(404).send(response);
             }
 
             areaABorrar.borradoLogico = true;
@@ -210,21 +181,23 @@ export class AreaController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Area> = {
-                message: "Area borrada",
-                data: areaABorrar,
+            return {
+                message: "Area deleted successfully",
+                data: null,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Area> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error deleting the area",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
+
     findOneArea = async (_id: string): Promise<Area | null> => {
         try {
             const area: Area | null = await this.em.findOne(Area, _id, {
