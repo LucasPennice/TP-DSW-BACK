@@ -70,15 +70,17 @@ export class AreaController {
 
     findOne = async (id: string): Promise<ExpressResponse_Migration<Area>> => {
         try {
-            const area = await this.findOneArea(id);
-
-            if (!area)
+            const response = await this.findOneArea(id);
+            if (!response.success)
                 return {
                     message: "Area not found",
-                    success: false,
+                    error: "Area not found",
                     data: null,
                     totalPages: undefined,
+                    success: false,
                 };
+
+            const area = response.data!;
 
             return {
                 message: "Area found successfully",
@@ -159,9 +161,8 @@ export class AreaController {
 
     delete_ = async (id: string): Promise<ExpressResponse_Migration<null>> => {
         try {
-            const areaABorrar: Area | null = await this.findOneArea(id);
-
-            if (!areaABorrar) {
+            const response = await this.findOneArea(id);
+            if (!response.success)
                 return {
                     message: "Area not found",
                     error: "Area not found",
@@ -169,7 +170,8 @@ export class AreaController {
                     totalPages: undefined,
                     success: false,
                 };
-            }
+
+            const areaABorrar = response.data!;
 
             areaABorrar.borradoLogico = true;
 
@@ -198,17 +200,29 @@ export class AreaController {
         }
     };
 
-    findOneArea = async (_id: string): Promise<Area | null> => {
+    findOneArea = async (_id: string): Promise<ExpressResponse_Migration<Area>> => {
         try {
             const area: Area | null = await this.em.findOne(Area, _id, {
                 populate: ["*"],
             });
 
             await this.em.flush();
-            return area;
+            if (!area) return { message: "Area not found", data: null, success: true, totalPages: undefined };
+
+            return {
+                message: "Area found successfully",
+                data: area,
+                success: true,
+                totalPages: undefined,
+            };
         } catch (error) {
-            console.error(new Error("Error al buscar el area"));
-            return null;
+            return {
+                message: "Error finding the area",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+                totalPages: undefined,
+            };
         }
     };
 
