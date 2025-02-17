@@ -3,7 +3,6 @@ import profesorRouter from "./profesor/profesor.route.js";
 import usuarioRouter from "./usuario/usuario.route.js";
 import bodyParser from "body-parser";
 import { RequestContext } from "@mikro-orm/mongodb";
-import { orm } from "./orm.js";
 import materiaRouter from "./materia/materia.route.js";
 import reviewRouter from "./review/review.route.js";
 import areaRouter from "./area/area.route.js";
@@ -18,6 +17,9 @@ import { ExpressResponse, Sexo, UserRole } from "./shared/types.js";
 import { Usuario } from "./usuario/usuario.entity.js";
 import { dateFromString } from "./dateExtension.js";
 import { findOneUsuarioByUsername } from "./usuario/usuario.controller.js";
+import { initORM } from "./orm.js";
+
+const orm = await initORM();
 
 // Configure Passport Strategy
 passport.use(

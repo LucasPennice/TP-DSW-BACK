@@ -4,9 +4,11 @@ import { ExpressResponse, TipoCursado } from "../shared/types.js";
 import { Materia } from "../materia/materia.entity.js";
 import { helpers as materiaHelpers } from "../materia/materia.controller.js";
 import { Profesor } from "../profesor/profesor.entity.js";
-import { orm } from "../orm.js";
+import { initORM } from "../orm.js";
 import { helpers as profesorHelper } from "../profesor/profesor.controller.js";
 import { z } from "zod";
+
+const orm = await initORM();
 
 const primeraLetraMayuscula = (str: string): string => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

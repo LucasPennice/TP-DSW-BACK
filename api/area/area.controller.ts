@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import { Area } from "./area.entity.js";
 import { ExpressResponse } from "../shared/types.js";
-import { orm } from "../orm.js";
 import { z } from "zod";
+import { initORM } from "../orm.js";
+
+const orm = await initORM();
 
 const areaSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),

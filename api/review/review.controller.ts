@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { findOneCursado } from "../cursado/cursado.controller.js";
 import { Cursado } from "../cursado/cursado.entity.js";
-import { orm } from "../orm.js";
 import { ExpressResponse } from "../shared/types.js";
 import { findOneUsuario } from "../usuario/usuario.controller.js";
 import { Usuario } from "../usuario/usuario.entity.js";
@@ -10,6 +9,7 @@ import { Review } from "./review.entity.js";
 import profanity from "bad-words-es";
 import { helpers as profesorHelpers } from "../profesor/profesor.controller.js";
 import { z } from "zod";
+import { initORM } from "../orm.js";
 
 var filter = new profanity({ languages: ["es"] });
 
@@ -63,6 +63,8 @@ filter.addWords(
     "poronga",
     "sorete"
 );
+
+const orm = await initORM();
 
 const reviewSchema = z.object({
     descripcion: z.string().min(1, "La descripcion es obligatoria"),

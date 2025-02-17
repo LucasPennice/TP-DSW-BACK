@@ -3,11 +3,13 @@ import { Cursado } from "../cursado/cursado.entity.js";
 import { dateFromString } from "../dateExtension.js";
 import { helpers as materiaHelper } from "../materia/materia.controller.js";
 import { Materia } from "../materia/materia.entity.js";
-import { orm } from "../orm.js";
 import { Review } from "../review/review.entity.js";
 import { ExpressResponse, Sexo } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
 import { z } from "zod";
+import { initORM } from "../orm.js";
+
+const orm = await initORM();
 
 const profesorSchema = z.object({
     nombre: z.string().regex(/^[a-zA-Z]+$/, "El nombre es requerido"),

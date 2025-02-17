@@ -2,14 +2,16 @@ import { NextFunction, Request, Response } from "express";
 import { Materia } from "./materia.entity.js";
 import { ExpressResponse, TipoCursado } from "../shared/types.js";
 import { Area } from "../area/area.entity.js";
-import { orm } from "../orm.js";
 import { findOneArea } from "../area/area.controller.js";
 import { z } from "zod";
+import { initORM } from "../orm.js";
 
 const materiaSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
     areaId: z.string().min(1, "Es necesario seleccionar un área"),
 });
+
+const orm = await initORM();
 
 async function findAll(req: Request, res: Response) {
     try {
