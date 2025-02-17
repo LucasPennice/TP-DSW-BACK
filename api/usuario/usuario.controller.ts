@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import { Usuario } from "./usuario.entity.js";
 import { Sexo, UserRole } from "../shared/types.js";
 import { ExpressResponse } from "../shared/types.js";
-import { orm } from "../orm.js";
 import { dateFromString } from "../dateExtension.js";
 import { z } from "zod";
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 
 const usuarioSchema = z.object({
     legajo: z.string().regex(/^\d{5}$/, "El legajo debe constar de 5 digitos"),
@@ -44,256 +44,265 @@ const usuarioSchema = z.object({
         }),
 });
 
-async function findAll(req: Request, res: Response) {
-    try {
-        const usuarios: Usuario[] = await orm.em.findAll(Usuario, {
-            populate: ["*"],
-        });
+export class UsuarioController {
+    private em: MongoEntityManager<MongoDriver>;
 
-        await orm.em.flush();
+    async findAll(req: Request, res: Response) {
+        console.log("ayuda");
 
-        let usuariosSinBorradoLogico = usuarios.filter((u) => u.borradoLogico == false);
+        try {
+            const usuarios: Usuario[] = await this.em.findAll(Usuario, {
+                populate: ["*"],
+            });
 
-        const reponse: ExpressResponse<Usuario[]> = {
-            message: "Usuarios encontrados:",
-            data: usuariosSinBorradoLogico,
-            totalPages: undefined,
-        };
-        res.json(reponse);
-    } catch (error) {
-        const reponse: ExpressResponse<Usuario> = {
-            message: String(error),
-            data: undefined,
-            totalPages: undefined,
-        };
-        res.status(500).send(reponse);
-    }
-}
+            await this.em.flush();
 
-async function findAllConBorrado(req: Request, res: Response) {
-    try {
-        const usuarios: Usuario[] = await orm.em.findAll(Usuario, {
-            populate: ["*"],
-        });
+            let usuariosSinBorradoLogico = usuarios.filter((u) => u.borradoLogico == false);
 
-        await orm.em.flush();
-
-        const reponse: ExpressResponse<Usuario[]> = {
-            message: "Usuarios encontrados:",
-            data: usuarios,
-            totalPages: undefined,
-        };
-        res.json(reponse);
-    } catch (error) {
-        const reponse: ExpressResponse<Usuario> = {
-            message: String(error),
-            data: undefined,
-            totalPages: undefined,
-        };
-        res.status(500).send(reponse);
-    }
-}
-
-async function findOne(req: Request, res: Response) {
-    const _id = req.params.id;
-
-    try {
-        const usuario = await findOneUsuario(_id);
-
-        if (!usuario) {
+            const reponse: ExpressResponse<Usuario[]> = {
+                message: "Usuarios encontrados:",
+                data: usuariosSinBorradoLogico,
+                totalPages: undefined,
+            };
+            res.json(reponse);
+        } catch (error) {
             const reponse: ExpressResponse<Usuario> = {
-                message: "Usuario no encontrado",
+                message: String(error),
                 data: undefined,
                 totalPages: undefined,
             };
-            return res.status(404).send(reponse);
+            res.status(500).send(reponse);
         }
-        res.json({ data: usuario });
-    } catch (error) {
-        const reponse: ExpressResponse<Usuario> = {
-            message: String(error),
-            data: undefined,
-            totalPages: undefined,
-        };
-        res.status(500).send(reponse);
-    }
-}
-
-async function add(req: Request, res: Response) {
-    const usuarioValidation = usuarioSchema.safeParse(req.body);
-
-    if (!usuarioValidation.success) {
-        return res.status(400).send({
-            message: "Error de validación",
-            errors: usuarioValidation.error.errors,
-        });
     }
 
-    const { legajo, nombre, apellido, username, fechaNacimiento, password, sexo } = usuarioValidation.data;
+    async findAllConBorrado(req: Request, res: Response) {
+        try {
+            const usuarios: Usuario[] = await this.em.findAll(Usuario, {
+                populate: ["*"],
+            });
 
-    const rol = UserRole.Regular;
+            await this.em.flush();
 
-    try {
-        let usuarioConMismoUsername = await findOneUsuarioByUsername(username);
-
-        if (usuarioConMismoUsername != null) {
+            const reponse: ExpressResponse<Usuario[]> = {
+                message: "Usuarios encontrados:",
+                data: usuarios,
+                totalPages: undefined,
+            };
+            res.json(reponse);
+        } catch (error) {
             const reponse: ExpressResponse<Usuario> = {
-                message: "Ya existe un usuario con ese nombre",
+                message: String(error),
+                data: undefined,
+                totalPages: undefined,
+            };
+            res.status(500).send(reponse);
+        }
+    }
+
+    async findOne(req: Request, res: Response) {
+        const _id = req.params.id;
+
+        try {
+            const usuario = await this.findOneUsuario(_id);
+
+            if (!usuario) {
+                const reponse: ExpressResponse<Usuario> = {
+                    message: "Usuario no encontrado",
+                    data: undefined,
+                    totalPages: undefined,
+                };
+                return res.status(404).send(reponse);
+            }
+            res.json({ data: usuario });
+        } catch (error) {
+            const reponse: ExpressResponse<Usuario> = {
+                message: String(error),
+                data: undefined,
+                totalPages: undefined,
+            };
+            res.status(500).send(reponse);
+        }
+    }
+
+    async add(req: Request, res: Response) {
+        const usuarioValidation = usuarioSchema.safeParse(req.body);
+
+        if (!usuarioValidation.success) {
+            return res.status(400).send({
+                message: "Error de validación",
+                errors: usuarioValidation.error.errors,
+            });
+        }
+
+        const { legajo, nombre, apellido, username, fechaNacimiento, password, sexo } = usuarioValidation.data;
+
+        const rol = UserRole.Regular;
+
+        try {
+            let usuarioConMismoUsername = await this.findOneUsuarioByUsername(username);
+
+            if (usuarioConMismoUsername != null) {
+                const reponse: ExpressResponse<Usuario> = {
+                    message: "Ya existe un usuario con ese nombre",
+                    data: undefined,
+                    totalPages: undefined,
+                };
+
+                return res.status(500).send(reponse);
+            }
+
+            const nuevoUsuario = new Usuario(
+                nombre,
+                legajo,
+                apellido,
+                username,
+                dateFromString(fechaNacimiento),
+                rol,
+                sexo,
+                Usuario.hashPassword(password)
+            );
+
+            await this.em.persist(nuevoUsuario).flush();
+            const reponse: ExpressResponse<Usuario> = {
+                message: "Usuario creado",
+                data: nuevoUsuario,
+                totalPages: undefined,
+            };
+
+            res.status(201).send(reponse);
+        } catch (error) {
+            const reponse: ExpressResponse<Usuario> = {
+                message: String(error),
                 data: undefined,
                 totalPages: undefined,
             };
 
-            return res.status(500).send(reponse);
+            res.status(500).send(reponse);
+        }
+    }
+
+    async modify(req: Request, res: Response) {
+        const _id = req.params.id as string;
+
+        const usuarioValidation = usuarioSchema.partial().safeParse(req.body);
+
+        if (!usuarioValidation.success) {
+            return res.status(400).send({
+                message: "Error de validación",
+                errors: usuarioValidation.error.errors,
+            });
         }
 
-        const nuevoUsuario = new Usuario(
-            nombre,
-            legajo,
-            apellido,
-            username,
-            dateFromString(fechaNacimiento),
-            rol,
-            sexo,
-            Usuario.hashPassword(password)
-        );
+        const { legajo, nombre, apellido, username, fechaNacimiento, password, sexo } = usuarioValidation.data;
 
-        await orm.em.persist(nuevoUsuario).flush();
-        const reponse: ExpressResponse<Usuario> = {
-            message: "Usuario creado",
-            data: nuevoUsuario,
-            totalPages: undefined,
-        };
+        try {
+            const usuarioAModificar = this.em.getReference(Usuario, _id);
 
-        res.status(201).send(reponse);
-    } catch (error) {
-        const reponse: ExpressResponse<Usuario> = {
-            message: String(error),
-            data: undefined,
-            totalPages: undefined,
-        };
+            if (!usuarioAModificar) {
+                const response: ExpressResponse<Usuario> = {
+                    message: "Usuario no encontrado",
+                    data: undefined,
+                    totalPages: undefined,
+                };
 
-        res.status(500).send(reponse);
-    }
-}
+                return res.status(404).send(response);
+            }
 
-async function modify(req: Request, res: Response) {
-    const _id = req.params.id as string;
+            if (nombre) usuarioAModificar.nombre = nombre;
+            if (legajo) usuarioAModificar.legajo = legajo;
+            if (apellido) usuarioAModificar.apellido = apellido;
+            if (username) usuarioAModificar.username = username;
+            if (password) usuarioAModificar.hashed_password = Usuario.hashPassword(password);
+            if (fechaNacimiento) usuarioAModificar.fechaNacimiento = dateFromString(fechaNacimiento);
+            if (sexo) usuarioAModificar.sexo = sexo;
 
-    const usuarioValidation = usuarioSchema.partial().safeParse(req.body);
+            await this.em.flush();
 
-    if (!usuarioValidation.success) {
-        return res.status(400).send({
-            message: "Error de validación",
-            errors: usuarioValidation.error.errors,
-        });
-    }
-
-    const { legajo, nombre, apellido, username, fechaNacimiento, password, sexo } = usuarioValidation.data;
-
-    try {
-        const usuarioAModificar = orm.em.getReference(Usuario, _id);
-
-        if (!usuarioAModificar) {
             const response: ExpressResponse<Usuario> = {
-                message: "Usuario no encontrado",
-                data: undefined,
+                message: "Usuario modificado",
+                data: usuarioAModificar,
                 totalPages: undefined,
             };
-
-            return res.status(404).send(response);
-        }
-
-        if (nombre) usuarioAModificar.nombre = nombre;
-        if (legajo) usuarioAModificar.legajo = legajo;
-        if (apellido) usuarioAModificar.apellido = apellido;
-        if (username) usuarioAModificar.username = username;
-        if (password) usuarioAModificar.hashed_password = Usuario.hashPassword(password);
-        if (fechaNacimiento) usuarioAModificar.fechaNacimiento = dateFromString(fechaNacimiento);
-        if (sexo) usuarioAModificar.sexo = sexo;
-
-        await orm.em.flush();
-
-        const response: ExpressResponse<Usuario> = {
-            message: "Usuario modificado",
-            data: usuarioAModificar,
-            totalPages: undefined,
-        };
-        res.status(200).send(response);
-    } catch (error) {
-        const response: ExpressResponse<Usuario> = {
-            message: String(error),
-            data: undefined,
-            totalPages: undefined,
-        };
-        res.status(500).send(response);
-    }
-}
-
-async function delete_(req: Request, res: Response) {
-    const _id = req.params.id as string;
-
-    try {
-        const usuraioABorrar: Usuario | null = await findOneUsuario(_id);
-
-        if (!usuraioABorrar) {
+            res.status(200).send(response);
+        } catch (error) {
             const response: ExpressResponse<Usuario> = {
-                message: "Usuario no encontrado",
+                message: String(error),
                 data: undefined,
                 totalPages: undefined,
             };
-            return res.status(404).send(response);
+            res.status(500).send(response);
         }
+    }
 
-        usuraioABorrar.borradoLogico = true;
+    async delete_(req: Request, res: Response) {
+        const _id = req.params.id as string;
 
-        let cantReviews = await usuraioABorrar.reviews.load();
+        try {
+            const usuraioABorrar: Usuario | null = await this.findOneUsuario(_id);
 
-        for (let index = 0; index < cantReviews.count(); index++) {
-            usuraioABorrar.reviews[index].borradoLogico = true;
+            if (!usuraioABorrar) {
+                const response: ExpressResponse<Usuario> = {
+                    message: "Usuario no encontrado",
+                    data: undefined,
+                    totalPages: undefined,
+                };
+                return res.status(404).send(response);
+            }
+
+            usuraioABorrar.borradoLogico = true;
+
+            let cantReviews = await usuraioABorrar.reviews.load();
+
+            for (let index = 0; index < cantReviews.count(); index++) {
+                usuraioABorrar.reviews[index].borradoLogico = true;
+            }
+
+            await this.em.flush();
+
+            const response: ExpressResponse<Usuario> = {
+                message: "Usuario borrado",
+                data: usuraioABorrar,
+                totalPages: undefined,
+            };
+            res.status(200).send(response);
+        } catch (error) {
+            const response: ExpressResponse<Usuario> = {
+                message: String(error),
+                data: undefined,
+                totalPages: undefined,
+            };
+            res.status(500).send(response);
         }
+    }
 
-        await orm.em.flush();
+    async findOneUsuario(_id: string): Promise<Usuario | null> {
+        try {
+            const usuario: Usuario | null = await this.em.findOne(Usuario, _id, {
+                populate: ["*"],
+            });
 
-        const response: ExpressResponse<Usuario> = {
-            message: "Usuario borrado",
-            data: usuraioABorrar,
-            totalPages: undefined,
-        };
-        res.status(200).send(response);
-    } catch (error) {
-        const response: ExpressResponse<Usuario> = {
-            message: String(error),
-            data: undefined,
-            totalPages: undefined,
-        };
-        res.status(500).send(response);
+            await this.em.flush();
+            return usuario;
+        } catch (error) {
+            console.error(new Error("Error al buscar el usuario"));
+            return null;
+        }
+    }
+
+    async findOneUsuarioByUsername(username: string): Promise<Usuario | null> {
+        try {
+            const usuario: Usuario | null = await this.em.findOne(Usuario, { username });
+
+            await this.em.flush();
+            return usuario;
+        } catch (error) {
+            console.error(new Error("Error al buscar el usuario"));
+            return null;
+        }
+    }
+
+    constructor(em: MongoEntityManager<MongoDriver>) {
+        this.em = em;
+        console.log(this.em);
     }
 }
-
-async function findOneUsuario(_id: string): Promise<Usuario | null> {
-    try {
-        const usuario: Usuario | null = await orm.em.findOne(Usuario, _id, {
-            populate: ["*"],
-        });
-
-        await orm.em.flush();
-        return usuario;
-    } catch (error) {
-        console.error(new Error("Error al buscar el usuario"));
-        return null;
-    }
-}
-
-async function findOneUsuarioByUsername(username: string): Promise<Usuario | null> {
-    try {
-        const usuario: Usuario | null = await orm.em.findOne(Usuario, { username });
-
-        await orm.em.flush();
-        return usuario;
-    } catch (error) {
-        console.error(new Error("Error al buscar el usuario"));
-        return null;
-    }
-}
-
-export { findAll, findOne, add, modify, delete_, findOneUsuario, findAllConBorrado, findOneUsuarioByUsername };

@@ -1,18 +1,25 @@
-import express from "express";
-import { findAll, findOne, add, modify, delete_, findAllConBorrado } from "./usuario.controller.js";
+import express, { Router } from "express";
+import { UsuarioController } from "./usuario.controller";
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 
-const usuarioRouter = express.Router();
+export class UsuarioRouter {
+    public instance: Router;
+    private controller: UsuarioController;
 
-usuarioRouter.get("/", findAll);
+    constructor(em: MongoEntityManager<MongoDriver>) {
+        this.instance = express.Router();
+        this.controller = new UsuarioController(em);
 
-usuarioRouter.get("/conBorrado", findAllConBorrado);
+        this.instance.get("/", this.controller.findAll);
 
-usuarioRouter.get("/:id", findOne);
+        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
 
-usuarioRouter.post("/", add);
+        this.instance.get("/:id", this.controller.findOne);
 
-usuarioRouter.patch("/:id", modify);
+        this.instance.post("/", this.controller.add);
 
-usuarioRouter.delete("/:id", delete_);
+        this.instance.patch("/:id", this.controller.modify);
 
-export default usuarioRouter;
+        this.instance.delete("/:id", this.controller.delete_);
+    }
+}

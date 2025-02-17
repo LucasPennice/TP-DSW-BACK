@@ -6,9 +6,9 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "npx tsx api/index.ts",
-        "dev": "nodemon --exec npx tsx api/index.ts",
-        "start:prod": "npx tsx api/index.ts",
+        "start": "npx tsx api/runserver.ts",
+        "dev": "nodemon --exec npx tsx api/runserver.ts",
+        "start:prod": "npx tsx api/runserver.ts",
         "build": "npx tsc"
     },
     "author": "",

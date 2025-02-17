@@ -1,8 +1,7 @@
-import express from "express";
-import { findAll, findOne, add, modify, delete_, findAllConBorrado, findMateriasPorAno } from "./materia.controller.js";
-import { ensureAdmin } from "../index.js";
+import express, { Router } from "express";
 
-const materiaRouter = express.Router();
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
+import { MateriaController } from "./materia.controller";
 
 // materiaRouter.get("/", findAll);
 
@@ -18,18 +17,26 @@ const materiaRouter = express.Router();
 
 // materiaRouter.delete("/:id", ensureAdmin, delete_);
 
-materiaRouter.get("/", findAll);
+export class MateriaRouter {
+    public instance: Router;
+    private controller: MateriaController;
 
-materiaRouter.get("/conBorrado", findAllConBorrado);
+    constructor(em: MongoEntityManager<MongoDriver>) {
+        this.instance = express.Router();
+        this.controller = new MateriaController(em);
 
-materiaRouter.get("/porAno/:id", findMateriasPorAno);
+        this.instance.get("/", this.controller.findAll);
 
-materiaRouter.get("/:id", findOne);
+        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
 
-materiaRouter.post("/", add);
+        this.instance.get("/porAno/:id", this.controller.findMateriasPorAno);
 
-materiaRouter.patch("/:id", modify);
+        this.instance.get("/:id", this.controller.findOne);
 
-materiaRouter.delete("/:id", delete_);
+        this.instance.post("/", this.controller.add);
 
-export default materiaRouter;
+        this.instance.patch("/:id", this.controller.modify);
+
+        this.instance.delete("/:id", this.controller.delete_);
+    }
+}

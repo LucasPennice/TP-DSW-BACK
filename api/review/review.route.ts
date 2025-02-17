@@ -1,31 +1,25 @@
-import express from "express";
-import { add, delete_, findAll, findAllConBorrado, findOne, modify } from "./review.controller.js";
-import { ensureAuthenticated, ensureAdmin } from "../index.js";
+import express, { Router } from "express";
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
+import { ReviewController } from "./review.controller";
 
-const reviewRouter = express.Router();
+export class ReviewRouter {
+    public instance: Router;
+    private controller: ReviewController;
 
-// reviewRouter.get("/", findAll);
+    constructor(em: MongoEntityManager<MongoDriver>) {
+        this.instance = express.Router();
+        this.controller = new ReviewController(em);
 
-// reviewRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
+        this.instance.get("/", this.controller.findAll);
 
-// reviewRouter.get("/:id", findOne);
+        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
 
-// reviewRouter.post("/", ensureAuthenticated, add);
+        this.instance.get("/:id", this.controller.findOne);
 
-// reviewRouter.patch("/:id", ensureAdmin, modify);
+        this.instance.post("/", this.controller.add);
 
-// reviewRouter.delete("/:id", ensureAdmin, delete_);
+        this.instance.patch("/:id", this.controller.modify);
 
-reviewRouter.get("/", findAll);
-
-reviewRouter.get("/conBorrado", findAllConBorrado);
-
-reviewRouter.get("/:id", findOne);
-
-reviewRouter.post("/", add);
-
-reviewRouter.patch("/:id", modify);
-
-reviewRouter.delete("/:id", delete_);
-
-export default reviewRouter;
+        this.instance.delete("/:id", this.controller.delete_);
+    }
+}

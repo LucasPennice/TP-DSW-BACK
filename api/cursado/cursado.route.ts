@@ -1,6 +1,6 @@
-import express from "express";
-import { ensureAdmin } from "../index.js";
-import { add, delete_, findAll, findAllConBorrado, findOne, modify } from "./cursado.controller.js";
+import express, { Router } from "express";
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
+import { CursadoController } from "./cursado.controller.js";
 
 const cursadoRouter = express.Router();
 
@@ -16,16 +16,24 @@ const cursadoRouter = express.Router();
 
 // cursadoRouter.delete("/:id", ensureAdmin, delete_);
 
-cursadoRouter.get("/", findAll);
+export class CursadoRouter {
+    public instance: Router;
+    private controller: CursadoController;
 
-cursadoRouter.get("/conBorrado", findAllConBorrado);
+    constructor(em: MongoEntityManager<MongoDriver>) {
+        this.instance = express.Router();
+        this.controller = new CursadoController(em);
 
-cursadoRouter.get("/:id", findOne);
+        this.instance.get("/", this.controller.findAll);
 
-cursadoRouter.post("/", add);
+        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
 
-cursadoRouter.patch("/:id", modify);
+        this.instance.get("/:id", this.controller.findOne);
 
-cursadoRouter.delete("/:id", delete_);
+        this.instance.post("/", this.controller.add);
 
-export default cursadoRouter;
+        this.instance.patch("/:id", this.controller.modify);
+
+        this.instance.delete("/:id", this.controller.delete_);
+    }
+}

@@ -1,8 +1,6 @@
-import express from "express";
-import { ensureAdmin } from "../index.js";
-import { add, delete_, findAll, findAllConBorrado, findOne, modify } from "./area.controller.js";
-
-const areaRouter = express.Router();
+import express, { Router } from "express";
+import { AreaController } from "./area.controller.js";
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 
 // areaRouter.get("/", findAll);
 
@@ -16,16 +14,24 @@ const areaRouter = express.Router();
 
 // areaRouter.delete("/:id", ensureAdmin, delete_);
 
-areaRouter.get("/", findAll);
+export class AreaRouter {
+    public instance: Router;
+    private controller: AreaController;
 
-areaRouter.get("/conBorrado", findAllConBorrado);
+    constructor(em: MongoEntityManager<MongoDriver>) {
+        this.instance = express.Router();
+        this.controller = new AreaController(em);
 
-areaRouter.get("/:id", findOne);
+        this.instance.get("/", this.controller.findAll);
 
-areaRouter.post("/", add);
+        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
 
-areaRouter.patch("/:id", modify);
+        this.instance.get("/:id", this.controller.findOne);
 
-areaRouter.delete("/:id", delete_);
+        this.instance.post("/", this.controller.add);
 
-export default areaRouter;
+        this.instance.patch("/:id", this.controller.modify);
+
+        this.instance.delete("/:id", this.controller.delete_);
+    }
+}

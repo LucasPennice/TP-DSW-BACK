@@ -1,40 +1,35 @@
-import express from "express";
-import {
-    add,
-    delete_,
-    findAll,
-    findAllConBorrado,
-    findOne,
-    findPorMateriaYAno,
-    findPorMateriaYAnoYAnoCursado,
-    findReviews,
-    findReviewsPorMateria,
-    modify,
-} from "./profesor.controller.js";
-import { ensureAdmin } from "../index.js";
+import express, { Router } from "express";
+import { ProfesorController } from "./profesor.controller";
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 
-const profesorRouter = express.Router();
+export class ProfesorRouter {
+    public instance: Router;
+    private controller: ProfesorController;
 
-profesorRouter.get("/", findAll);
+    constructor(em: MongoEntityManager<MongoDriver>) {
+        this.instance = express.Router();
+        this.controller = new ProfesorController(em);
 
-// profesorRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
-profesorRouter.get("/conBorrado", findAllConBorrado);
+        this.instance.get("/", this.controller.findAll);
 
-profesorRouter.get("/:id/reviews", findReviews);
+        // this.instance.get("/conBorrado", ensureAdmin, findAllConBorrado);
+        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
 
-profesorRouter.get("/porMateriaYAno/:ano/:idMateria/:anoCursado", findPorMateriaYAnoYAnoCursado);
-profesorRouter.get("/porMateriaYAno/:ano/:idMateria", findPorMateriaYAno);
+        this.instance.get("/:id/reviews", this.controller.findReviews);
 
-profesorRouter.get("/:id/reviewsDeMateria/:idMateria", findReviewsPorMateria);
+        this.instance.get("/porMateriaYAno/:ano/:idMateria/:anoCursado", this.controller.findPorMateriaYAnoYAnoCursado);
+        this.instance.get("/porMateriaYAno/:ano/:idMateria", this.controller.findPorMateriaYAno);
 
-profesorRouter.get("/:id", findOne);
+        this.instance.get("/:id/reviewsDeMateria/:idMateria", this.controller.findReviewsPorMateria);
 
-profesorRouter.post("/", add);
+        this.instance.get("/:id", this.controller.findOne);
 
-profesorRouter.patch("/:id", modify);
-// profesorRouter.patch("/:id", ensureAdmin, modify);
+        this.instance.post("/", this.controller.add);
 
-// profesorRouter.delete("/:id", ensureAdmin, delete_);
-profesorRouter.delete("/:id", delete_);
+        this.instance.patch("/:id", this.controller.modify);
+        // this.instance.patch("/:id", ensureAdmin, modify);
 
-export default profesorRouter;
+        // this.instance.delete("/:id", ensureAdmin, delete_);
+        this.instance.delete("/:id", this.controller.delete_);
+    }
+}
