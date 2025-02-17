@@ -30,4 +30,4 @@ dist/**/*
 *.vsix
 .vercel
 
-.temp
+temp/*
