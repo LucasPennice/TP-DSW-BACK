@@ -37,6 +37,9 @@ export class Usuario {
     @Property()
     borradoLogico: boolean;
 
+    @Property({ type: 'array' })
+    reviewsEliminadas: NotificacionReview[]  = [];
+
     @OneToMany(() => Review, (review) => review.usuario)
     reviews = new Collection<Review>(this);
 
@@ -58,6 +61,7 @@ export class Usuario {
         this.rol = rol;
         this.sexo = sexo;
         this.hashed_password = hashed_password;
+        this.reviewsEliminadas = [];
         this.borradoLogico = false;
     }
 
@@ -65,3 +69,5 @@ export class Usuario {
         return crypto.pbkdf2Sync(unhashedPassword, SALT_CONSTANT, SALT_ITERATIONS, SALT_KEYLEN, SALT_DIGEST).toString();
     }
 }
+
+type NotificacionReview = {id: string, mensaje: string, visto: boolean}

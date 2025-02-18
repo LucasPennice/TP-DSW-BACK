@@ -300,7 +300,11 @@ export class ReviewController {
         const _id = req.params.id as string;
 
         try {
-            const reviewABorrar = this.em.getReference(Review, _id);
+
+            const reviewABorrar: Review | null = await this.em.findOne(Review, _id, {
+                populate: ["usuario"],
+            });
+
 
             if (!reviewABorrar) {
                 const response: ExpressResponse<Review> = {
@@ -311,6 +315,8 @@ export class ReviewController {
                 return res.status(404).send(response);
             }
 
+            reviewABorrar.usuario.reviewsEliminadas.push({id: reviewABorrar._id, mensaje: reviewABorrar.descripcion, visto: false});
+            
             reviewABorrar.borradoLogico = true;
             await this.em.flush();
 

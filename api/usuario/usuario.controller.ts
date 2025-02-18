@@ -42,6 +42,7 @@ const usuarioSchema = z.object({
         .transform((value) => {
             return value === "mujer" ? Sexo.Mujer : Sexo.Hombre;
         }),
+    reviewsEliminadas: z.array(z.object({})).optional(),    
 });
 
 export class UsuarioController {
