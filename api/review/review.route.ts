@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { ReviewController } from "./review.controller";
+import { AuthRoute } from "..";
 
 export class ReviewRouter {
     public instance: Router;
@@ -30,7 +31,7 @@ export class ReviewRouter {
          *       200:
          *         description: A list of reviews including deleted ones
          */
-        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
+        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, this.controller.findAllConBorrado);
 
         /**
          * @swagger
@@ -63,7 +64,7 @@ export class ReviewRouter {
          *       200:
          *         description: The updated review
          */
-        this.instance.patch("/:id", this.controller.modify);
+        this.instance.patch("/:id", AuthRoute.ensureAdmin, this.controller.modify);
 
         /**
          * @swagger
@@ -74,6 +75,6 @@ export class ReviewRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", this.controller.delete_);
+        this.instance.delete("/:id", AuthRoute.ensureAdmin, this.controller.delete_);
     }
 }

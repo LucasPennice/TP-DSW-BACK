@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { UsuarioController } from "./usuario.controller";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
+import { AuthRoute } from "..";
 
 export class UsuarioRouter {
     public instance: Router;
@@ -30,7 +31,7 @@ export class UsuarioRouter {
          *       200:
          *         description: A list of usuarios including deleted ones
          */
-        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
+        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, this.controller.findAllConBorrado);
 
         /**
          * @swagger
@@ -74,7 +75,7 @@ export class UsuarioRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", this.controller.delete_);
+        this.instance.delete("/:id", AuthRoute.ensureAdmin, this.controller.delete_);
 
         /**
          * @swagger

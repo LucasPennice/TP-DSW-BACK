@@ -2,18 +2,7 @@ import express, { Router } from "express";
 import { AreaController } from "./area.controller.js";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { Area } from "./area.entity.js";
-
-// areaRouter.get("/", findAll);
-
-// areaRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
-
-// areaRouter.get("/:id", findOne);
-
-// areaRouter.post("/", ensureAdmin, add);
-
-// areaRouter.patch("/:id", ensureAdmin, modify);
-
-// areaRouter.delete("/:id", ensureAdmin, delete_);
+import { AuthRoute } from "../index.js";
 
 export class AreaRouter {
     public instance: Router;
@@ -49,7 +38,7 @@ export class AreaRouter {
          *       200:
          *         description: A list of reviews including deleted ones
          */
-        this.instance.get("/conBorrado", async (req, res) => {
+        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
@@ -87,7 +76,7 @@ export class AreaRouter {
          *       201:
          *         description: The created review
          */
-        this.instance.post("/", async (req, res) => {
+        this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
             const parseResult = Area.parseSchema(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
@@ -108,7 +97,7 @@ export class AreaRouter {
          *       200:
          *         description: The updated review
          */
-        this.instance.patch("/:id", async (req, res) => {
+        this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
             const parseResult = Area.parseSchema(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
@@ -129,7 +118,7 @@ export class AreaRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", async (req, res) => {
+        this.instance.delete("/:id", AuthRoute.ensureAdmin, async (req, res) => {
             const idToDelete = req.params.id as string;
 
             const result = await this.controller.delete_(idToDelete);

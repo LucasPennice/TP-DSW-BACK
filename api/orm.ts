@@ -16,7 +16,7 @@ const ormConfig: Options = {
     metadataProvider: TsMorphMetadataProvider,
     highlighter: new MongoHighlighter(),
     clientUrl: process.env.MONGO_CONECTION_URI,
-    debug: true,
+    debug: false,
     driver: MongoDriver,
     dynamicImportProvider: (id) => import(id),
 };
@@ -37,7 +37,7 @@ let cache: Services;
 export async function initORM(options?: Options): Promise<Services> {
     if (cache) return cache;
 
-    const orm = await MikroORM.init({ ...ormConfig, ...options });
+    const orm = await MikroORM.init<MongoDriver>({ ...ormConfig, ...options });
 
     // save to cache before returning
     return (cache = {

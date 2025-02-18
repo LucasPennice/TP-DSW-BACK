@@ -1,20 +1,7 @@
 import express, { Router } from "express";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { CursadoController } from "./cursado.controller.js";
-
-const cursadoRouter = express.Router();
-
-// cursadoRouter.get("/", findAll);
-
-// cursadoRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
-
-// cursadoRouter.get("/:id", findOne);
-
-// cursadoRouter.post("/", ensureAdmin, add);
-
-// cursadoRouter.patch("/:id", ensureAdmin, modify);
-
-// cursadoRouter.delete("/:id", ensureAdmin, delete_);
+import { AuthRoute } from "../index.js";
 
 export class CursadoRouter {
     public instance: Router;
@@ -44,7 +31,7 @@ export class CursadoRouter {
          *       200:
          *         description: A list of cursados including deleted ones
          */
-        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
+        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, this.controller.findAllConBorrado);
 
         /**
          * @swagger
@@ -66,7 +53,7 @@ export class CursadoRouter {
          *       201:
          *         description: The created cursado
          */
-        this.instance.post("/", this.controller.add);
+        this.instance.post("/", AuthRoute.ensureAdmin, this.controller.add);
 
         /**
          * @swagger
@@ -77,7 +64,7 @@ export class CursadoRouter {
          *       200:
          *         description: The updated cursado
          */
-        this.instance.patch("/:id", this.controller.modify);
+        this.instance.patch("/:id", AuthRoute.ensureAdmin, this.controller.modify);
 
         /**
          * @swagger
@@ -88,6 +75,6 @@ export class CursadoRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", this.controller.delete_);
+        this.instance.delete("/:id", AuthRoute.ensureAdmin, this.controller.delete_);
     }
 }

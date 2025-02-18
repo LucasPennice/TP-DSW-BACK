@@ -1,21 +1,7 @@
 import express, { Router } from "express";
-
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { MateriaController } from "./materia.controller";
-
-// materiaRouter.get("/", findAll);
-
-// materiaRouter.get("/conBorrado", ensureAdmin, findAllConBorrado);
-
-// materiaRouter.get("/porAno/:id", findMateriasPorAno);
-
-// materiaRouter.get("/:id", findOne);
-
-// materiaRouter.post("/", ensureAdmin, add);
-
-// materiaRouter.patch("/:id", ensureAdmin, modify);
-
-// materiaRouter.delete("/:id", ensureAdmin, delete_);
+import { AuthRoute } from "..";
 
 export class MateriaRouter {
     public instance: Router;
@@ -45,7 +31,7 @@ export class MateriaRouter {
          *       200:
          *         description: A list of materias including deleted ones
          */
-        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
+        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, this.controller.findAllConBorrado);
 
         /**
          * @swagger
@@ -78,7 +64,7 @@ export class MateriaRouter {
          *       201:
          *         description: The created materia
          */
-        this.instance.post("/", this.controller.add);
+        this.instance.post("/", AuthRoute.ensureAdmin, this.controller.add);
 
         /**
          * @swagger
@@ -89,7 +75,7 @@ export class MateriaRouter {
          *       200:
          *         description: The updated materia
          */
-        this.instance.patch("/:id", this.controller.modify);
+        this.instance.patch("/:id", AuthRoute.ensureAdmin, this.controller.modify);
 
         /**
          * @swagger
@@ -100,6 +86,6 @@ export class MateriaRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", this.controller.delete_);
+        this.instance.delete("/:id", AuthRoute.ensureAdmin, this.controller.delete_);
     }
 }

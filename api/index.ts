@@ -20,6 +20,7 @@ import { ReviewRouter } from "./review/review.route.js";
 import { CursadoRouter } from "./cursado/cursado.route.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import MongoStore from "connect-mongo";
 
 export async function startServer(port: number, em: MongoEntityManager<MongoDriver>) {
     const orm = await initORM();
@@ -27,6 +28,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     const usuarioController = new UsuarioController(orm.em);
 
     // Configure Passport Strategy
+    // This methods handles how the user will be authenticated
     passport.use(
         new LocalStrategy(async (username, contraseña, done) => {
             const user = await usuarioController.findOneUsuarioByUsername(username);
@@ -43,51 +45,23 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
         })
     );
 
-    // 🚨 Es MUY probable que aca haya problemas porque en nuestro tipo de datos identificamos con _id y parece que esperan id
-    // Pero no me deja castear
+    // This function runs after a successful authentication
+    // Serializing the user information into the session
     passport.serializeUser(function (user, cb) {
+        console.log("running serializeUser");
         process.nextTick(function () {
             cb(null, user);
         });
     });
 
+    // This function runs after each request to deserialize the user stored
+    // in the session
     passport.deserializeUser(function (user: Usuario, cb) {
+        console.log("running desrealizeUser");
         process.nextTick(function () {
             return cb(null, user);
         });
     });
-
-    function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
-        if (req.isAuthenticated()) {
-            console.log("🧠🧠🧠", JSON.stringify(req.user));
-            return next();
-        }
-
-        return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
-    }
-
-    function ensureAdmin(req: Request, res: Response, next: NextFunction) {
-        if (!req.isAuthenticated()) {
-            return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
-        }
-
-        let user = req.user as Usuario;
-
-        if (user.rol != UserRole.Administrador) {
-            return res.status(401).send({ message: "El usuario no tiene los permisos necesarios", succeed: false });
-        }
-
-        return next();
-    }
-    /**
-     * Registers a function used to deserialize user objects out of the session.
-     *
-     * Examples:
-     *
-     *  app.get('/protected', ensureAuthenticated, (req, res) => {
-     *    res.send('This is a protected route');
-     *  });
-     */
 
     const app = express();
 
@@ -104,14 +78,27 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
 
+    //@ts-ignore
+    // const mongoStore = MongoStore.create({ client: orm.em.getConnection().getClient(), dbName: "test-app" });
+
+    // mongoStore.addListener("create", (a) => {
+    //     console.log(a);
+    // });
     // Use session middleware
     app.use(
         session({
             secret: "your-secret-key",
             resave: false,
             saveUninitialized: false,
+            // store: mongoStore,
+            cookie: {
+                maxAge: 24 * 60 * 60 * 1000 * 365, // 1 year until session expires
+                secure: false, // Set to true if using HTTPS
+                httpOnly: true,
+            },
         })
     );
+
     // Initialize Passport
     app.use(passport.initialize());
     app.use(passport.session());
@@ -139,7 +126,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     app.use("/api/cursado", cursadoRouter);
 
     // ⚠️ Borrar eventualmente, solo sirve para testear
-    app.get("/testAuth", ensureAuthenticated, (req, res) => {
+    app.get("/testAuth", AuthRoute.ensureAuthenticated, (req, res) => {
         res.send(`
         Directorios: \n
         /api/profesor \n
@@ -149,24 +136,12 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     `);
     });
 
-    // ⚠️ Borrar eventualmente, solo sirve para testear
-    app.get("/profile", (req, res) => {
-        if (req.isAuthenticated()) {
-            res.send("Welcome to your profile");
-        } else {
-            res.redirect("/login");
-        }
-    });
-
-    // ⚠️ Borrar eventualmente, solo sirve para testear
     app.get("/login", (req, res) => {
         res.send("Login page");
     });
 
     // ⚠️ Importante que esta ruta este por debajo de GET - con ruta /login ⚠️
-    // Como body del post esto quiere dos campos {username: string; password:string}
     app.post("/login", (req, res, next) => {
-        // ⚠️ SUPONGO que estos son los tipos
         passport.authenticate("local", (error: string | null, user: Usuario | false, message: { message: string }) => {
             if (error) {
                 return res.status(401).json({ message: error, succeed: false });
@@ -187,12 +162,18 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     });
 
     app.post("/logout", function (req, res, next) {
-        req.logout(function (err) {
+        req.logout(async function (err) {
             if (err) {
+                console.error("Logout error:", err);
                 res.status(500).json({ message: err, succeed: false });
                 return next(err);
             }
-            return res.status(200).json({ message: "Success", succeed: true });
+
+            // Limpia los cookies
+            // console.log(req.sessionID);
+            res.clearCookie("connect.sid", { path: "/" });
+            // Manually destroy the session
+            await orm.em.nativeDelete("sessions", { _id: req.sessionID });
         });
     });
 
@@ -275,4 +256,28 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     });
 
     return { app, server };
+}
+
+export class AuthRoute {
+    static ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
+        if (req.isAuthenticated()) {
+            return next();
+        }
+
+        return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
+    }
+
+    static ensureAdmin(req: Request, res: Response, next: NextFunction) {
+        if (!req.isAuthenticated()) {
+            return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
+        }
+
+        let user = req.user as Usuario;
+
+        if (user.rol != UserRole.Administrador) {
+            return res.status(401).send({ message: "El usuario no tiene los permisos necesarios", succeed: false });
+        }
+
+        return next();
+    }
 }

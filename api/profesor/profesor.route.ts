@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { ProfesorController } from "./profesor.controller";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
+import { AuthRoute } from "..";
 
 export class ProfesorRouter {
     public instance: Router;
@@ -30,7 +31,7 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of profesors including deleted ones
          */
-        this.instance.get("/conBorrado", this.controller.findAllConBorrado);
+        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, this.controller.findAllConBorrado);
         // this.instance.get("/conBorrado", ensureAdmin, findAllConBorrado);
 
         /**
@@ -97,7 +98,7 @@ export class ProfesorRouter {
          *       201:
          *         description: The created profesor
          */
-        this.instance.post("/", this.controller.add);
+        this.instance.post("/", AuthRoute.ensureAdmin, this.controller.add);
 
         /**
          * @swagger
@@ -108,8 +109,7 @@ export class ProfesorRouter {
          *       200:
          *         description: The updated profesor
          */
-        this.instance.patch("/:id", this.controller.modify);
-        // this.instance.patch("/:id", ensureAdmin, modify);
+        this.instance.patch("/:id", AuthRoute.ensureAdmin, this.controller.modify);
 
         /**
          * @swagger
@@ -120,7 +120,6 @@ export class ProfesorRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", this.controller.delete_);
-        // this.instance.delete("/:id", ensureAdmin, delete_);
+        this.instance.delete("/:id", AuthRoute.ensureAdmin, this.controller.delete_);
     }
 }

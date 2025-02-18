@@ -43,9 +43,6 @@ export class AreaController {
                     offset,
                 }
             );
-            // const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
-            //     populate: ["*"],
-            // });
 
             await this.em.flush();
 
