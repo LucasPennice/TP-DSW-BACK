@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Usuario } from "./usuario.entity.js";
-import { Sexo, UserRole } from "../shared/types.js";
+import { ExpressResponse_Migration, Sexo, UserRole } from "../shared/types.js";
 import { ExpressResponse } from "../shared/types.js";
 import { dateFromString } from "../dateExtension.js";
 import { z } from "zod";
@@ -42,7 +42,7 @@ const usuarioSchema = z.object({
         .transform((value) => {
             return value === "mujer" ? Sexo.Mujer : Sexo.Hombre;
         }),
-    reviewsEliminadas: z.array(z.object({})).optional(),    
+    reviewsEliminadas: z.array(z.object({ id: z.string(), mensaje: z.string(), visto: z.boolean() })).optional(),
 });
 
 export class UsuarioController {
@@ -192,7 +192,7 @@ export class UsuarioController {
             });
         }
 
-        const { legajo, nombre, apellido, username, fechaNacimiento, password, sexo } = usuarioValidation.data;
+        const { nombre, apellido, username, fechaNacimiento, sexo, reviewsEliminadas } = usuarioValidation.data;
 
         try {
             const usuarioAModificar = this.em.getReference(Usuario, _id);
@@ -208,10 +208,9 @@ export class UsuarioController {
             }
 
             if (nombre) usuarioAModificar.nombre = nombre;
-            if (legajo) usuarioAModificar.legajo = legajo;
             if (apellido) usuarioAModificar.apellido = apellido;
             if (username) usuarioAModificar.username = username;
-            if (password) usuarioAModificar.hashed_password = Usuario.hashPassword(password);
+            if (reviewsEliminadas) usuarioAModificar.reviewsEliminadas = reviewsEliminadas;
             if (fechaNacimiento) usuarioAModificar.fechaNacimiento = dateFromString(fechaNacimiento);
             if (sexo) usuarioAModificar.sexo = sexo;
 
@@ -297,6 +296,37 @@ export class UsuarioController {
         } catch (error) {
             console.error(new Error("Error al buscar el usuario"));
             return null;
+        }
+    };
+
+    getReviewsEliminadas = async (id: string): Promise<ExpressResponse_Migration<Usuario["reviewsEliminadas"]>> => {
+        try {
+            const response = await this.findOneUsuario(id);
+            if (!response)
+                return {
+                    message: "Usuario not found",
+                    error: "Usuario not found",
+                    data: null,
+                    totalPages: undefined,
+                    success: false,
+                };
+
+            const usuario = response.reviewsEliminadas!;
+
+            return {
+                message: "Deleted reviews found successfully",
+                success: true,
+                data: usuario,
+                totalPages: undefined,
+            };
+        } catch (error) {
+            return {
+                message: "Error finding the deleted reviews",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+                totalPages: undefined,
+            };
         }
     };
 

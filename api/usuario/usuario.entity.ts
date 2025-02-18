@@ -37,8 +37,8 @@ export class Usuario {
     @Property()
     borradoLogico: boolean;
 
-    @Property({ type: 'array' })
-    reviewsEliminadas: NotificacionReview[]  = [];
+    @Property({ type: "array" })
+    reviewsEliminadas: NotificacionReview[] = [];
 
     @OneToMany(() => Review, (review) => review.usuario)
     reviews = new Collection<Review>(this);
@@ -70,4 +70,4 @@ export class Usuario {
     }
 }
 
-type NotificacionReview = {id: string, mensaje: string, visto: boolean}
+export type NotificacionReview = { id: string; mensaje: string; visto: boolean };

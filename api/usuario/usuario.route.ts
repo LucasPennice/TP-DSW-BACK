@@ -75,5 +75,22 @@ export class UsuarioRouter {
          *         description: No content
          */
         this.instance.delete("/:id", this.controller.delete_);
+
+        /**
+         * @swagger
+         * /api/usuario/reviewsEliminadas/{id}:
+         *   delete:
+         *     summary: Get user's deleted reviews by ID
+         *     responses:
+         *       200:
+         *         description: No content
+         */
+        this.instance.get("/reviewsEliminadas/:id", async (req, res) => {
+            const result = await this.controller.getReviewsEliminadas(req.params.id);
+
+            if (!result.success) return res.status(500).send(result);
+
+            res.status(201).send(result);
+        });
     }
 }
