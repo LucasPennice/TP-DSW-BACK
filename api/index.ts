@@ -20,7 +20,6 @@ import { ReviewRouter } from "./review/review.route.js";
 import { CursadoRouter } from "./cursado/cursado.route.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-import MongoStore from "connect-mongo";
 
 export async function startServer(port: number, em: MongoEntityManager<MongoDriver>) {
     const orm = await initORM();
@@ -47,19 +46,17 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
 
     // This function runs after a successful authentication
     // Serializing the user information into the session
+    // Here's where the session is stored in the database
     passport.serializeUser(function (user, cb) {
-        console.log("running serializeUser");
         process.nextTick(function () {
             cb(null, user);
         });
     });
 
-    // This function runs after each request to deserialize the user stored
-    // in the session
-    passport.deserializeUser(function (user: Usuario, cb) {
-        console.log("running desrealizeUser");
+    // This function runs after each request to deserialize the user stored in the session
+    passport.deserializeUser(async function (deserializedUser: Usuario, cb) {
         process.nextTick(function () {
-            return cb(null, user);
+            return cb(null, deserializedUser);
         });
     });
 
@@ -78,19 +75,11 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
 
-    //@ts-ignore
-    // const mongoStore = MongoStore.create({ client: orm.em.getConnection().getClient(), dbName: "test-app" });
-
-    // mongoStore.addListener("create", (a) => {
-    //     console.log(a);
-    // });
-    // Use session middleware
     app.use(
         session({
             secret: "your-secret-key",
             resave: false,
             saveUninitialized: false,
-            // store: mongoStore,
             cookie: {
                 maxAge: 24 * 60 * 60 * 1000 * 365, // 1 year until session expires
                 secure: false, // Set to true if using HTTPS
@@ -136,6 +125,14 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     `);
     });
 
+    app.get("/api/session-status", (req: Request, res: Response) => {
+        if (req.isAuthenticated()) {
+            res.status(200).json({ success: true });
+        } else {
+            res.status(200).json({ success: false });
+        }
+    });
+
     app.get("/login", (req, res) => {
         res.send("Login page");
     });
@@ -169,11 +166,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                 return next(err);
             }
 
-            // Limpia los cookies
-            // console.log(req.sessionID);
             res.clearCookie("connect.sid", { path: "/" });
-            // Manually destroy the session
-            await orm.em.nativeDelete("sessions", { _id: req.sessionID });
         });
     });
 
