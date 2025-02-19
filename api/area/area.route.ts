@@ -102,7 +102,7 @@ export class AreaRouter {
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 
-            const result = await this.controller.modify(parseResult.data!);
+            const result = await this.controller.modify(parseResult.data!, req.params.id);
 
             if (!result.success) return res.status(500).send(result);
 

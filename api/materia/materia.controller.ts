@@ -1,21 +1,13 @@
-import { Request, Response } from "express";
-import { Materia } from "./materia.entity.js";
-import { ExpressResponse, TipoCursado } from "../shared/types.js";
-import { Area } from "../area/area.entity.js";
-import { AreaController } from "../area/area.controller.js";
-import { z } from "zod";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
-
-const materiaSchema = z.object({
-    nombre: z.string().min(1, "El nombre es requerido"),
-    areaId: z.string().min(1, "Es necesario seleccionar un área"),
-});
+import { AreaController } from "../area/area.controller.js";
+import { ExpressResponse_Migration } from "../shared/types.js";
+import { Materia } from "./materia.entity.js";
 
 export class MateriaController {
     private em: MongoEntityManager<MongoDriver>;
     private areaController: AreaController;
 
-    findAll = async (req: Request, res: Response) => {
+    findAll = async (): Promise<ExpressResponse_Migration<Materia[]>> => {
         try {
             const materias = await this.em.findAll(Materia, {
                 populate: ["*"],
@@ -25,200 +17,191 @@ export class MateriaController {
 
             let materiasSinBorradoLogico = materias.filter((m) => m.borradoLogico == false);
 
-            const response: ExpressResponse<Materia[]> = {
+            return {
                 message: "Materias Encontradas",
+                success: true,
                 data: materiasSinBorradoLogico,
                 totalPages: undefined,
             };
-            res.json(response);
         } catch (error) {
-            const response: ExpressResponse<Materia[]> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error in findAll materias",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    findAllConBorrado = async (req: Request, res: Response) => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Materia[]>> => {
         try {
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const offset = (page - 1) * limit;
-
             const [materias, total] = await this.em.findAndCount(
                 Materia,
                 {},
                 {
-                    populate: ["*"],
+                    populate: ["area", "cursados"],
                     limit,
                     offset,
                 }
             );
-            // const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
-            //     populate: ["*"],
-            // });
 
             await this.em.flush();
 
             const totalPages = Math.ceil(total / limit);
 
-            const response: ExpressResponse<Materia[]> = {
+            return {
                 message: "Materias Encontradas",
+                success: true,
                 data: materias,
                 totalPages: totalPages,
             };
-            res.json(response);
         } catch (error) {
-            const response: ExpressResponse<Materia[]> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error in findAllConBorrado materia",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    findOne = async (req: Request, res: Response) => {
-        const _id = req.params.id;
-
+    findOne = async (id: string): Promise<ExpressResponse_Migration<Materia>> => {
         try {
-            const materia = await this.findOneMateria(_id);
+            const materia: Materia | null = await this.em.findOne(Materia, id, {
+                populate: ["area", "cursados"],
+            });
 
-            if (!materia) {
-                const response: ExpressResponse<Materia[]> = {
+            await this.em.flush();
+
+            if (!materia)
+                return {
                     message: "Materia no Encontrada",
-                    data: undefined,
+                    success: true,
+                    data: null,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
-            const response: ExpressResponse<Materia> = {
+
+            return {
+                success: true,
                 message: "Materia Encontrada",
                 data: materia,
                 totalPages: undefined,
             };
-            res.json(response);
         } catch (error) {
-            const response: ExpressResponse<Materia> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error in findOne materia",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    add = async (req: Request, res: Response) => {
-        const materiaValidation = materiaSchema.safeParse(req.body);
-
-        if (!materiaValidation.success) {
-            return res.status(400).send({
-                message: "Error de validación",
-                errors: materiaValidation.error.errors,
-            });
-        }
-
-        const { nombre, areaId } = materiaValidation.data;
-
-        const area: Area | null = await this.areaController.findOneArea(areaId);
-
-        if (!area || area.borradoLogico == true) {
-            const response: ExpressResponse<Area> = {
-                message: "Area no Válida",
-                data: undefined,
-                totalPages: undefined,
-            };
-            return res.status(404).send(response);
-        }
-
-        const nuevaMateria = new Materia(nombre, area);
-
+    add = async (newMateria: Omit<Materia, "area">, areaId: string): Promise<ExpressResponse_Migration<Materia>> => {
         try {
-            let materiasMatch: Materia[] = await this.em.findAll(Materia, { where: { nombre } });
-            if (materiasMatch.length != 0) {
-                throw new Error("Ya hay una materia con ese nombre");
-            }
+            const { nombre } = newMateria;
 
-            await this.em.persist(nuevaMateria).flush();
+            const findAreaRes = await this.areaController.findOneArea(areaId);
 
-            const response: ExpressResponse<Materia> = {
-                message: "Materia Creada",
-                data: nuevaMateria,
-                totalPages: undefined,
-            };
-            res.status(201).send(response);
+            if (!findAreaRes.success || findAreaRes.data!.borradoLogico == true)
+                return {
+                    message: "Area not valid",
+                    data: null,
+                    success: false,
+                    totalPages: undefined,
+                };
+
+            // let materiasMatch: Materia[] = await this.em.findAll(Materia, { where: { nombre } });
+
+            // if (materiasMatch.length > 1) {
+            //     throw new Error("Ya hay una materia con ese nombre");
+            // }
+
+            // const nuevaMateria = new Materia(nombre, findAreaRes.data!);
+
+            // await this.em.persist(nuevaMateria).flush();
+
+            // return {
+            //     message: "Materia created successfully",
+            //     data: nuevaMateria,
+            //     success: true,
+            //     totalPages: undefined,
+            // };
         } catch (error) {
-            const response: ExpressResponse<Materia> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error in add materia",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    modify = async (req: Request, res: Response) => {
-        const _id = req.params.id as string;
+    modify = async (materiaMod: Partial<Materia>, materiaId: string): Promise<ExpressResponse_Migration<Materia>> => {
+        const materiaValidation = Materia.schema.partial().safeParse(materiaMod);
 
-        const materiaValidation = materiaSchema.partial().safeParse(req.body);
-
-        if (!materiaValidation.success) {
-            return res.status(400).send({
+        if (!materiaValidation.success)
+            return {
                 message: "Error de validación",
-                errors: materiaValidation.error.errors,
-            });
-        }
+                error: `${materiaValidation.error.errors}`,
+                success: false,
+                data: null,
+                totalPages: undefined,
+            };
 
         const { nombre } = materiaValidation.data;
 
         try {
-            const materiaAModificar: Materia | undefined = this.em.getReference(Materia, _id);
+            const materiaAModificar: Materia | undefined = this.em.getReference(Materia, materiaId);
 
-            if (!materiaAModificar) {
-                const response: ExpressResponse<Materia> = {
-                    message: String("Materia no encontrada"),
-                    data: undefined,
+            if (!materiaAModificar)
+                return {
+                    message: "Materia no encontrada",
+                    error: "Materia no encontrada",
+                    success: false,
+                    data: null,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
 
             if (nombre) materiaAModificar.nombre = nombre;
 
             await this.em.flush();
 
-            const response: ExpressResponse<Materia> = {
-                message: String("Materia modificada"),
+            return {
+                message: "Materia modificada",
                 data: materiaAModificar,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Materia> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error in modify materia",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    delete_ = async (req: Request, res: Response) => {
-        const _id = req.params.id as string;
-
+    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Materia>> => {
         try {
-            const materiaABorrar: Materia | null = await this.findOneMateria(_id);
+            const materiaABorrarReq = await this.findOne(_id);
 
-            if (!materiaABorrar) {
-                const response: ExpressResponse<Materia> = {
+            if (!materiaABorrarReq.success)
+                return {
                     message: "Materia no encontrada",
-                    data: undefined,
+                    error: "Materia no encontrada",
+                    success: false,
+                    data: null,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
+
+            const materiaABorrar = materiaABorrarReq.data!;
 
             materiaABorrar.borradoLogico = true;
 
@@ -230,26 +213,25 @@ export class MateriaController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Materia> = {
-                message: String("Materia Borrada"),
+            return {
+                message: "Materia Borrada",
                 data: materiaABorrar,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Materia> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error in delete materia",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    findMateriasPorAno = async (req: Request, res: Response) => {
+    findMateriasPorAno = async (_idAno: number): Promise<ExpressResponse_Migration<Materia[]>> => {
         try {
-            const _idAno = parseInt(req.params.id);
-
             const materias: Materia[] = await this.em.findAll(Materia, {
                 populate: ["*"],
             });
@@ -258,32 +240,20 @@ export class MateriaController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Materia[]> = {
+            return {
                 message: "Materias Encontradas",
+                success: true,
                 data: resultado,
                 totalPages: undefined,
             };
-            return res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Materia> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error in findMateriasPorAño",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            return res.status(500).send(response);
-        }
-    };
-    findOneMateria = async (_id: string): Promise<Materia | null> => {
-        try {
-            const materia: Materia | null = await this.em.findOne(Materia, _id, {
-                populate: ["*"],
-            });
-
-            await this.em.flush();
-            return materia;
-        } catch (error) {
-            console.error(new Error("Error al buscar la materia"));
-            return null;
         }
     };
 

@@ -1,204 +1,148 @@
-import { Request, Response } from "express";
+import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { Cursado } from "../cursado/cursado.entity.js";
 import { dateFromString } from "../dateExtension.js";
 import { MateriaController } from "../materia/materia.controller.js";
-import { Materia } from "../materia/materia.entity.js";
 import { Review } from "../review/review.entity.js";
-import { ExpressResponse, Sexo } from "../shared/types.js";
+import { ExpressResponse_Migration } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
-import { z } from "zod";
-import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
-
-const profesorSchema = z.object({
-    nombre: z.string().regex(/^[a-zA-Z]+$/, "El nombre es requerido"),
-    apellido: z.string().regex(/^[a-zA-Z]+$/, "El apellido es requerido"),
-    fechaNacimiento: z.string().refine(
-        (dateString) => {
-            const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/;
-            if (!datePattern.test(dateString)) return false;
-
-            const [day, month, year] = dateString.split("/").map(Number);
-            const inputDate = new Date(year, month - 1, day);
-
-            if (inputDate.getFullYear() !== year || inputDate.getMonth() !== month - 1 || inputDate.getDate() !== day) {
-                return false;
-            }
-
-            const today = new Date();
-            today.setFullYear(today.getFullYear() - 18);
-            return inputDate <= today;
-        },
-        {
-            message: "La fecha debe ser válida, y los profesores deben ser mayores de 18 años",
-        }
-    ),
-
-    dni: z.number().refine((value) => value >= 10000000 && value <= 99999999, {
-        message: "El DNI debe tener exactamente 8 dígitos",
-    }),
-    sexo: z
-        .string()
-        .transform((value) => value.toLowerCase())
-        .refine((value) => ["mujer", "hombre"].includes(value), {
-            message: "El sexo debe ser 'Mujer' o 'Hombre'",
-        })
-        .transform((value) => {
-            return value === "mujer" ? Sexo.Mujer : Sexo.Hombre;
-        }),
-});
 
 export class ProfesorController {
     private em: MongoEntityManager<MongoDriver>;
     private materiaController: MateriaController;
 
-    findAll = async (req: Request, res: Response) => {
+    findAll = async (): Promise<ExpressResponse_Migration<Profesor[]>> => {
         try {
             const profesores: Profesor[] | undefined = await this.em.findAll(Profesor, {
-                populate: ["*"],
+                populate: ["cursados"],
             });
 
             await this.em.flush();
 
             let profesoresSinBorradoLogico = profesores.filter((p) => p.borradoLogico == false);
 
-            const reponse: ExpressResponse<Profesor[]> = {
+            return {
                 message: "Profesores encontrados:",
                 data: profesoresSinBorradoLogico,
                 totalPages: undefined,
+                success: true,
             };
-            res.json(reponse);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the profesores",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    findAllConBorrado = async (req: Request, res: Response) => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Profesor[]>> => {
         try {
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const offset = (page - 1) * limit;
-
             const [profesores, total] = await this.em.findAndCount(
                 Profesor,
                 {},
                 {
-                    populate: ["*"],
+                    populate: ["cursados"],
                     limit,
                     offset,
                 }
             );
-            // const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
-            //     populate: ["*"],
-            // });
 
             await this.em.flush();
 
             const totalPages = Math.ceil(total / limit);
 
-            const response: ExpressResponse<Profesor[]> = {
+            return {
                 message: "Profesores encontrados:",
                 data: profesores,
                 totalPages: totalPages,
+                success: true,
             };
-            res.json(response);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the profesores",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    findOne = async (req: Request, res: Response) => {
-        const _id = req.params.id;
-
+    findOne = async (_id: string): Promise<ExpressResponse_Migration<Profesor>> => {
         try {
-            const profesor = await this.findOneProfesor(_id);
+            const profesor: Profesor | null = await this.em.findOne(Profesor, _id, {
+                populate: ["cursados"],
+            });
 
-            if (!profesor) {
-                const response: ExpressResponse<Profesor> = {
+            await this.em.flush();
+
+            if (!profesor)
+                return {
                     message: "Profesor no encontrado",
-                    data: undefined,
+                    data: null,
+                    success: true,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
-            res.json({ data: profesor });
+
+            return {
+                message: "Profesor encontrado",
+                data: profesor,
+                totalPages: undefined,
+                success: true,
+            };
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    add = async (req: Request, res: Response) => {
-        const profesorValidation = profesorSchema.safeParse(req.body);
-        if (!profesorValidation.success) {
-            return res.status(400).send({
-                message: "Error de validación",
-                errors: profesorValidation.error.errors,
-            });
-        }
-
-        const { nombre, apellido, fechaNacimiento, dni, sexo } = profesorValidation.data;
-
-        const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento), dni, 0, sexo);
-
+    add = async (newProfesor: Profesor): Promise<ExpressResponse_Migration<Profesor>> => {
         try {
+            const { nombre, apellido, fechaNacimiento, dni, sexo } = newProfesor;
+
+            const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento.toString()), dni, 0, sexo);
+
             await this.em.persist(nuevoProfesor).flush();
-            const response: ExpressResponse<Profesor> = {
+
+            return {
                 message: "Profesor creado",
                 data: nuevoProfesor,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(201).send(response);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    modify = async (req: Request, res: Response) => {
-        const _id = req.params.id as string;
-
-        const profesorValidation = profesorSchema.partial().safeParse(req.body);
-
-        if (!profesorValidation.success) {
-            return res.status(400).send({
-                message: "Error de validación",
-                errors: profesorValidation.error.errors,
-            });
-        }
-
-        const { nombre, apellido, fechaNacimiento, dni, sexo } = profesorValidation.data;
+    modify = async (profesorMod: Partial<Profesor>, profesorId: string): Promise<ExpressResponse_Migration<Profesor>> => {
+        const { nombre, apellido, fechaNacimiento, dni, sexo } = profesorMod;
 
         try {
-            const profesorAModificar = this.em.getReference(Profesor, _id);
+            const profesorAModificar = this.em.getReference(Profesor, profesorId);
 
-            if (!profesorAModificar) {
-                const response: ExpressResponse<Profesor> = {
-                    message: "Profesor  no encontrado",
-                    data: undefined,
+            if (!profesorAModificar)
+                return {
+                    message: "Profesor no encontrado",
+                    data: null,
+                    success: true,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
 
-            if (fechaNacimiento) profesorAModificar.fechaNacimiento = dateFromString(fechaNacimiento);
+            if (fechaNacimiento) profesorAModificar.fechaNacimiento = dateFromString(fechaNacimiento.toString());
             if (nombre) profesorAModificar.nombre = nombre;
             if (apellido) profesorAModificar.apellido = apellido;
             if (dni) profesorAModificar.dni = dni;
@@ -207,31 +151,38 @@ export class ProfesorController {
             }
 
             await this.em.flush();
-            res.status(200).send({ message: "Profesor modificado", data: profesorAModificar });
-        } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+
+            return {
+                message: "Profesor modificado",
+                data: profesorAModificar,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
+        } catch (error) {
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+                totalPages: undefined,
+            };
         }
     };
 
-    delete_ = async (req: Request, res: Response) => {
-        const _id = req.params.id as string;
-
+    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Profesor>> => {
         try {
-            const profesorABorrar: Profesor | null = await this.findOneProfesor(_id);
+            const finProfReq = await this.findOne(_id);
 
-            if (!profesorABorrar) {
-                const response: ExpressResponse<Profesor> = {
-                    message: "Profesor no encontrado",
-                    data: undefined,
+            if (!finProfReq.success)
+                return {
+                    message: "Error finding the profesor",
+                    data: null,
+                    success: false,
+                    error: finProfReq.error,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
+
+            const profesorABorrar = finProfReq.data!;
 
             profesorABorrar.borradoLogico = true;
 
@@ -243,31 +194,37 @@ export class ProfesorController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Profesor> = {
+            return {
                 message: "Profesor borrado",
                 data: profesorABorrar,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error deleting profesor",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    findReviews = async (req: Request, res: Response) => {
+    findReviews = async (_id: string): Promise<ExpressResponse_Migration<Review[]>> => {
         try {
-            const _id = req.params.id as string;
+            const finProfReq = await this.findOne(_id);
 
-            const profesor: Profesor | null = await this.findOneProfesor(_id);
+            if (!finProfReq.success)
+                return {
+                    message: "Error finding the profesor",
+                    data: null,
+                    success: false,
+                    error: finProfReq.error,
+                    totalPages: undefined,
+                };
 
-            if (!profesor) {
-                throw new Error("Profesor borrado");
-            }
+            const profesor = finProfReq.data!;
 
             const cursados = profesor.cursados.map((c) => c._id);
 
@@ -277,31 +234,32 @@ export class ProfesorController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Review[]> = {
+            return {
                 message: "Reviews Encontradas",
                 data: reviews,
+                success: true,
                 totalPages: undefined,
             };
-            return res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            return res.status(500).send(response);
         }
     };
 
-    findPorMateriaYAnoYAnoCursado = async (req: Request, res: Response) => {
+    findPorMateriaYAnoYAnoCursado = async (
+        _idMateria: string,
+        anoMateria: number,
+        anoCursado: number
+    ): Promise<ExpressResponse_Migration<Profesor[]>> => {
         try {
-            const _idMateria = req.params.idMateria as string;
-            const anoMateria = parseInt(req.params.ano) as number;
-            const anoCursado = parseInt(req.params.anoCursado) as number;
+            const findMateriaReq = await this.materiaController.findOne(_idMateria);
 
-            const materia: Materia | null = await this.materiaController.findOneMateria(_idMateria);
-
-            if (!materia || materia.borradoLogico == true) {
+            if (!findMateriaReq.success || findMateriaReq.data!.borradoLogico == true) {
                 throw new Error("Materia borrado");
             }
 
@@ -318,7 +276,7 @@ export class ProfesorController {
             const idsProf = cursados.map((c) => c.profesor._id);
 
             const resultado: Profesor[] = await this.em.findAll(Profesor, {
-                populate: ["*"],
+                populate: ["cursados"],
                 where: {
                     _id: { $in: idsProf },
                     borradoLogico: false,
@@ -327,35 +285,33 @@ export class ProfesorController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Profesor[]> = {
+            return {
                 message: "Profesores Encontradas",
                 data: resultado,
+                success: true,
                 totalPages: undefined,
             };
-            return res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            return res.status(500).send(response);
         }
     };
 
-    findPorMateriaYAno = async (req: Request, res: Response) => {
+    findPorMateriaYAno = async (_idMateria: string, anoMateria: number): Promise<ExpressResponse_Migration<Profesor[]>> => {
         try {
-            const _idMateria = req.params.idMateria as string;
-            const anoMateria = parseInt(req.params.ano) as number;
+            const findMateriaReq = await this.materiaController.findOne(_idMateria);
 
-            const materia: Materia | null = await this.materiaController.findOneMateria(_idMateria);
-
-            if (!materia || materia.borradoLogico == true) {
+            if (!findMateriaReq.success || findMateriaReq.data!.borradoLogico == true) {
                 throw new Error("Materia borrado");
             }
 
             const cursados: Cursado[] = await this.em.findAll(Cursado, {
-                populate: ["*"],
+                populate: ["profesor", "reviews", "materia"],
                 where: {
                     borradoLogico: false,
                     materia: { _id: _idMateria },
@@ -375,28 +331,37 @@ export class ProfesorController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Profesor[]> = {
+            return {
                 message: "Profesores Encontradas",
                 data: resultado,
+                success: true,
                 totalPages: undefined,
             };
-            return res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            return res.status(500).send(response);
         }
     };
 
-    findReviewsPorMateria = async (req: Request, res: Response) => {
+    findReviewsPorMateria = async (_id: string, _idMateria: string): Promise<ExpressResponse_Migration<Review[]>> => {
         try {
-            const _id = req.params.id as string;
-            const _idMateria = req.params.idMateria as string;
+            const finProfReq = await this.findOne(_id);
 
-            const profesor: Profesor | null = await this.findOneProfesor(_id);
+            if (!finProfReq.success)
+                return {
+                    message: "Error finding the profesor",
+                    data: null,
+                    success: false,
+                    error: finProfReq.error,
+                    totalPages: undefined,
+                };
+
+            const profesor = finProfReq.data!;
 
             if (!profesor) {
                 throw new Error("Profesor borrado");
@@ -410,33 +375,20 @@ export class ProfesorController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Review[]> = {
+            return {
                 message: "Reviews Encontradas",
                 data: reviews,
+                success: true,
                 totalPages: undefined,
             };
-            return res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Profesor> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Error finding the areas",
+                data: null,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
                 totalPages: undefined,
             };
-            return res.status(500).send(response);
-        }
-    };
-
-    findOneProfesor = async (_id: string): Promise<Profesor | null> => {
-        try {
-            const profesor: Profesor | null = await this.em.findOne(Profesor, _id, {
-                populate: ["*"],
-            });
-
-            await this.em.flush();
-            return profesor;
-        } catch (error) {
-            console.error(new Error("Error al buscar al profesor"));
-            return null;
         }
     };
 

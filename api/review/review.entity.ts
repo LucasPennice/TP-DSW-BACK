@@ -2,6 +2,8 @@ import { Entity, ManyToOne, PrimaryKey, Property, Rel } from "@mikro-orm/core";
 import { v4 } from "uuid";
 import { Usuario } from "../usuario/usuario.entity.js";
 import { Cursado } from "../cursado/cursado.entity.js";
+import { z } from "zod";
+import { ExpressResponse_Migration } from "../shared/types.js";
 
 @Entity()
 export class Review {
@@ -28,6 +30,42 @@ export class Review {
 
     @ManyToOne({ entity: () => Cursado })
     cursado!: Rel<Cursado>;
+
+    static schema = z.object({
+        descripcion: z.string().min(1, "La descripcion es obligatoria"),
+        puntuacion: z.number().refine((value) => value >= 0 && value <= 5, {
+            message: "El puntaje debe estar entre 0-5",
+        }),
+        censurada: z.boolean(),
+    });
+
+    static parseSchema(json: Request["body"], usuario: Usuario, cursado: Cursado): ExpressResponse_Migration<Review> {
+        /*
+         * Recieves a JSON object and returns an Review object
+         * If the JSON object is not valid, returns null
+         */
+
+        const parseResult = Review.schema.safeParse(json);
+
+        if (!parseResult.success) {
+            return {
+                success: false,
+                message: "Error parsing json area",
+                data: null,
+                error: parseResult.error.errors.toString(),
+                totalPages: undefined,
+            };
+        }
+
+        const result = new Review(parseResult.data.descripcion, parseResult.data.puntuacion, usuario, cursado, parseResult.data.censurada);
+
+        return {
+            success: true,
+            message: "Success parsing json area",
+            data: result,
+            totalPages: undefined,
+        };
+    }
 
     constructor(descripcion: string, puntuacion: number, usuario: Usuario, cursado: Cursado, censurada: boolean) {
         this.descripcion = descripcion;

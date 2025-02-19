@@ -30,11 +30,13 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     // This methods handles how the user will be authenticated
     passport.use(
         new LocalStrategy(async (username, contraseña, done) => {
-            const user = await usuarioController.findOneUsuarioByUsername(username);
+            const userReq = await usuarioController.findOneUsuarioByUsername(username);
 
-            if (!user) {
+            if (!userReq.data) {
                 return done(null, false, { message: "Username incorrecto" });
             }
+
+            const user = userReq.data!;
 
             if (Usuario.hashPassword(contraseña) != user.hashed_password) {
                 return done(null, false, { message: "Incorrect username or password." });

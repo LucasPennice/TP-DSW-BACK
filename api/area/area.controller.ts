@@ -123,9 +123,9 @@ export class AreaController {
         }
     };
 
-    modify = async (newArea: Area): Promise<ExpressResponse_Migration<Area>> => {
+    modify = async (newArea: Partial<Area>, areaId: string): Promise<ExpressResponse_Migration<Area>> => {
         try {
-            const areaAModificar = this.em.getReference(Area, newArea._id);
+            const areaAModificar = this.em.getReference(Area, areaId);
 
             if (!areaAModificar)
                 return {
@@ -136,7 +136,8 @@ export class AreaController {
                     totalPages: undefined,
                 };
 
-            areaAModificar.nombre = newArea.nombre;
+            if (newArea.nombre) areaAModificar.nombre = newArea.nombre;
+
             await this.em.flush();
 
             return {
@@ -197,9 +198,9 @@ export class AreaController {
         }
     };
 
-    findOneArea = async (_id: string): Promise<ExpressResponse_Migration<Area>> => {
+    findOneArea = async (id: string): Promise<ExpressResponse_Migration<Area>> => {
         try {
-            const area: Area | null = await this.em.findOne(Area, _id, {
+            const area: Area | null = await this.em.findOne(Area, id, {
                 populate: ["*"],
             });
 

@@ -1,182 +1,148 @@
-import { Request, Response } from "express";
-import { Cursado } from "./cursado.entity.js";
-import { ExpressResponse, TipoCursado } from "../shared/types.js";
-import { Materia } from "../materia/materia.entity.js";
-import { MateriaController } from "../materia/materia.controller.js";
-import { Profesor } from "../profesor/profesor.entity.js";
-import { ProfesorController } from "../profesor/profesor.controller.js";
-import { z } from "zod";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
+import { MateriaController } from "../materia/materia.controller.js";
+import { ProfesorController } from "../profesor/profesor.controller.js";
+import { ExpressResponse_Migration } from "../shared/types.js";
+import { Cursado } from "./cursado.entity.js";
 
-const primeraLetraMayuscula = (str: string): string => {
+export const primeraLetraMayuscula = (str: string): string => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
-
-const cursadoSchema = z.object({
-    diaCursado: z
-        .string()
-        .refine((value) => ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado"].includes(value.toLowerCase()), {
-            message: "El día debe ser uno de los días válidos.",
-        })
-        .transform((value) => primeraLetraMayuscula(value.toLowerCase())),
-    horaInicio: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora de inicio debe ser del tipo xx:xx"),
-    horaFin: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "La hora de fin debe ser del tipo xx:xx"),
-    comision: z.number().refine((value) => value >= 100 && value <= 510, {
-        message: "La comisión debe tener exactamente 3 dígitos",
-    }),
-    turno: z
-        .string()
-        .refine((value) => ["mañana", "tarde", "noche"].includes(value.toLowerCase()), {
-            message: "El turno debe ser mañana, tarde o noche.",
-        })
-        .transform((value) => primeraLetraMayuscula(value.toLowerCase())),
-    año: z.number().refine((value) => value >= 2000 && value <= 2024, {
-        message: "El año debe tener exactamente 4 dígitos",
-    }),
-    tipoCursado: z
-        .string()
-        .transform((value) => value.toLowerCase())
-        .refine((value) => ["teoria", "practica"].includes(value), {
-            message: "El tipo debe ser 'Teoria' o 'Practica'",
-        })
-        .transform((value) => {
-            return value === "teoria" ? TipoCursado.Teoria : TipoCursado.Practica;
-        }),
-    materiaId: z.string().min(1, "Es necesario seleccionar una materia"),
-    profesorId: z.string().min(1, "Es necesario seleccionar un profesor"),
-});
 
 export class CursadoController {
     private em: MongoEntityManager<MongoDriver>;
     private materiaController: MateriaController;
     private profesorController: ProfesorController;
 
-    findAll = async (req: Request, res: Response) => {
+    findAll = async (): Promise<ExpressResponse_Migration<Cursado[]>> => {
         try {
             const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
-                populate: ["*"],
+                populate: ["materia", "profesor", "reviews"],
             });
 
             await this.em.flush();
 
             let cursadosSinBorradoLogico = cursados.filter((c) => c.borradoLogico == false);
 
-            const response: ExpressResponse<Cursado[]> = {
-                message: "Cursados Encontrados",
+            return {
+                message: "Found cursados successfully",
                 data: cursadosSinBorradoLogico,
+                success: true,
                 totalPages: undefined,
             };
-            res.json(response);
         } catch (error) {
-            const response: ExpressResponse<Cursado[]> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error finding the cursados",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    findAllConBorrado = async (req: Request, res: Response) => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Cursado[]>> => {
         try {
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const offset = (page - 1) * limit;
-
             const [cursados, total] = await this.em.findAndCount(
                 Cursado,
                 {},
                 {
-                    populate: ["*"],
+                    populate: ["materia", "profesor", "reviews"],
                     limit,
                     offset,
                 }
             );
-            // const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
-            //     populate: ["*"],
-            // });
-
             await this.em.flush();
 
             const totalPages = Math.ceil(total / limit);
 
-            const response: ExpressResponse<Cursado[]> = { message: "Cursados Encontrados", data: cursados, totalPages: totalPages };
-            res.json(response);
+            return {
+                message: "Cursados found successfuly",
+                data: cursados,
+                totalPages: totalPages,
+                success: true,
+            };
         } catch (error) {
-            const response: ExpressResponse<Cursado[]> = { message: String(error), data: undefined, totalPages: undefined };
-            res.status(500).send(response);
+            return {
+                message: "There was an error finding the cursados",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
+                totalPages: undefined,
+            };
         }
     };
 
-    findOne = async (req: Request, res: Response) => {
-        const _id = req.params.id;
-
+    findOne = async (id: string): Promise<ExpressResponse_Migration<Cursado>> => {
         try {
-            const cursado: Cursado | null = await this.em.findOne(Cursado, _id, {
-                populate: ["*"],
+            const cursado: Cursado | null = await this.em.findOne(Cursado, id, {
+                populate: ["materia", "profesor", "reviews"],
             });
 
             await this.em.flush();
 
-            if (!cursado) {
-                const response: ExpressResponse<Cursado> = {
-                    message: "Cursado no Encontrada",
-                    data: undefined,
+            if (!cursado)
+                return {
+                    message: "Cursado not found",
+                    data: null,
+                    success: false,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
-            const response: ExpressResponse<Cursado> = {
-                message: "Cursado Encontrado",
+
+            return {
+                message: "Cursado found successfully",
                 data: cursado,
+                success: true,
                 totalPages: undefined,
             };
-            res.json(response);
         } catch (error) {
-            const response: ExpressResponse<Cursado> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error finding the cursados",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    add = async (req: Request, res: Response) => {
-        const cursadoValidation = cursadoSchema.safeParse(req.body);
-
-        if (!cursadoValidation.success) {
-            return res.status(400).send({
-                message: "Error de validación",
-                errors: cursadoValidation.error.errors,
-            });
-        }
-
-        const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado, materiaId, profesorId } = cursadoValidation.data;
+    add = async (
+        newCursado: Omit<Cursado, "materia" | "profesor">,
+        materiaId: string,
+        profesorId: string
+    ): Promise<ExpressResponse_Migration<Cursado>> => {
+        const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = newCursado;
 
         try {
-            const materia: Materia | null = await this.materiaController.findOneMateria(materiaId);
+            const findMateriaReq = await this.materiaController.findOne(materiaId);
 
-            const profesor: Profesor | null = await this.profesorController.findOneProfesor(profesorId);
-
-            if (!materia || materia.borradoLogico == true) {
-                const response: ExpressResponse<Cursado> = {
-                    message: "Materia no Válida",
-                    data: undefined,
+            if (!findMateriaReq.success || findMateriaReq.data?.borradoLogico == true) {
+                return {
+                    message: "Materia not found",
+                    data: null,
                     totalPages: undefined,
+                    success: false,
                 };
-                return res.status(404).send(response);
-            }
-            if (!profesor || profesor.borradoLogico == true) {
-                const response: ExpressResponse<Cursado> = {
-                    message: "Profesor no Válido",
-                    data: undefined,
-                    totalPages: undefined,
-                };
-                return res.status(404).send(response);
             }
 
-            const matches = await this.buscarCursadosPorAtributos(comision, año, materia._id);
+            const profReq = await this.profesorController.findOne(profesorId);
+
+            if (!profReq.success || profReq.data!.borradoLogico == true)
+                return {
+                    message: "Profesor is not valid",
+                    data: null,
+                    success: false,
+                    totalPages: undefined,
+                };
+
+            const profesor = profReq.data!;
+
+            const reqCursadoPorAtributos = await this.buscarCursadosPorAtributos(comision, año, findMateriaReq.data!._id);
+
+            const matches = reqCursadoPorAtributos.data;
+
+            if (!matches) {
+                throw "Error buscando cursados por atributos";
+            }
 
             // No me deja meter mas de dos cursados por Comision + Año + Materia
             if (matches.length >= 2) {
@@ -195,62 +161,59 @@ export class CursadoController {
                 return false;
             });
 
-            if (cursadoSuperpuesto) {
-                const response: ExpressResponse<Cursado> = {
-                    message: "Este profesor ya tiene un cursado en ese dia y horario",
-                    data: undefined,
+            if (cursadoSuperpuesto)
+                return {
+                    message: "This profesor already has a cursado in that day and time",
+                    data: null,
+                    success: false,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
 
-            const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, materia, profesor, tipoCursado);
+            const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, findMateriaReq.data!, profesor, tipoCursado);
 
             await this.em.persist(nuevoCursado).flush();
 
-            const response: ExpressResponse<Cursado> = {
-                message: "Cursado Creada",
-                data: nuevoCursado,
+            return {
+                message: "Cursado created successfully",
+                data: null,
+                success: false,
                 totalPages: undefined,
-                // @ts-ignore
-                // errors: cursadoValidation.error.errors,
             };
-            res.status(201).send(response);
         } catch (error) {
-            const response: ExpressResponse<Cursado> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error finding the cursados",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    modify = async (req: Request, res: Response) => {
+    modify = async (cursadoMod: Partial<Cursado>, cursadoId: string): Promise<ExpressResponse_Migration<Cursado>> => {
         try {
-            const _id = req.params.id as string;
+            const cursadoValidation = Cursado.schema.partial().safeParse(cursadoMod);
 
-            const cursadoValidation = cursadoSchema.partial().safeParse(req.body);
-
-            if (!cursadoValidation.success) {
-                return res.status(400).send({
+            if (!cursadoValidation.success)
+                return {
                     message: "Error de validación",
-                    errors: cursadoValidation.error.errors,
-                });
-            }
+                    error: `${cursadoValidation.error.errors}`,
+                    success: false,
+                    data: null,
+                    totalPages: undefined,
+                };
 
             const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = cursadoValidation.data;
 
-            const cursadoAModificar = this.em.getReference(Cursado, _id);
+            const cursadoAModificar = this.em.getReference(Cursado, cursadoId);
 
-            if (!cursadoAModificar) {
-                const response: ExpressResponse<Cursado> = {
-                    message: String("Cursado no encontrada"),
-                    data: undefined,
+            if (!cursadoAModificar)
+                return {
+                    message: "Cursado no encontrada",
+                    success: false,
+                    data: null,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
 
             if (cursadoAModificar) {
                 if (diaCursado) cursadoAModificar.diaCursado = diaCursado;
@@ -264,31 +227,36 @@ export class CursadoController {
 
             await this.em.flush();
 
-            res.status(200).send({ message: "Cursado modificada", data: cursadoAModificar });
-        } catch (error) {
-            const response: ExpressResponse<Cursado> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "Cursado modificada",
+                data: cursadoAModificar,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
+        } catch (error) {
+            return {
+                message: "There was an error modifying the cursados",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
+                totalPages: undefined,
+            };
         }
     };
 
-    delete_ = async (req: Request, res: Response) => {
-        const _id = req.params.id as string;
-
+    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Cursado>> => {
         try {
-            const cursadoABorrar: Cursado | null = await this.findOneCursado(_id);
+            const findCursadoReq = await this.findOne(_id);
 
-            if (!cursadoABorrar) {
-                const response: ExpressResponse<Cursado> = {
+            const cursadoABorrar = findCursadoReq.data;
+
+            if (!cursadoABorrar)
+                return {
                     message: "Cursado no encontrado",
-                    data: undefined,
+                    data: null,
+                    success: false,
                     totalPages: undefined,
                 };
-                return res.status(404).send(response);
-            }
 
             cursadoABorrar.borradoLogico = true;
 
@@ -300,51 +268,52 @@ export class CursadoController {
 
             await this.em.flush();
 
-            const response: ExpressResponse<Cursado> = {
-                message: String("Cursado Borrado"),
+            return {
+                message: "Cursado Borrado",
                 data: cursadoABorrar,
+                success: true,
                 totalPages: undefined,
             };
-            res.status(200).send(response);
         } catch (error) {
-            const response: ExpressResponse<Cursado> = {
-                message: String(error),
-                data: undefined,
+            return {
+                message: "There was an error deleting the cursado",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
                 totalPages: undefined,
             };
-            res.status(500).send(response);
         }
     };
 
-    async findOneCursado(_id: string): Promise<Cursado | null> {
+    buscarCursadosPorAtributos = async (comision: number, año: number, materiaId: string): Promise<ExpressResponse_Migration<Cursado[]>> => {
         try {
-            const cursado: Cursado | null = await this.em.findOne(Cursado, _id, {
-                populate: ["*"],
-            });
+            const findMateriaReq = await this.materiaController.findOne(materiaId);
 
-            await this.em.flush();
-            return cursado;
-        } catch (error) {
-            console.error(new Error("Error al buscar el cursado"));
-            return null;
-        }
-    }
-
-    buscarCursadosPorAtributos = async (comision: number, año: number, materiaId: string): Promise<Cursado[]> => {
-        try {
-            const materia: Materia | null = await this.materiaController.findOneMateria(materiaId);
-
-            if (!materia) {
+            if (!findMateriaReq.data) {
                 throw new Error("Materia borrada");
             }
 
-            const cursados: Cursado[] = await this.em.findAll(Cursado, { where: { comision, año, materia }, populate: ["*"] });
+            const cursados: Cursado[] = await this.em.findAll(Cursado, {
+                where: { comision, año, materia: findMateriaReq.data! },
+                populate: ["materia", "profesor", "reviews"],
+            });
 
             await this.em.flush();
-            return cursados;
+
+            return {
+                message: "Cursados encontrados",
+                data: cursados,
+                success: true,
+                totalPages: undefined,
+            };
         } catch (error) {
-            console.error(new Error("Error al buscar el cursado"));
-            return [];
+            return {
+                message: "There was an finding the cursado",
+                error: error instanceof Error ? error.message : "Unknown error",
+                success: false,
+                data: null,
+                totalPages: undefined,
+            };
         }
     };
     constructor(em: MongoEntityManager<MongoDriver>) {

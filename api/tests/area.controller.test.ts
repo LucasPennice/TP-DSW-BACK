@@ -55,7 +55,7 @@ describe("Area Controller", () => {
         const area = foundAreas![0];
         area.nombre = "Exactas";
 
-        const res = await controller.modify(area);
+        const res = await controller.modify(area, area._id);
 
         expect(res.success).toBe(true);
         expect(res.data).toMatchObject(area);

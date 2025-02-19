@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import { ProfesorController } from "./profesor.controller";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { AuthRoute } from "..";
+import { Profesor } from "./profesor.entity";
 
 export class ProfesorRouter {
     public instance: Router;
@@ -20,7 +21,13 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of profesors
          */
-        this.instance.get("/", this.controller.findAll);
+        this.instance.get("/", async (req, res) => {
+            const result = await this.controller.findAll();
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -31,7 +38,17 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of profesors including deleted ones
          */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, this.controller.findAllConBorrado);
+        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, async (req, res) => {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const offset = (page - 1) * limit;
+
+            const result = await this.controller.findAllConBorrado(limit, offset);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
         // this.instance.get("/conBorrado", ensureAdmin, findAllConBorrado);
 
         /**
@@ -43,7 +60,15 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of reviews for the profesor
          */
-        this.instance.get("/:id/reviews", this.controller.findReviews);
+        this.instance.get("/:id/reviews", async (req, res) => {
+            const id = req.params.id as string;
+
+            const result = await this.controller.findReviews(id);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -54,7 +79,17 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of profesors by subject and year of study
          */
-        this.instance.get("/porMateriaYAno/:ano/:idMateria/:anoCursado", this.controller.findPorMateriaYAnoYAnoCursado);
+        this.instance.get("/porMateriaYAno/:ano/:idMateria/:anoCursado", async (req, res) => {
+            const idMateria = req.params.idMateria as string;
+            const anoMateria = parseInt(req.params.ano) as number;
+            const anoCursado = parseInt(req.params.anoCursado) as number;
+
+            const result = await this.controller.findPorMateriaYAnoYAnoCursado(idMateria, anoMateria, anoCursado);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -65,7 +100,16 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of profesors by subject and year
          */
-        this.instance.get("/porMateriaYAno/:ano/:idMateria", this.controller.findPorMateriaYAno);
+        this.instance.get("/porMateriaYAno/:ano/:idMateria", async (req, res) => {
+            const idMateria = req.params.idMateria as string;
+            const anoMateria = parseInt(req.params.ano) as number;
+
+            const result = await this.controller.findPorMateriaYAno(idMateria, anoMateria);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -76,7 +120,16 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of reviews for the profesor and subject
          */
-        this.instance.get("/:id/reviewsDeMateria/:idMateria", this.controller.findReviewsPorMateria);
+        this.instance.get("/:id/reviewsDeMateria/:idMateria", async (req, res) => {
+            const id = req.params.id as string;
+            const idMateria = req.params.idMateria as string;
+
+            const result = await this.controller.findReviewsPorMateria(id, idMateria);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -87,7 +140,13 @@ export class ProfesorRouter {
          *       200:
          *         description: A single profesor
          */
-        this.instance.get("/:id", this.controller.findOne);
+        this.instance.get("/:id", async (req, res) => {
+            const result = await this.controller.findOne(req.params.id);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
 
         /**
          * @swagger
@@ -98,7 +157,17 @@ export class ProfesorRouter {
          *       201:
          *         description: The created profesor
          */
-        this.instance.post("/", AuthRoute.ensureAdmin, this.controller.add);
+        this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
+            const parseResult = Profesor.parseSchema(req.body);
+
+            if (!parseResult.success) return res.status(500).json(parseResult);
+
+            const result = await this.controller.add(parseResult.data!);
+
+            if (!result.success) return res.status(500).send(result);
+
+            res.status(201).send(result);
+        });
 
         /**
          * @swagger
@@ -109,7 +178,17 @@ export class ProfesorRouter {
          *       200:
          *         description: The updated profesor
          */
-        this.instance.patch("/:id", AuthRoute.ensureAdmin, this.controller.modify);
+        this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+            const parseResult = Profesor.parseSchema(req.body);
+
+            if (!parseResult.success) return res.status(500).json(parseResult);
+
+            const result = await this.controller.modify(parseResult.data!, req.params.id);
+
+            if (!result.success) return res.status(500).send(result);
+
+            res.status(201).send(result);
+        });
 
         /**
          * @swagger
@@ -120,6 +199,14 @@ export class ProfesorRouter {
          *       204:
          *         description: No content
          */
-        this.instance.delete("/:id", AuthRoute.ensureAdmin, this.controller.delete_);
+        this.instance.delete("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+            const idToDelete = req.params.id as string;
+
+            const result = await this.controller.delete_(idToDelete);
+
+            if (!result.success) return res.status(500).send(result);
+
+            res.status(204).send(result);
+        });
     }
 }
