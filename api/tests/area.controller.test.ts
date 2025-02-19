@@ -66,6 +66,8 @@ describe("Area Controller", () => {
 
         const areaId = foundAreas![0]._id;
 
+        // hacer una ruta que no tenga ensure auth
+
         const response = await request(app).delete(`/api/area/${areaId}`).expect(204); // Expecting a 204 No Content response
 
         expect(response.status).toBe(204);
