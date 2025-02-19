@@ -103,11 +103,7 @@ export class MateriaRouter {
 
             if (!areaId) return res.status(400).send({ success: false, message: "AreaId requerido" });
 
-            const findAreaReq = await this.areaController.findOne(areaId);
-
-            if (!findAreaReq.success) return res.status(500).json(findAreaReq);
-
-            const parseResult = Materia.parseSchema(req.body, findAreaReq.data!);
+            const parseResult = Materia.parseSchema(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 
@@ -130,11 +126,7 @@ export class MateriaRouter {
          *         description: The updated materia
          */
         this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
-            const findAreaReq = await this.areaController.findOne(req.params.id);
-
-            if (!findAreaReq.success) return res.status(500).json(findAreaReq);
-
-            const parseResult = Materia.parseSchema(req.body, findAreaReq.data!);
+            const parseResult = Materia.parseSchema(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 

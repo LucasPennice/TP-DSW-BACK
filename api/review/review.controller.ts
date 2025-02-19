@@ -4,6 +4,8 @@ import { Review } from "./review.entity.js";
 import profanity from "bad-words-es";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { ProfesorController } from "../profesor/profesor.controller.js";
+import { Cursado } from "../cursado/cursado.entity.js";
+import { UsuarioController } from "../usuario/usuario.controller.js";
 
 var filter = new profanity({ languages: ["es"] });
 
@@ -61,6 +63,7 @@ filter.addWords(
 export class ReviewController {
     private em: MongoEntityManager<MongoDriver>;
     private profesorController: ProfesorController;
+    private usuarioController: UsuarioController;
 
     findAll = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Review[]>> => {
         try {
@@ -155,9 +158,48 @@ export class ReviewController {
         }
     };
 
-    add = async (newReview: Review, profesorId: string): Promise<ExpressResponse_Migration<Review>> => {
+    add = async (
+        reviewData: Omit<Review, "usuario" | "cursado" | "fecha" | "_id" | "borradoLogico" | "censurada">,
+        profesorId: string,
+        materiaId: string,
+        anoCursado: number,
+        anio: number,
+        userId: string
+    ): Promise<ExpressResponse_Migration<Review>> => {
         try {
-            // await this.em.persist(newReview).flush();
+            // Encontrar el Cursado
+            const fork = this.em.fork();
+            //@ts-ignore
+            const cursado: Cursado | null = await fork.findOne(Cursado, {
+                profesor: { _id: profesorId },
+                materia: { _id: materiaId },
+                comision: { $gte: anio * 100, $lt: (anio + 1) * 100 },
+                año: anoCursado,
+            });
+
+            if (!cursado || cursado.borradoLogico == true)
+                return {
+                    message: "Cursado no Válido",
+                    data: null,
+                    success: false,
+                    totalPages: undefined,
+                };
+
+            const findUserReq = await this.usuarioController.findOne(userId);
+
+            if (!findUserReq.success)
+                return {
+                    message: "Usuario no encontrado",
+                    data: null,
+                    success: false,
+                    totalPages: undefined,
+                };
+
+            const reviewLimpia = filter.clean(reviewData.descripcion);
+            const censurada = reviewLimpia != reviewData.descripcion;
+
+            const newReview = new Review(reviewData.descripcion, reviewData.puntuacion, findUserReq.data!, cursado, censurada);
+            await this.em.persistAndFlush(newReview);
 
             const profReq = await this.profesorController.findOne(profesorId);
 
@@ -262,5 +304,6 @@ export class ReviewController {
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
         this.profesorController = new ProfesorController(em);
+        this.usuarioController = new UsuarioController(em);
     }
 }

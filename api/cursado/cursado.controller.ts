@@ -106,7 +106,7 @@ export class CursadoController {
     };
 
     add = async (
-        newCursado: Omit<Cursado, "materia" | "profesor">,
+        newCursado: Omit<Cursado, "materia" | "profesor" | "reviews" | "_id" | "borradoLogico">,
         materiaId: string,
         profesorId: string
     ): Promise<ExpressResponse_Migration<Cursado>> => {
@@ -155,7 +155,7 @@ export class CursadoController {
             }
 
             const cursadoSuperpuesto = profesor.cursados.find((cursado) => {
-                if (cursado.año == año && cursado.diaCursado == diaCursado && !(horaFin < cursado.horaInicio || cursado.horaFin < horaInicio))
+                if (cursado.año == año && cursado.diaCursado == diaCursado && !(horaFin! < cursado.horaInicio || cursado.horaFin < horaInicio!))
                     return true;
 
                 return false;
@@ -169,15 +169,14 @@ export class CursadoController {
                     totalPages: undefined,
                 };
 
-            // const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, findMateriaReq.data!, profesor, tipoCursado);
+            const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, findMateriaReq.data!, profesor, tipoCursado);
 
-            // this.em.persist(nuevoCursado);
-            // await this.em.flush();
+            await this.em.persistAndFlush(nuevoCursado);
 
             return {
                 message: "Cursado created successfully",
-                data: null,
-                success: false,
+                data: nuevoCursado,
+                success: true,
                 totalPages: undefined,
             };
         } catch (error) {

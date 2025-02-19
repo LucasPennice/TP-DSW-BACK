@@ -67,7 +67,7 @@ export class Profesor {
                 success: false,
                 message: "Error parsing json profesor",
                 data: null,
-                error: parseResult.error.errors.toString(),
+                error: JSON.stringify(parseResult.error.errors),
                 totalPages: undefined,
             };
         }

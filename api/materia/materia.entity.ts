@@ -26,7 +26,7 @@ export class Materia {
         nombre: z.string().min(1, "El nombre es requerido"),
     });
 
-    static parseSchema(json: Request["body"], area: Area): ExpressResponse_Migration<Materia> {
+    static parseSchema(json: Request["body"]): ExpressResponse_Migration<Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null
@@ -39,12 +39,14 @@ export class Materia {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: parseResult.error.errors.toString(),
+                error: JSON.stringify(parseResult.error.errors),
                 totalPages: undefined,
             };
         }
 
-        const result = new Materia(parseResult.data.nombre, area);
+        const result: Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico"> = {
+            nombre: parseResult.data.nombre,
+        };
 
         return {
             success: true,

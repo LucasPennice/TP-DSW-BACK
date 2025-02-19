@@ -97,7 +97,7 @@ export class Usuario {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: parseResult.error.errors.toString(),
+                error: JSON.stringify(parseResult.error.errors),
                 totalPages: undefined,
             };
         }

@@ -78,7 +78,9 @@ export class Cursado {
             }),
     });
 
-    static parseSchema(json: Request["body"], materia: Materia, profesor: Profesor): ExpressResponse_Migration<Cursado> {
+    static parseSchema(
+        json: Request["body"]
+    ): ExpressResponse_Migration<Omit<Cursado, "materia" | "profesor" | "reviews" | "_id" | "borradoLogico">> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null
@@ -91,22 +93,20 @@ export class Cursado {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: parseResult.error.errors.toString(),
+                error: JSON.stringify(parseResult.error.errors),
                 totalPages: undefined,
             };
         }
 
-        const result = new Cursado(
-            parseResult.data.diaCursado,
-            parseResult.data.horaInicio,
-            parseResult.data.horaFin,
-            parseResult.data.comision,
-            parseResult.data.turno,
-            parseResult.data.año,
-            materia,
-            profesor,
-            parseResult.data.tipoCursado
-        );
+        const result: Omit<Cursado, "materia" | "profesor" | "reviews" | "_id" | "borradoLogico"> = {
+            diaCursado: parseResult.data.diaCursado,
+            horaInicio: parseResult.data.horaInicio,
+            horaFin: parseResult.data.horaFin,
+            comision: parseResult.data.comision,
+            turno: parseResult.data.turno,
+            año: parseResult.data.año,
+            tipoCursado: parseResult.data.tipoCursado,
+        };
 
         return {
             success: true,

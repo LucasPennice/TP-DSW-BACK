@@ -100,7 +100,10 @@ export class MateriaController {
         }
     };
 
-    add = async (newMateria: Omit<Materia, "area">, areaId: string): Promise<ExpressResponse_Migration<Materia>> => {
+    add = async (
+        newMateria: Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">,
+        areaId: string
+    ): Promise<ExpressResponse_Migration<Materia>> => {
         try {
             const { nombre } = newMateria;
 
@@ -121,6 +124,7 @@ export class MateriaController {
             }
 
             const nuevaMateria = new Materia(nombre, findAreaRes.data!);
+            this.em.persistAndFlush(nuevaMateria);
 
             return {
                 message: "Materia created successfully",
@@ -140,19 +144,6 @@ export class MateriaController {
     };
 
     modify = async (materiaMod: Partial<Materia>, materiaId: string): Promise<ExpressResponse_Migration<Materia>> => {
-        const materiaValidation = Materia.schema.partial().safeParse(materiaMod);
-
-        if (!materiaValidation.success)
-            return {
-                message: "Error de validación",
-                error: `${materiaValidation.error.errors}`,
-                success: false,
-                data: null,
-                totalPages: undefined,
-            };
-
-        const { nombre } = materiaValidation.data;
-
         try {
             const materiaAModificar: Materia | undefined = this.em.getReference(Materia, materiaId);
 
@@ -165,7 +156,7 @@ export class MateriaController {
                     totalPages: undefined,
                 };
 
-            if (nombre) materiaAModificar.nombre = nombre;
+            if (materiaMod.nombre) materiaAModificar.nombre = materiaMod.nombre;
 
             await this.em.flush();
 

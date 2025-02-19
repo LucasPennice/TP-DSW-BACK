@@ -99,10 +99,11 @@ export class UsuarioRouter {
          *         description: The updated usuario
          */
         this.instance.patch("/:id", async (req, res) => {
-            const parseResult = Usuario.parseSchema(req.body);
+            const parseResult = Usuario.schema.partial().safeParse(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 
+            // @ts-ignore
             const result = await this.controller.modify(parseResult.data!, req.params.id);
 
             if (!result.success) return res.status(500).send(result);

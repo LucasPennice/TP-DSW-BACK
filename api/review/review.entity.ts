@@ -36,10 +36,11 @@ export class Review {
         puntuacion: z.number().refine((value) => value >= 0 && value <= 5, {
             message: "El puntaje debe estar entre 0-5",
         }),
-        censurada: z.boolean(),
     });
 
-    static parseSchema(json: Request["body"], usuario: Usuario, cursado: Cursado): ExpressResponse_Migration<Review> {
+    static parseSchema(
+        json: Request["body"]
+    ): ExpressResponse_Migration<Omit<Review, "usuario" | "cursado" | "fecha" | "_id" | "borradoLogico" | "censurada">> {
         /*
          * Recieves a JSON object and returns an Review object
          * If the JSON object is not valid, returns null
@@ -52,12 +53,15 @@ export class Review {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: parseResult.error.errors.toString(),
+                error: JSON.stringify(parseResult.error.errors),
                 totalPages: undefined,
             };
         }
 
-        const result = new Review(parseResult.data.descripcion, parseResult.data.puntuacion, usuario, cursado, parseResult.data.censurada);
+        const result: Omit<Review, "usuario" | "cursado" | "fecha" | "_id" | "borradoLogico" | "censurada"> = {
+            descripcion: parseResult.data.descripcion,
+            puntuacion: parseResult.data.puntuacion,
+        };
 
         return {
             success: true,

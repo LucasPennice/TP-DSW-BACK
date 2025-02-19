@@ -98,35 +98,11 @@ export class ReviewRouter {
             if (!profesorId || !materiaId || !anoCursado || !anio)
                 return res.status(400).send({ success: false, message: "profesorId,materiaId,anoCursado,anio,usuarioId requerido" });
 
-            // Encontrar el Cursado
-            const fork = em.fork();
-            const cursado: Cursado | null = await fork.findOne(Cursado, {
-                profesor: { _id: profesorId },
-                materia: { _id: materiaId },
-                comision: { $gte: anio * 100, $lt: (anio + 1) * 100 },
-                año: anoCursado,
-            });
-
-            if (!cursado || cursado.borradoLogico == true) {
-                const response: ExpressResponse_Migration<null> = {
-                    message: "Cursado no Válido",
-                    data: null,
-                    success: false,
-                    totalPages: undefined,
-                };
-
-                return res.status(404).send(response);
-            }
-
-            const findUserReq = await this.usuarioController.findOne(userId);
-
-            if (!findUserReq.success) return res.status(500).json(findUserReq);
-
-            const parseResult = Review.parseSchema(req.body, findUserReq.data!, cursado);
+            const parseResult = Review.parseSchema(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 
-            const result = await this.controller.add(parseResult.data!, profesorId);
+            const result = await this.controller.add(parseResult.data!, profesorId, materiaId, anoCursado, anio, userId);
 
             if (!result.success) return res.status(500).send(result);
 
@@ -151,7 +127,7 @@ export class ReviewRouter {
 
             if (!findCursadoReq.success) return res.status(500).json(findCursadoReq);
 
-            const parseResult = Review.parseSchema(req.body, findUsuarioReq.data!, findCursadoReq.data!);
+            const parseResult = Review.parseSchema(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 

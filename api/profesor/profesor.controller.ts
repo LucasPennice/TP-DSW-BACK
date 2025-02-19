@@ -109,7 +109,7 @@ export class ProfesorController {
 
             const nuevoProfesor = new Profesor(nombre, apellido, fechaNacimiento, dni, 0, sexo);
 
-            await this.em.persist(nuevoProfesor).flush();
+            await this.em.persistAndFlush(nuevoProfesor);
 
             return {
                 message: "Profesor creado",
