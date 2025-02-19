@@ -107,7 +107,7 @@ export class ProfesorController {
         try {
             const { nombre, apellido, fechaNacimiento, dni, sexo } = newProfesor;
 
-            const nuevoProfesor = new Profesor(nombre, apellido, dateFromString(fechaNacimiento.toString()), dni, 0, sexo);
+            const nuevoProfesor = new Profesor(nombre, apellido, fechaNacimiento, dni, 0, sexo);
 
             await this.em.persist(nuevoProfesor).flush();
 
@@ -128,7 +128,7 @@ export class ProfesorController {
         }
     };
 
-    modify = async (profesorMod: Partial<Profesor>, profesorId: string): Promise<ExpressResponse_Migration<Profesor>> => {
+    modify = async (profesorMod: Partial<Omit<Profesor, "puntuacionGeneral">>, profesorId: string): Promise<ExpressResponse_Migration<Profesor>> => {
         const { nombre, apellido, fechaNacimiento, dni, sexo } = profesorMod;
 
         try {
@@ -142,7 +142,7 @@ export class ProfesorController {
                     totalPages: undefined,
                 };
 
-            if (fechaNacimiento) profesorAModificar.fechaNacimiento = dateFromString(fechaNacimiento.toString());
+            if (fechaNacimiento) profesorAModificar.fechaNacimiento = fechaNacimiento;
             if (nombre) profesorAModificar.nombre = nombre;
             if (apellido) profesorAModificar.apellido = apellido;
             if (dni) profesorAModificar.dni = dni;

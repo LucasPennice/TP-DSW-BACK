@@ -107,7 +107,8 @@ export class Usuario {
             parseResult.data.legajo,
             parseResult.data.apellido,
             parseResult.data.username,
-            new Date(parseResult.data.fechaNacimiento),
+            //@ts-ignore
+            parseResult.data.fechaNacimiento,
             parseResult.data.rol as UserRole,
             parseResult.data.sexo,
             Usuario.hashPassword(parseResult.data.password)

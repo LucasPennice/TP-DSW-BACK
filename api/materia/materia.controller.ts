@@ -114,22 +114,20 @@ export class MateriaController {
                     totalPages: undefined,
                 };
 
-            // let materiasMatch: Materia[] = await this.em.findAll(Materia, { where: { nombre } });
+            let materiasMatch: Materia[] = await this.em.findAll(Materia, { where: { nombre } });
 
-            // if (materiasMatch.length > 1) {
-            //     throw new Error("Ya hay una materia con ese nombre");
-            // }
+            if (materiasMatch.length != 0) {
+                throw new Error("Ya hay una materia con ese nombre");
+            }
 
-            // const nuevaMateria = new Materia(nombre, findAreaRes.data!);
+            const nuevaMateria = new Materia(nombre, findAreaRes.data!);
 
-            // await this.em.persist(nuevaMateria).flush();
-
-            // return {
-            //     message: "Materia created successfully",
-            //     data: nuevaMateria,
-            //     success: true,
-            //     totalPages: undefined,
-            // };
+            return {
+                message: "Materia created successfully",
+                data: nuevaMateria,
+                success: true,
+                totalPages: undefined,
+            };
         } catch (error) {
             return {
                 message: "There was an error in add materia",

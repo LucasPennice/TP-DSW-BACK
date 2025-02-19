@@ -158,7 +158,7 @@ export class ProfesorRouter {
          *         description: The created profesor
          */
         this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
-            const parseResult = Profesor.parseSchema(req.body);
+            const parseResult = Profesor.parseSchema({ ...req.body, fechaNacimiento: new Date(req.body.fechaNacimiento) });
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 
@@ -179,7 +179,7 @@ export class ProfesorRouter {
          *         description: The updated profesor
          */
         this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
-            const parseResult = Profesor.parseSchema(req.body);
+            const parseResult = Profesor.parseSchema({ ...req.body, fechaNacimiento: new Date(req.body.fechaNacimiento) });
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 

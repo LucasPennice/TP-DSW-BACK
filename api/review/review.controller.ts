@@ -157,7 +157,7 @@ export class ReviewController {
 
     add = async (newReview: Review, profesorId: string): Promise<ExpressResponse_Migration<Review>> => {
         try {
-            await this.em.persist(newReview).flush();
+            // await this.em.persist(newReview).flush();
 
             const profReq = await this.profesorController.findOne(profesorId);
 

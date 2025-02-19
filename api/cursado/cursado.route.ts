@@ -92,12 +92,11 @@ export class CursadoRouter {
 
             if (!findMateriaReq.success) return res.status(500).json(findMateriaReq);
 
-            const findProfesorReq = await this.profesorController.findOne(req.params.id);
+            const findProfesorReq = await this.profesorController.findOne(profesorId);
 
             if (!findProfesorReq.success) return res.status(500).json(findProfesorReq);
 
             const parseResult = Cursado.parseSchema(req.body, findMateriaReq.data!, findProfesorReq.data!);
-
             if (!parseResult.success) return res.status(500).json(parseResult);
 
             const nuevoCursado = parseResult.data!;

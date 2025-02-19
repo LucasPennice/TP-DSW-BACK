@@ -169,9 +169,10 @@ export class CursadoController {
                     totalPages: undefined,
                 };
 
-            const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, findMateriaReq.data!, profesor, tipoCursado);
+            // const nuevoCursado = new Cursado(diaCursado, horaInicio, horaFin, comision, turno, año, findMateriaReq.data!, profesor, tipoCursado);
 
-            await this.em.persist(nuevoCursado).flush();
+            // this.em.persist(nuevoCursado);
+            // await this.em.flush();
 
             return {
                 message: "Cursado created successfully",

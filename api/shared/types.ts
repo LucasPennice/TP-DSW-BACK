@@ -13,12 +13,6 @@ export enum UserRole {
     Administrador = "Administrador",
 }
 
-export type ExpressResponse<T> = {
-    message: string;
-    data: T | undefined;
-    totalPages: number | undefined;
-};
-
 export type ExpressResponse_Migration<T> = {
     success: boolean;
     message: string;

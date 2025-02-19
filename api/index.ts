@@ -1,25 +1,25 @@
-import express, { NextFunction, Request, Response } from "express";
-import bodyParser from "body-parser";
 import { MongoDriver, MongoEntityManager, RequestContext } from "@mikro-orm/mongodb";
+import bodyParser from "body-parser";
 import cors from "cors";
+import crypto from "crypto";
+import express, { NextFunction, Request, Response } from "express";
+import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import session from "express-session";
-import crypto from "crypto";
-import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN, port } from "./constants.js";
-import { ExpressResponse, Sexo, UserRole } from "./shared/types.js";
-import { Usuario } from "./usuario/usuario.entity.js";
-import { dateFromString } from "./dateExtension.js";
-import { UsuarioController } from "./usuario/usuario.controller.js";
-import { initORM } from "./orm.js";
-import { ProfesorRouter } from "./profesor/profesor.route.js";
-import { AreaRouter } from "./area/area.route.js";
-import { UsuarioRouter } from "./usuario/usuario.route.js";
-import { MateriaRouter } from "./materia/materia.route.js";
-import { ReviewRouter } from "./review/review.route.js";
-import { CursadoRouter } from "./cursado/cursado.route.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import { AreaRouter } from "./area/area.route.js";
+import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN } from "./constants.js";
+import { CursadoRouter } from "./cursado/cursado.route.js";
+import { dateFromString } from "./dateExtension.js";
+import { MateriaRouter } from "./materia/materia.route.js";
+import { initORM } from "./orm.js";
+import { ProfesorRouter } from "./profesor/profesor.route.js";
+import { ReviewRouter } from "./review/review.route.js";
+import { ExpressResponse_Migration, Sexo, UserRole } from "./shared/types.js";
+import { UsuarioController } from "./usuario/usuario.controller.js";
+import { Usuario } from "./usuario/usuario.entity.js";
+import { UsuarioRouter } from "./usuario/usuario.route.js";
 
 export async function startServer(port: number, em: MongoEntityManager<MongoDriver>) {
     const orm = await initORM();
@@ -143,15 +143,39 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     app.post("/login", (req, res, next) => {
         passport.authenticate("local", (error: string | null, user: Usuario | false, message: { message: string }) => {
             if (error) {
-                return res.status(401).json({ message: error, succeed: false });
+                const reponse: ExpressResponse_Migration<Usuario> = {
+                    message: "Failed to login",
+                    data: null,
+                    totalPages: undefined,
+                    success: false,
+                    error,
+                };
+                return res.status(401).json(reponse);
             } else if (!user) {
-                return res.status(500).json({ message: message.message, succeed: false });
+                const reponse: ExpressResponse_Migration<Usuario> = {
+                    message: "User Not found",
+                    data: null,
+                    totalPages: undefined,
+                    success: false,
+                };
+                return res.status(500).json(reponse);
             } else {
                 req.login(user, (err) => {
                     if (err) {
-                        return res.status(500).json({ message: "Failed to login", succeed: false });
+                        const reponse: ExpressResponse_Migration<Usuario> = {
+                            message: "Failed to login",
+                            data: null,
+                            totalPages: undefined,
+                            success: false,
+                        };
+                        return res.status(500).json(reponse);
                     } else {
-                        const reponse: ExpressResponse<Usuario> = { message: "Usuario log", data: user, totalPages: undefined };
+                        const reponse: ExpressResponse_Migration<Usuario> = {
+                            message: "Usuario log",
+                            data: user,
+                            totalPages: undefined,
+                            success: true,
+                        };
 
                         return res.status(200).send(reponse);
                     }
@@ -205,17 +229,34 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
 
                 req.login(nuevoUsuario, (err) => {
                     if (err) {
-                        const reponse: ExpressResponse<Usuario> = { message: "Error al crear usuario", data: undefined, totalPages: undefined };
+                        const reponse: ExpressResponse_Migration<Usuario> = {
+                            message: "Error al crear usuario",
+                            error: err,
+                            success: false,
+                            data: null,
+                            totalPages: undefined,
+                        };
 
                         return res.status(500).json(reponse);
                     } else {
-                        const reponse: ExpressResponse<Usuario> = { message: "Usuario creado", data: nuevoUsuario, totalPages: undefined };
+                        const reponse: ExpressResponse_Migration<Usuario> = {
+                            message: "Usuario creado",
+                            data: nuevoUsuario,
+                            totalPages: undefined,
+                            success: true,
+                        };
 
                         return res.status(201).send(reponse);
                     }
                 });
             } catch (error) {
-                const reponse: ExpressResponse<Usuario> = { message: String(error), data: undefined, totalPages: undefined };
+                const reponse: ExpressResponse_Migration<Usuario> = {
+                    message: "Error during signuo",
+                    data: null,
+                    success: false,
+                    totalPages: undefined,
+                    error: `${error}`,
+                };
 
                 res.status(500).send(reponse);
             }
