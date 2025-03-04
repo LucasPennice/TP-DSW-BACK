@@ -3,6 +3,7 @@ import { AreaController } from "../area/area.controller.js";
 import { ExpressResponse_Migration } from "../shared/types.js";
 import { Materia } from "./materia.entity.js";
 import { errorToZod } from "../constants.js";
+import { CursadoController } from "../cursado/cursado.controller.js";
 
 export class MateriaController {
     private em: MongoEntityManager<MongoDriver>;
@@ -178,7 +179,7 @@ export class MateriaController {
         }
     };
 
-    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Materia>> => {
+    private _delete_ = async (_id: string): Promise<ExpressResponse_Migration<Materia>> => {
         try {
             const materiaABorrarReq = await this.findOne(_id);
 
@@ -194,12 +195,12 @@ export class MateriaController {
             const materiaABorrar = materiaABorrarReq.data!;
 
             materiaABorrar.borradoLogico = true;
-
-            let cantCursados = await materiaABorrar.cursados.load();
-
-            for (let index = 0; index < cantCursados.count(); index++) {
-                materiaABorrar.cursados[index].borradoLogico = true;
-            }
+            //@ts-ignore
+            const ids = (await materiaABorrar.cursados.load({ populate: ["_id"] })).toArray().map((x) => x.id);
+            const cursadoController = new CursadoController(this.em);
+            ids.forEach(async (id) => {
+                await cursadoController.delete_(id);
+            });
 
             await this.em.flush();
 
@@ -219,6 +220,12 @@ export class MateriaController {
             };
         }
     };
+    public get delete_() {
+        return this._delete_;
+    }
+    public set delete_(value) {
+        this._delete_ = value;
+    }
 
     findMateriasPorAno = async (_idAno: number): Promise<ExpressResponse_Migration<Materia[]>> => {
         try {

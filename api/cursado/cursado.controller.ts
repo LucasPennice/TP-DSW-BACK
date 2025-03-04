@@ -4,6 +4,7 @@ import { ProfesorController } from "../profesor/profesor.controller.js";
 import { ExpressResponse_Migration } from "../shared/types.js";
 import { Cursado } from "./cursado.entity.js";
 import { errorToZod } from "../constants.js";
+import { ReviewController } from "../review/review.controller.js";
 
 export const primeraLetraMayuscula = (str: string): string => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -259,11 +260,12 @@ export class CursadoController {
 
             cursadoABorrar.borradoLogico = true;
 
-            let cantReviews = await cursadoABorrar.reviews.load();
-
-            for (let index = 0; index < cantReviews.count(); index++) {
-                cursadoABorrar.reviews[index].borradoLogico = true;
-            }
+            //@ts-ignore
+            const ids = (await cursadoABorrar.reviews.load({ populate: ["_id"] })).toArray().map((x) => x.id);
+            const reviewController = new ReviewController(this.em);
+            ids.forEach(async (id) => {
+                await reviewController.delete_(id);
+            });
 
             await this.em.flush();
 

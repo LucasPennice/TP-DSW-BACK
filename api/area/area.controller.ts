@@ -177,13 +177,14 @@ export class AreaController {
 
             areaABorrar.borradoLogico = true;
 
-            let cantMaterias = await areaABorrar.materias.load();
+            //@ts-ignore
+            const materiasIds = (await areaABorrar.materias.load({ populate: ["_id"] })).toArray().map((x) => x.id);
 
             const materiaController = new MateriaController(this.em);
-            // for (let index = 0; index < cantMaterias.count(); index++) {
-            //     areaABorrar.materias[index].borradoLogico = true;
-            // }
-            // await Promise.all(cantMaterias.map((materia) => this.materiaController.delete_(materia._id)));
+
+            materiasIds.forEach(async (id) => {
+                await materiaController.delete_(id);
+            });
 
             await this.em.flush();
 

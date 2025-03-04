@@ -6,6 +6,7 @@ import { Review } from "../review/review.entity.js";
 import { ExpressResponse_Migration } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
 import { errorToZod } from "../constants.js";
+import { CursadoController } from "../cursado/cursado.controller.js";
 
 export class ProfesorController {
     private em: MongoEntityManager<MongoDriver>;
@@ -186,12 +187,13 @@ export class ProfesorController {
             const profesorABorrar = finProfReq.data!;
 
             profesorABorrar.borradoLogico = true;
+            //@ts-ignore
 
-            let cantCursados = await profesorABorrar.cursados.load();
-
-            for (let index = 0; index < cantCursados.count(); index++) {
-                profesorABorrar.cursados[index].borradoLogico = true;
-            }
+            const ids = (await profesorABorrar.cursados.load({ populate: ["_id"] })).toArray().map((x) => x.id);
+            const cursadoController = new CursadoController(this.em);
+            ids.forEach(async (id) => {
+                await cursadoController.delete_(id);
+            });
 
             await this.em.flush();
 

@@ -2,6 +2,7 @@ import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { ExpressResponse_Migration, UserRole } from "../shared/types.js";
 import { Usuario } from "./usuario.entity.js";
 import { errorToZod } from "../constants.js";
+import { ReviewController } from "../review/review.controller.js";
 
 export class UsuarioController {
     private em: MongoEntityManager<MongoDriver>;
@@ -150,12 +151,12 @@ export class UsuarioController {
             const usuraioABorrar = findUsuarioReq.data!;
 
             usuraioABorrar.borradoLogico = true;
-
-            let cantReviews = await usuraioABorrar.reviews.load();
-
-            for (let index = 0; index < cantReviews.count(); index++) {
-                usuraioABorrar.reviews[index].borradoLogico = true;
-            }
+            //@ts-ignore
+            const ids = (await usuraioABorrar.reviews.load({ populate: ["_id"] })).toArray().map((x) => x.id);
+            const reviewController = new ReviewController(this.em);
+            ids.forEach(async (id) => {
+                await reviewController.delete_(id);
+            });
 
             await this.em.flush();
 
