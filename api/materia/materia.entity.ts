@@ -23,7 +23,7 @@ export class Materia {
     area!: Rel<Area>;
 
     static schema = z.object({
-        nombre: z.string().regex(/^(?=.*[a-zA-Z])[a-zA-Z\s]+$/, "El nombre es requerido"),
+        nombre: z.string().regex(/^(?=.*[a-zA-Z])[a-zA-Z0-9\s]+$/, "El nombre es requerido"),
         areaId: z.string().min(1, "Debe seleccionar un área"),
     });
 
