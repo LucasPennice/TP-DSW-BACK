@@ -10,7 +10,7 @@ export class UsuarioController {
     findAll = async (): Promise<ExpressResponse_Migration<Usuario[]>> => {
         try {
             const usuarios: Usuario[] = await this.em.findAll(Usuario, {
-                populate: ["reviews"],
+                populate: ["*"],
             });
 
             await this.em.flush();
@@ -37,7 +37,7 @@ export class UsuarioController {
     findAllConBorrado = async (): Promise<ExpressResponse_Migration<Usuario[]>> => {
         try {
             const usuarios: Usuario[] = await this.em.findAll(Usuario, {
-                populate: ["reviews"],
+                populate: ["*"],
             });
 
             await this.em.flush();
@@ -174,7 +174,7 @@ export class UsuarioController {
     findOne = async (_id: string): Promise<ExpressResponse_Migration<Usuario>> => {
         try {
             const usuario: Usuario | null = await this.em.findOne(Usuario, _id, {
-                populate: ["reviews"],
+                populate: ["*"],
             });
 
             if (!usuario)

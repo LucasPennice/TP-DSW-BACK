@@ -15,7 +15,7 @@ export class ProfesorController {
     findAll = async (): Promise<ExpressResponse_Migration<Profesor[]>> => {
         try {
             const profesores: Profesor[] | undefined = await this.em.findAll(Profesor, {
-                populate: ["cursados"],
+                populate: ["*"],
             });
 
             await this.em.flush();
@@ -45,7 +45,7 @@ export class ProfesorController {
                 Profesor,
                 {},
                 {
-                    populate: ["cursados"],
+                    populate: ["*"],
                     limit,
                     offset,
                 }
@@ -75,7 +75,7 @@ export class ProfesorController {
     findOne = async (_id: string): Promise<ExpressResponse_Migration<Profesor>> => {
         try {
             const profesor: Profesor | null = await this.em.findOne(Profesor, _id, {
-                populate: ["cursados"],
+                populate: ["*"],
             });
 
             await this.em.flush();
@@ -279,7 +279,7 @@ export class ProfesorController {
             const idsProf = cursados.map((c) => c.profesor._id);
 
             const resultado: Profesor[] = await this.em.findAll(Profesor, {
-                populate: ["cursados"],
+                populate: ["*"],
                 where: {
                     _id: { $in: idsProf },
                     borradoLogico: false,
@@ -314,7 +314,7 @@ export class ProfesorController {
             }
 
             const cursados: Cursado[] = await this.em.findAll(Cursado, {
-                populate: ["profesor", "reviews", "materia"],
+                populate: ["*"],
                 where: {
                     borradoLogico: false,
                     materia: { _id: _idMateria },

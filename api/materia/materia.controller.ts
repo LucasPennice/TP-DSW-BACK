@@ -42,7 +42,7 @@ export class MateriaController {
                 Materia,
                 {},
                 {
-                    populate: ["area", "cursados"],
+                    populate: ["*"],
                     limit,
                     offset,
                 }
@@ -72,7 +72,7 @@ export class MateriaController {
     findOne = async (id: string): Promise<ExpressResponse_Migration<Materia>> => {
         try {
             const materia: Materia | null = await this.em.findOne(Materia, id, {
-                populate: ["area", "cursados"],
+                populate: ["*"],
             });
 
             await this.em.flush();

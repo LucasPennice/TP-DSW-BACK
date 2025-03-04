@@ -18,7 +18,7 @@ export class CursadoController {
     findAll = async (): Promise<ExpressResponse_Migration<Cursado[]>> => {
         try {
             const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
-                populate: ["materia", "profesor", "reviews"],
+                populate: ["*"],
             });
 
             await this.em.flush();
@@ -48,7 +48,7 @@ export class CursadoController {
                 Cursado,
                 {},
                 {
-                    populate: ["materia", "profesor", "reviews"],
+                    populate: ["*"],
                     limit,
                     offset,
                 }
@@ -77,7 +77,7 @@ export class CursadoController {
     findOne = async (id: string): Promise<ExpressResponse_Migration<Cursado>> => {
         try {
             const cursado: Cursado | null = await this.em.findOne(Cursado, id, {
-                populate: ["materia", "profesor", "reviews"],
+                populate: ["*"],
             });
 
             await this.em.flush();
@@ -296,7 +296,7 @@ export class CursadoController {
 
             const cursados: Cursado[] = await this.em.findAll(Cursado, {
                 where: { comision, año, materia: findMateriaReq.data! },
-                populate: ["materia", "profesor", "reviews"],
+                populate: ["*"],
             });
 
             await this.em.flush();
