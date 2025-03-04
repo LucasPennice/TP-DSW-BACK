@@ -130,7 +130,7 @@ export class CursadoRouter {
          *   delete:
          *     summary: Delete a cursado by ID
          *     responses:
-         *       204:
+         *       200:
          *         description: No content
          */
         this.instance.delete("/:id", AuthRoute.ensureAdmin, async (req, res) => {
@@ -140,7 +140,7 @@ export class CursadoRouter {
 
             if (!result.success) return res.status(500).send(result);
 
-            res.status(204).send(result);
+            res.status(200).send(result);
         });
     }
 }

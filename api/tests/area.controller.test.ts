@@ -61,7 +61,7 @@ describe("Area Controller", () => {
     });
 
     test("Should Delete the Created Area through the endpoint", async () => {
-        const response = await request(app).get(`/api/area`).expect(200); // Expecting a 204 No Content response
+        const response = await request(app).get(`/api/area`).expect(200);
 
         expect(response.body.data.length).toBe(1);
 
