@@ -62,10 +62,13 @@ export class UsuarioController {
     private _add = async (newUsuario: Usuario): Promise<ExpressResponse_Migration<Usuario>> => {
         try {
             newUsuario.rol = UserRole.Regular;
-
+            console.log(newUsuario)
+            
             let usuarioConMismoUsername = await this.findOneUsuarioByUsername(newUsuario.username);
-
-            if (usuarioConMismoUsername.success)
+            console.log(usuarioConMismoUsername)
+            
+            if (usuarioConMismoUsername.data != null)
+            // if (usuarioConMismoUsername.success)
                 return {
                     message: "Ya existe un usuario con ese nombre",
                     success: false,

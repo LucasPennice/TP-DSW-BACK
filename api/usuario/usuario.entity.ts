@@ -81,7 +81,6 @@ export class Usuario {
                 return value === "mujer" ? Sexo.Mujer : Sexo.Hombre;
             }),
         reviewsEliminadas: z.array(z.object({ id: z.string(), mensaje: z.string(), visto: z.boolean() })).optional(),
-        rol: z.enum(["Regular", "Admin"]),
     });
 
     static parseSchema(json: Request["body"]): ExpressResponse_Migration<Usuario> {
@@ -109,7 +108,7 @@ export class Usuario {
             parseResult.data.username,
             //@ts-ignore
             parseResult.data.fechaNacimiento,
-            parseResult.data.rol as UserRole,
+            UserRole.Regular,
             parseResult.data.sexo,
             Usuario.hashPassword(parseResult.data.password)
         );
