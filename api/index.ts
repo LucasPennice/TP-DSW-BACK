@@ -172,7 +172,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                     } else {
                         const reponse: ExpressResponse_Migration<Usuario> = {
                             message: "Usuario log",
-                            data: user,
+                            data: { ...user, hashed_password: "" },
                             totalPages: undefined,
                             success: true,
                         };
@@ -241,7 +241,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                     } else {
                         const reponse: ExpressResponse_Migration<Usuario> = {
                             message: "Usuario creado",
-                            data: nuevoUsuario,
+                            data: { ...nuevoUsuario, hashed_password: "" },
                             totalPages: undefined,
                             success: true,
                         };
