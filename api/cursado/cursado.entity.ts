@@ -64,7 +64,7 @@ export class Cursado {
                 message: "El turno debe ser mañana, tarde o noche.",
             })
             .transform((value) => primeraLetraMayuscula(value.toLowerCase())),
-        año: z.number().refine((value) => value >= 2000 && value <= 2024, {
+        año: z.number().refine((value) => value >= 2000 && value <= 2025, {
             message: "El año debe tener exactamente 4 dígitos",
         }),
         tipoCursado: z
