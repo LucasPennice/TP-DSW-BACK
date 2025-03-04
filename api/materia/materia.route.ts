@@ -13,7 +13,7 @@ export class MateriaRouter {
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.instance = express.Router();
         this.controller = new MateriaController(em);
-        this.areaController = AreaController.getInstance(em);
+        this.areaController = new AreaController(em);
 
         /**
          * @swagger

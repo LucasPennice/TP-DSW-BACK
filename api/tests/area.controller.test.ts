@@ -22,7 +22,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     const fork = orm.em.fork();
-    controller = AreaController.getInstance(fork);
+    controller = new AreaController(fork);
 });
 
 afterAll(async () => {

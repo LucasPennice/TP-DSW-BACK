@@ -10,7 +10,7 @@ export class AreaRouter {
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.instance = express.Router();
-        this.controller = AreaController.getInstance(em);
+        this.controller = new AreaController(em);
 
         /**
          * @swagger

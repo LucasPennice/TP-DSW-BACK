@@ -249,6 +249,6 @@ export class MateriaController {
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
-        this.areaController = AreaController.getInstance(em);
+        this.areaController = new AreaController(em);
     }
 }

@@ -5,23 +5,11 @@ import { MateriaController } from "../materia/materia.controller.js";
 import { errorToZod } from "../constants.js";
 
 export class AreaController {
-    private static instance: AreaController;
     private em: MongoEntityManager<MongoDriver>;
 
-    private constructor(em: MongoEntityManager<MongoDriver>) {
+    public constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
     }
-
-    public static getInstance(em: MongoEntityManager<MongoDriver>): AreaController {
-        if (!AreaController.instance) {
-            console.log("me estan llamando");
-            console.log(AreaController.instance);
-            AreaController.instance = new AreaController(em);
-            console.log(AreaController.instance);
-        }
-        return AreaController.instance;
-    }
-
     findAll = async (): Promise<ExpressResponse_Migration<Area[]>> => {
         try {
             const areas: Area[] = await this.em.findAll(Area, {
