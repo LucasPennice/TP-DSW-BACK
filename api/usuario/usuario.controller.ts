@@ -59,16 +59,13 @@ export class UsuarioController {
         }
     };
 
-    private _add = async (newUsuario: Usuario): Promise<ExpressResponse_Migration<Usuario>> => {
+    add = async (newUsuario: Usuario): Promise<ExpressResponse_Migration<Usuario>> => {
         try {
             newUsuario.rol = UserRole.Regular;
-            console.log(newUsuario)
-            
+
             let usuarioConMismoUsername = await this.findOneUsuarioByUsername(newUsuario.username);
-            console.log(usuarioConMismoUsername)
-            
+
             if (usuarioConMismoUsername.data != null)
-            // if (usuarioConMismoUsername.success)
                 return {
                     message: "Ya existe un usuario con ese nombre",
                     success: false,
@@ -94,12 +91,6 @@ export class UsuarioController {
             };
         }
     };
-    public get add() {
-        return this._add;
-    }
-    public set add(value) {
-        this._add = value;
-    }
 
     modify = async (usuarioMod: Partial<Usuario>, usuarioId: string): Promise<ExpressResponse_Migration<Usuario>> => {
         try {

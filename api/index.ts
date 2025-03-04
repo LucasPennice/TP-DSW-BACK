@@ -200,37 +200,25 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     // Como body del post esto quiere dos campos {username: string; password:string}
     app.post("/signup", async function (req, res, next) {
         crypto.pbkdf2(req.body.password, SALT_CONSTANT, SALT_ITERATIONS, SALT_KEYLEN, SALT_DIGEST, async function (err, hashedPassword) {
-            if (err) {
-                return next(err);
-            }
-            const nombre = req.body.nombre as string;
-            const legajo = req.body.legajo as string;
-            const apellido = req.body.apellido as string;
-            const username = req.body.username as string;
-            const password = req.body.password as string;
-            const fechaNacimiento = req.body.fechaNacimiento as string;
-            const rol = UserRole.Regular;
-            const sexoTentativo = req.body.sexo as string;
-            const sexo: Sexo = sexoTentativo == Sexo.Hombre ? Sexo.Hombre : Sexo.Mujer;
+            if (err) return next(err);
 
             try {
-                const nuevoUsuario = new Usuario(
-                    nombre,
-                    legajo,
-                    apellido,
-                    username,
-                    dateFromString(fechaNacimiento),
-                    rol,
-                    sexo,
-                    Usuario.hashPassword(password)
-                );
+                const usuarioController = new UsuarioController(em);
 
-                await orm.em.persist(nuevoUsuario).flush();
+                const parseResult = Usuario.parseSchema(req.body);
 
-                req.login(nuevoUsuario, (err) => {
+                if (!parseResult.success) return res.status(500).json(parseResult);
+
+                const result = await usuarioController.add(parseResult.data!);
+
+                if (!result.success) return res.status(500).send(result);
+
+                const user = result.data!;
+
+                req.login(user, (err) => {
                     if (err) {
                         const reponse: ExpressResponse_Migration<Usuario> = {
-                            message: "Error al crear usuario",
+                            message: "Error al loguear nuevo usuario, creado exitosamente",
                             error: err,
                             success: false,
                             data: null,
@@ -240,18 +228,18 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                         return res.status(500).json(reponse);
                     } else {
                         const reponse: ExpressResponse_Migration<Usuario> = {
-                            message: "Usuario creado",
-                            data: { ...nuevoUsuario, hashed_password: "" },
+                            message: "Usuario logueado y creado",
+                            data: { ...user, hashed_password: "" },
                             totalPages: undefined,
                             success: true,
                         };
 
-                        return res.status(201).send(reponse);
+                        return res.status(200).send(reponse);
                     }
                 });
             } catch (error) {
                 const reponse: ExpressResponse_Migration<Usuario> = {
-                    message: "Error during signuo",
+                    message: "Error during signup",
                     data: null,
                     success: false,
                     totalPages: undefined,
