@@ -9,7 +9,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { AreaRouter } from "./area/area.route.js";
-import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN } from "./constants.js";
+import { errorToZod, SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN } from "./constants.js";
 import { CursadoRouter } from "./cursado/cursado.route.js";
 import { dateFromString } from "./dateExtension.js";
 import { MateriaRouter } from "./materia/materia.route.js";
@@ -148,7 +148,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                     data: null,
                     totalPages: undefined,
                     success: false,
-                    error,
+                    error: errorToZod(error),
                 };
                 return res.status(401).json(reponse);
             } else if (!user) {
@@ -255,7 +255,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                     data: null,
                     success: false,
                     totalPages: undefined,
-                    error: `${error}`,
+                    error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 };
 
                 res.status(500).send(reponse);

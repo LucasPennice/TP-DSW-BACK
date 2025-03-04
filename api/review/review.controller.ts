@@ -6,6 +6,7 @@ import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { ProfesorController } from "../profesor/profesor.controller.js";
 import { Cursado } from "../cursado/cursado.entity.js";
 import { UsuarioController } from "../usuario/usuario.controller.js";
+import { errorToZod } from "../constants.js";
 
 var filter = new profanity({ languages: ["es"] });
 
@@ -91,7 +92,7 @@ export class ReviewController {
         } catch (error) {
             return {
                 message: "Error finding the reviews",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -116,7 +117,7 @@ export class ReviewController {
         } catch (error) {
             return {
                 message: "Error finding the reviews",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -135,7 +136,6 @@ export class ReviewController {
             if (!review)
                 return {
                     message: "Review no encontrada",
-                    error: "Review no encontrada",
                     success: false,
                     data: null,
                     totalPages: undefined,
@@ -150,7 +150,7 @@ export class ReviewController {
         } catch (error) {
             return {
                 message: "Error finding the review",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -220,7 +220,7 @@ export class ReviewController {
         } catch (error) {
             return {
                 message: "Error adding the review",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -237,7 +237,6 @@ export class ReviewController {
                     message: "Review no encontrada",
                     data: null,
                     success: false,
-                    error: "Review no encontrada",
                     totalPages: undefined,
                 };
 
@@ -255,7 +254,7 @@ export class ReviewController {
         } catch (error) {
             return {
                 message: "Error modifying the reviews",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -272,7 +271,6 @@ export class ReviewController {
                     message: "Review no encontrada",
                     data: null,
                     success: false,
-                    error: "Review no encontrada",
                     totalPages: undefined,
                 };
 
@@ -293,7 +291,7 @@ export class ReviewController {
         } catch (error) {
             return {
                 message: "Error finding the reviews",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,

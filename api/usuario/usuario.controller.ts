@@ -1,6 +1,7 @@
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { ExpressResponse_Migration, UserRole } from "../shared/types.js";
 import { Usuario } from "./usuario.entity.js";
+import { errorToZod } from "../constants.js";
 
 export class UsuarioController {
     private em: MongoEntityManager<MongoDriver>;
@@ -24,7 +25,7 @@ export class UsuarioController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -49,7 +50,7 @@ export class UsuarioController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -57,7 +58,7 @@ export class UsuarioController {
         }
     };
 
-    add = async (newUsuario: Usuario): Promise<ExpressResponse_Migration<Usuario>> => {
+    private _add = async (newUsuario: Usuario): Promise<ExpressResponse_Migration<Usuario>> => {
         try {
             newUsuario.rol = UserRole.Regular;
 
@@ -82,13 +83,19 @@ export class UsuarioController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
             };
         }
     };
+    public get add() {
+        return this._add;
+    }
+    public set add(value) {
+        this._add = value;
+    }
 
     modify = async (usuarioMod: Partial<Usuario>, usuarioId: string): Promise<ExpressResponse_Migration<Usuario>> => {
         try {
@@ -97,7 +104,6 @@ export class UsuarioController {
             if (!usuarioAModificar)
                 return {
                     message: "Usuario not found",
-                    error: "Usuario not found",
                     data: null,
                     totalPages: undefined,
                     success: false,
@@ -121,7 +127,7 @@ export class UsuarioController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -136,7 +142,6 @@ export class UsuarioController {
             if (!findUsuarioReq.success)
                 return {
                     message: "Usuario not found",
-                    error: "Usuario not found",
                     data: null,
                     totalPages: undefined,
                     success: false,
@@ -163,7 +168,7 @@ export class UsuarioController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -196,7 +201,7 @@ export class UsuarioController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -227,7 +232,7 @@ export class UsuarioController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -242,7 +247,6 @@ export class UsuarioController {
             if (!findUsuarioReq.success)
                 return {
                     message: "Usuario not found",
-                    error: "Usuario not found",
                     data: null,
                     totalPages: undefined,
                     success: false,
@@ -261,7 +265,7 @@ export class UsuarioController {
                 message: "Error finding the deleted reviews",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }

@@ -16,7 +16,7 @@ const ormConfig: Options = {
     metadataProvider: TsMorphMetadataProvider,
     highlighter: new MongoHighlighter(),
     clientUrl: process.env.MONGO_CONECTION_URI,
-    debug: false,
+    debug: true,
     driver: MongoDriver,
     dynamicImportProvider: (id) => import(id),
 };

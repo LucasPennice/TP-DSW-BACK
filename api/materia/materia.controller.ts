@@ -2,6 +2,7 @@ import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { AreaController } from "../area/area.controller.js";
 import { ExpressResponse_Migration } from "../shared/types.js";
 import { Materia } from "./materia.entity.js";
+import { errorToZod } from "../constants.js";
 
 export class MateriaController {
     private em: MongoEntityManager<MongoDriver>;
@@ -26,7 +27,7 @@ export class MateriaController {
         } catch (error) {
             return {
                 message: "There was an error in findAll materias",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -59,7 +60,7 @@ export class MateriaController {
         } catch (error) {
             return {
                 message: "There was an error in findAllConBorrado materia",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -92,7 +93,7 @@ export class MateriaController {
         } catch (error) {
             return {
                 message: "There was an error in findOne materia",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -135,7 +136,7 @@ export class MateriaController {
         } catch (error) {
             return {
                 message: "There was an error in add materia",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -150,7 +151,7 @@ export class MateriaController {
             if (!materiaAModificar)
                 return {
                     message: "Materia no encontrada",
-                    error: "Materia no encontrada",
+
                     success: false,
                     data: null,
                     totalPages: undefined,
@@ -169,7 +170,7 @@ export class MateriaController {
         } catch (error) {
             return {
                 message: "There was an error in modify materia",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -184,7 +185,7 @@ export class MateriaController {
             if (!materiaABorrarReq.success)
                 return {
                     message: "Materia no encontrada",
-                    error: "Materia no encontrada",
+
                     success: false,
                     data: null,
                     totalPages: undefined,
@@ -211,7 +212,7 @@ export class MateriaController {
         } catch (error) {
             return {
                 message: "There was an error in delete materia",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -238,7 +239,7 @@ export class MateriaController {
         } catch (error) {
             return {
                 message: "There was an error in findMateriasPorAño",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -248,6 +249,6 @@ export class MateriaController {
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
-        this.areaController = new AreaController(em);
+        this.areaController = AreaController.getInstance(em);
     }
 }

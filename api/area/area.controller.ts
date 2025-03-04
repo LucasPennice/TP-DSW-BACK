@@ -1,9 +1,26 @@
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { ExpressResponse_Migration } from "../shared/types.js";
 import { Area } from "./area.entity.js";
+import { MateriaController } from "../materia/materia.controller.js";
+import { errorToZod } from "../constants.js";
 
 export class AreaController {
+    private static instance: AreaController;
     private em: MongoEntityManager<MongoDriver>;
+
+    private constructor(em: MongoEntityManager<MongoDriver>) {
+        this.em = em;
+    }
+
+    public static getInstance(em: MongoEntityManager<MongoDriver>): AreaController {
+        if (!AreaController.instance) {
+            console.log("me estan llamando");
+            console.log(AreaController.instance);
+            AreaController.instance = new AreaController(em);
+            console.log(AreaController.instance);
+        }
+        return AreaController.instance;
+    }
 
     findAll = async (): Promise<ExpressResponse_Migration<Area[]>> => {
         try {
@@ -26,7 +43,7 @@ export class AreaController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -59,7 +76,7 @@ export class AreaController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -71,7 +88,7 @@ export class AreaController {
             if (!response.success)
                 return {
                     message: "Area not found",
-                    error: "Area not found",
+                    // error: "Area not found",
                     data: null,
                     totalPages: undefined,
                     success: false,
@@ -90,7 +107,7 @@ export class AreaController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -117,7 +134,7 @@ export class AreaController {
                 message: "Error adding the new area",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -132,7 +149,7 @@ export class AreaController {
                     message: "Area no encontrada",
                     data: null,
                     success: false,
-                    error: "Area no encontrada",
+                    // error: "Area no encontrada",
                     totalPages: undefined,
                 };
 
@@ -151,7 +168,7 @@ export class AreaController {
                 message: "Error modifying the area",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -163,7 +180,6 @@ export class AreaController {
             if (!response.success)
                 return {
                     message: "Area not found",
-                    error: "Area not found",
                     data: null,
                     totalPages: undefined,
                     success: false,
@@ -175,9 +191,11 @@ export class AreaController {
 
             let cantMaterias = await areaABorrar.materias.load();
 
-            for (let index = 0; index < cantMaterias.count(); index++) {
-                areaABorrar.materias[index].borradoLogico = true;
-            }
+            const materiaController = new MateriaController(this.em);
+            // for (let index = 0; index < cantMaterias.count(); index++) {
+            //     areaABorrar.materias[index].borradoLogico = true;
+            // }
+            // await Promise.all(cantMaterias.map((materia) => this.materiaController.delete_(materia._id)));
 
             await this.em.flush();
 
@@ -192,7 +210,7 @@ export class AreaController {
                 message: "Error deleting the area",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -205,7 +223,7 @@ export class AreaController {
             });
 
             await this.em.flush();
-            if (!area) return { message: "Area not found", data: null, success: true, totalPages: undefined };
+            if (!area) return { message: "Area not found", data: null, success: false, totalPages: undefined };
 
             return {
                 message: "Area found successfully",
@@ -218,13 +236,9 @@ export class AreaController {
                 message: "Error finding the area",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
     };
-
-    constructor(em: MongoEntityManager<MongoDriver>) {
-        this.em = em;
-    }
 }

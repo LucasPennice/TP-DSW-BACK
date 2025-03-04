@@ -3,6 +3,7 @@ import { MateriaController } from "../materia/materia.controller.js";
 import { ProfesorController } from "../profesor/profesor.controller.js";
 import { ExpressResponse_Migration } from "../shared/types.js";
 import { Cursado } from "./cursado.entity.js";
+import { errorToZod } from "../constants.js";
 
 export const primeraLetraMayuscula = (str: string): string => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -32,7 +33,7 @@ export class CursadoController {
         } catch (error) {
             return {
                 message: "There was an error finding the cursados",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -64,7 +65,7 @@ export class CursadoController {
         } catch (error) {
             return {
                 message: "There was an error finding the cursados",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -97,7 +98,7 @@ export class CursadoController {
         } catch (error) {
             return {
                 message: "There was an error finding the cursados",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -117,7 +118,16 @@ export class CursadoController {
 
             if (!findMateriaReq.success || findMateriaReq.data?.borradoLogico == true) {
                 return {
-                    message: "Materia not found",
+                    message: "Materia no valida",
+                    data: null,
+                    totalPages: undefined,
+                    success: false,
+                };
+            }
+
+            if (horaInicio >= horaFin) {
+                return {
+                    message: "Horarios no validos",
                     data: null,
                     totalPages: undefined,
                     success: false,
@@ -128,7 +138,7 @@ export class CursadoController {
 
             if (!profReq.success || profReq.data!.borradoLogico == true)
                 return {
-                    message: "Profesor is not valid",
+                    message: "Profesor no valido",
                     data: null,
                     success: false,
                     totalPages: undefined,
@@ -163,7 +173,7 @@ export class CursadoController {
 
             if (cursadoSuperpuesto)
                 return {
-                    message: "This profesor already has a cursado in that day and time",
+                    message: "Este profesor ya tiene un Cursado en ese dia y hora",
                     data: null,
                     success: false,
                     totalPages: undefined,
@@ -182,7 +192,7 @@ export class CursadoController {
         } catch (error) {
             return {
                 message: "There was an error finding the cursados",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -192,18 +202,7 @@ export class CursadoController {
 
     modify = async (cursadoMod: Partial<Cursado>, cursadoId: string): Promise<ExpressResponse_Migration<Cursado>> => {
         try {
-            const cursadoValidation = Cursado.schema.partial().safeParse(cursadoMod);
-
-            if (!cursadoValidation.success)
-                return {
-                    message: "Error de validación",
-                    error: `${cursadoValidation.error.errors}`,
-                    success: false,
-                    data: null,
-                    totalPages: undefined,
-                };
-
-            const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = cursadoValidation.data;
+            const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = cursadoMod;
 
             const cursadoAModificar = this.em.getReference(Cursado, cursadoId);
 
@@ -236,7 +235,7 @@ export class CursadoController {
         } catch (error) {
             return {
                 message: "There was an error modifying the cursados",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -277,7 +276,7 @@ export class CursadoController {
         } catch (error) {
             return {
                 message: "There was an error deleting the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,
@@ -309,7 +308,7 @@ export class CursadoController {
         } catch (error) {
             return {
                 message: "There was an finding the cursado",
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,
                 totalPages: undefined,

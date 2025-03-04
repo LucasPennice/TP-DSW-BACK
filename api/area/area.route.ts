@@ -10,7 +10,7 @@ export class AreaRouter {
 
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.instance = express.Router();
-        this.controller = new AreaController(em);
+        this.controller = AreaController.getInstance(em);
 
         /**
          * @swagger
@@ -78,6 +78,7 @@ export class AreaRouter {
          */
         this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
             const parseResult = Area.parseSchema(req.body);
+            console.log(parseResult);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 

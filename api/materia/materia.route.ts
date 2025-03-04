@@ -13,7 +13,7 @@ export class MateriaRouter {
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.instance = express.Router();
         this.controller = new MateriaController(em);
-        this.areaController = new AreaController(em);
+        this.areaController = AreaController.getInstance(em);
 
         /**
          * @swagger
@@ -101,9 +101,7 @@ export class MateriaRouter {
         this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
             const areaId = req.body.areaId;
 
-            if (!areaId) return res.status(400).send({ success: false, message: "AreaId requerido" });
-
-            const parseResult = Materia.parseSchema(req.body);
+            const parseResult = Materia.parseSchema(req.body, req.method);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 
@@ -126,7 +124,7 @@ export class MateriaRouter {
          *         description: The updated materia
          */
         this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
-            const parseResult = Materia.parseSchema(req.body);
+            const parseResult = Materia.parseSchema(req.body, req.method);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 

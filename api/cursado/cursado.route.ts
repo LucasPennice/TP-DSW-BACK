@@ -86,17 +86,8 @@ export class CursadoRouter {
             const materiaId = req.body.materiaId;
             const profesorId = req.body.profesorId;
 
-            if (!materiaId || !profesorId) return res.status(400).send({ success: false, message: "MateriaId y ProfesorId son requeridos" });
+            const parseResult = Cursado.parseSchema(req.body, req.method);
 
-            const findMateriaReq = await this.materiaController.findOne(materiaId);
-
-            if (!findMateriaReq.success || findMateriaReq.data!.borradoLogico === true) return res.status(500).json(findMateriaReq);
-
-            const findProfesorReq = await this.profesorController.findOne(profesorId);
-
-            if (!findProfesorReq.success || findProfesorReq.data!.borradoLogico === true) return res.status(500).json(findProfesorReq);
-
-            const parseResult = Cursado.parseSchema(req.body);
             if (!parseResult.success) return res.status(500).json(parseResult);
 
             const nuevoCursado = parseResult.data!;
@@ -122,7 +113,7 @@ export class CursadoRouter {
 
             if (!findCursadoReq.success) return res.status(500).json(findCursadoReq);
 
-            const parseResult = Cursado.parseSchema(req.body);
+            const parseResult = Cursado.parseSchema(req.body, req.method);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 

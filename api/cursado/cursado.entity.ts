@@ -76,24 +76,29 @@ export class Cursado {
             .transform((value) => {
                 return value === "teoria" ? TipoCursado.Teoria : TipoCursado.Practica;
             }),
+        profesorId: z.string().min(1, "Debe seleccionar un profesor"),
+        materiaId: z.string().min(1, "Debe seleccionar una materia"),
     });
 
     static parseSchema(
-        json: Request["body"]
+        body: Request["body"],
+        method: Request["method"]
     ): ExpressResponse_Migration<Omit<Cursado, "materia" | "profesor" | "reviews" | "_id" | "borradoLogico">> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null
          */
 
-        const parseResult = Cursado.schema.safeParse(json);
+        const schemaToUse = method == "PATCH" ? Cursado.schema.omit({ profesorId: true, materiaId: true }).strip() : Cursado.schema;
+
+        let parseResult = schemaToUse.safeParse(body);
 
         if (!parseResult.success) {
             return {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: JSON.stringify(parseResult.error.errors),
+                error: parseResult.error.errors,
                 totalPages: undefined,
             };
         }

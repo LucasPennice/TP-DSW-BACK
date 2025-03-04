@@ -5,6 +5,7 @@ import { MateriaController } from "../materia/materia.controller.js";
 import { Review } from "../review/review.entity.js";
 import { ExpressResponse_Migration } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
+import { errorToZod } from "../constants.js";
 
 export class ProfesorController {
     private em: MongoEntityManager<MongoDriver>;
@@ -31,7 +32,7 @@ export class ProfesorController {
                 message: "Error finding the profesores",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -64,7 +65,7 @@ export class ProfesorController {
                 message: "Error finding the profesores",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -97,7 +98,7 @@ export class ProfesorController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -122,7 +123,7 @@ export class ProfesorController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -163,7 +164,7 @@ export class ProfesorController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -205,7 +206,7 @@ export class ProfesorController {
                 message: "Error deleting profesor",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -245,7 +246,7 @@ export class ProfesorController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -296,7 +297,7 @@ export class ProfesorController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -342,7 +343,7 @@ export class ProfesorController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }
@@ -386,7 +387,7 @@ export class ProfesorController {
                 message: "Error finding the areas",
                 data: null,
                 success: false,
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 totalPages: undefined,
             };
         }

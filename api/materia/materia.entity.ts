@@ -23,23 +23,28 @@ export class Materia {
     area!: Rel<Area>;
 
     static schema = z.object({
-        nombre: z.string().min(1, "El nombre es requerido"),
+        nombre: z.string().regex(/^(?=.*[a-zA-Z])[a-zA-Z\s]+$/, "El nombre es requerido"),
+        areaId: z.string().min(1, "Debe seleccionar un área"),
     });
 
-    static parseSchema(json: Request["body"]): ExpressResponse_Migration<Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">> {
+    static parseSchema(
+        body: Request["body"],
+        method: Request["method"]
+    ): ExpressResponse_Migration<Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null
          */
+        const schemaToUse = method == "PATCH" ? Materia.schema.omit({ areaId: true }).strip() : Materia.schema;
 
-        const parseResult = Materia.schema.safeParse(json);
+        let parseResult = schemaToUse.safeParse(body);
 
         if (!parseResult.success) {
             return {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: JSON.stringify(parseResult.error.errors),
+                error: parseResult.error.errors,
                 totalPages: undefined,
             };
         }

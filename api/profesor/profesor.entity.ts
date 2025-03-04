@@ -37,9 +37,30 @@ export class Profesor {
     sexo: Sexo;
 
     static schema = z.object({
-        nombre: z.string().regex(/^[a-zA-Z]+$/, "El nombre es requerido"),
-        apellido: z.string().regex(/^[a-zA-Z]+$/, "El apellido es requerido"),
-        fechaNacimiento: z.date(),
+        nombre: z.string().regex(/^[a-zA-Z\s]+$/, "El nombre es requerido"),
+        apellido: z.string().regex(/^[a-zA-Z\s]+$/, "El apellido es requerido"),
+        fechaNacimiento: z
+            .date()
+            .refine((value) => value.toISOString().split("T")[0] !== "1000-01-01", {
+                message: "Fecha de nacimiento no válida",
+            })
+            .refine(
+                (value) => {
+                    const today = new Date();
+                    const age = today.getFullYear() - value.getFullYear();
+                    const month = today.getMonth() - value.getMonth();
+                    const day = today.getDate() - value.getDate();
+
+                    if (month < 0 || (month === 0 && day < 0)) {
+                        return age > 18;
+                    }
+
+                    return age >= 18;
+                },
+                {
+                    message: "Debe ser mayor de 18 años",
+                }
+            ),
         dni: z.number().refine((value) => value >= 10000000 && value <= 99999999, {
             message: "El DNI debe tener exactamente 8 dígitos",
         }),
@@ -67,7 +88,7 @@ export class Profesor {
                 success: false,
                 message: "Error parsing json profesor",
                 data: null,
-                error: JSON.stringify(parseResult.error.errors),
+                error: parseResult.error.errors,
                 totalPages: undefined,
             };
         }

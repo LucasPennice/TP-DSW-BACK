@@ -24,23 +24,23 @@ export class Area {
     }
 
     static schema = z.object({
-        nombre: z.string().min(1, "El nombre es requerido"),
+        nombre: z.string().regex(/^(?=.*[a-zA-Z])[a-zA-Z\s]+$/, "El nombre es requerido"),
     });
 
-    static parseSchema(json: Request["body"]): ExpressResponse_Migration<Area> {
+    static parseSchema(body: Request["body"]): ExpressResponse_Migration<Area> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null
          */
 
-        const parseResult = Area.schema.safeParse(json);
+        const parseResult = Area.schema.safeParse(body);
 
         if (!parseResult.success) {
             return {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: JSON.stringify(parseResult.error.errors),
+                error: parseResult.error.errors,
                 totalPages: undefined,
             };
         }

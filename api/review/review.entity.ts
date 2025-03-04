@@ -53,7 +53,7 @@ export class Review {
                 success: false,
                 message: "Error parsing json area",
                 data: null,
-                error: JSON.stringify(parseResult.error.errors),
+                error: parseResult.error.errors,
                 totalPages: undefined,
             };
         }

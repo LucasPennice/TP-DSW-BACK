@@ -1,3 +1,5 @@
+import { ZodIssue } from "zod";
+
 export enum Sexo {
     Mujer = "Mujer",
     Hombre = "Hombre",
@@ -18,5 +20,5 @@ export type ExpressResponse_Migration<T> = {
     message: string;
     data: T | null;
     totalPages: number | undefined;
-    error?: string;
+    error?: ZodIssue[];
 };
