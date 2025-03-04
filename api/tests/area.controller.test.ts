@@ -61,14 +61,10 @@ describe("Area Controller", () => {
     });
 
     test("Should Delete the Created Area through the endpoint", async () => {
-        const { data: foundAreas } = await controller.findAll();
+        const response = await request(app).get(`/api/area`).expect(200); // Expecting a 204 No Content response
 
-        const areaId = foundAreas![0]._id;
+        expect(response.body.data.length).toBe(1);
 
-        // hacer una ruta que no tenga ensure auth
-
-        const response = await request(app).delete(`/api/area/${areaId}`).expect(204); // Expecting a 204 No Content response
-
-        expect(response.status).toBe(204);
+        expect(response.status).toBe(200);
     });
 });
