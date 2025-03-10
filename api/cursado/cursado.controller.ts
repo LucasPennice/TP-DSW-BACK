@@ -1,7 +1,7 @@
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { MateriaController } from "../materia/materia.controller.js";
 import { ProfesorController } from "../profesor/profesor.controller.js";
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 import { Cursado } from "./cursado.entity.js";
 import { errorToZod } from "../constants.js";
 import { ReviewController } from "../review/review.controller.js";
@@ -15,7 +15,7 @@ export class CursadoController {
     private materiaController: MateriaController;
     private profesorController: ProfesorController;
 
-    findAll = async (): Promise<ExpressResponse_Migration<Cursado[]>> => {
+    findAll = async (): Promise<ExpressResponse<Cursado[]>> => {
         try {
             const cursadosSinBorradoLogico: Cursado[] | undefined = await this.em.findAll(Cursado, {
                 populate: ["*"],
@@ -41,7 +41,7 @@ export class CursadoController {
         }
     };
 
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Cursado[]>> => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Cursado[]>> => {
         try {
             const [cursados, total] = await this.em.findAndCount(
                 Cursado,
@@ -73,7 +73,7 @@ export class CursadoController {
         }
     };
 
-    findOne = async (id: string): Promise<ExpressResponse_Migration<Cursado>> => {
+    findOne = async (id: string): Promise<ExpressResponse<Cursado>> => {
         try {
             const cursado: Cursado | null = await this.em.findOne(Cursado, id, {
                 populate: ["*"],
@@ -110,7 +110,7 @@ export class CursadoController {
         newCursado: Omit<Cursado, "materia" | "profesor" | "reviews" | "_id" | "borradoLogico">,
         materiaId: string,
         profesorId: string
-    ): Promise<ExpressResponse_Migration<Cursado>> => {
+    ): Promise<ExpressResponse<Cursado>> => {
         const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = newCursado;
 
         try {
@@ -200,7 +200,7 @@ export class CursadoController {
         }
     };
 
-    modify = async (cursadoMod: Partial<Cursado>, cursadoId: string): Promise<ExpressResponse_Migration<Cursado>> => {
+    modify = async (cursadoMod: Partial<Cursado>, cursadoId: string): Promise<ExpressResponse<Cursado>> => {
         try {
             const { diaCursado, horaInicio, horaFin, comision, turno, año, tipoCursado } = cursadoMod;
 
@@ -243,7 +243,7 @@ export class CursadoController {
         }
     };
 
-    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Cursado>> => {
+    delete_ = async (_id: string): Promise<ExpressResponse<Cursado>> => {
         try {
             const findCursadoReq = await this.findOne(_id);
 
@@ -285,7 +285,7 @@ export class CursadoController {
         }
     };
 
-    buscarCursadosPorAtributos = async (comision: number, año: number, materiaId: string): Promise<ExpressResponse_Migration<Cursado[]>> => {
+    buscarCursadosPorAtributos = async (comision: number, año: number, materiaId: string): Promise<ExpressResponse<Cursado[]>> => {
         try {
             const findMateriaReq = await this.materiaController.findOne(materiaId);
 

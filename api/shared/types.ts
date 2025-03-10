@@ -15,7 +15,7 @@ export enum UserRole {
     Administrador = "Administrador",
 }
 
-export type ExpressResponse_Migration<T> = {
+export type ExpressResponse<T> = {
     success: boolean;
     message: string;
     data: T | null;

@@ -1,7 +1,7 @@
 import { Collection, Entity, OneToMany, PrimaryKey, Property } from "@mikro-orm/core";
 import { v4 } from "uuid";
 import { Materia } from "../materia/materia.entity.js";
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 import { z } from "zod";
 
 @Entity()
@@ -27,7 +27,7 @@ export class Area {
         nombre: z.string().regex(/^(?=.*[a-zA-Z])[a-zA-Z\s]+$/, "El nombre es requerido"),
     });
 
-    static parseSchema(body: Request["body"]): ExpressResponse_Migration<Area> {
+    static parseSchema(body: Request["body"]): ExpressResponse<Area> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null

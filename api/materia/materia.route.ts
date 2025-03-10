@@ -3,7 +3,7 @@ import express, { Router } from "express";
 import { AuthRoute } from "..";
 import { MateriaController } from "./materia.controller";
 import { Materia } from "./materia.entity";
-import { ExpressResponse_Migration } from "../shared/types";
+import { ExpressResponse } from "../shared/types";
 
 export class MateriaRouter {
     public instance: Router;
@@ -24,13 +24,13 @@ export class MateriaRouter {
          */
         this.instance.get("/", async (req, res) => {
             if (req.query.isDeleted && !AuthRoute.isAdmin(req)) {
-                const response: ExpressResponse_Migration<Materia[]> = {
+                const response: ExpressResponse<Materia[]> = {
                     success: false,
                     message: "Forbidden",
-                    err: "Forbidden",
                     data: null,
+                    totalPages: undefined,
                 };
-                return res.status(403).send({ success: false, message: "Forbidden" });
+                return res.status(403).send(response);
             }
 
             const result = await this.controller.findAll();

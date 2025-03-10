@@ -1,6 +1,6 @@
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { AreaController } from "../area/area.controller.js";
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 import { Materia } from "./materia.entity.js";
 import { errorToZod } from "../constants.js";
 import { CursadoController } from "../cursado/cursado.controller.js";
@@ -9,7 +9,7 @@ export class MateriaController {
     private em: MongoEntityManager<MongoDriver>;
     private areaController: AreaController;
 
-    findAll = async (): Promise<ExpressResponse_Migration<Materia[]>> => {
+    findAll = async (): Promise<ExpressResponse<Materia[]>> => {
         try {
             const materiasSinBorradoLogico = await this.em.findAll(Materia, {
                 populate: ["*"],
@@ -35,7 +35,7 @@ export class MateriaController {
         }
     };
 
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Materia[]>> => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Materia[]>> => {
         try {
             const [materias, total] = await this.em.findAndCount(
                 Materia,
@@ -68,7 +68,7 @@ export class MateriaController {
         }
     };
 
-    findOne = async (id: string): Promise<ExpressResponse_Migration<Materia>> => {
+    findOne = async (id: string): Promise<ExpressResponse<Materia>> => {
         try {
             const materia: Materia | null = await this.em.findOne(Materia, id, {
                 populate: ["*"],
@@ -101,10 +101,7 @@ export class MateriaController {
         }
     };
 
-    add = async (
-        newMateria: Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">,
-        areaId: string
-    ): Promise<ExpressResponse_Migration<Materia>> => {
+    add = async (newMateria: Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">, areaId: string): Promise<ExpressResponse<Materia>> => {
         try {
             const { nombre } = newMateria;
 
@@ -144,7 +141,7 @@ export class MateriaController {
         }
     };
 
-    modify = async (materiaMod: Partial<Materia>, materiaId: string): Promise<ExpressResponse_Migration<Materia>> => {
+    modify = async (materiaMod: Partial<Materia>, materiaId: string): Promise<ExpressResponse<Materia>> => {
         try {
             const materiaAModificar: Materia | undefined = this.em.getReference(Materia, materiaId);
 
@@ -178,7 +175,7 @@ export class MateriaController {
         }
     };
 
-    private _delete_ = async (_id: string): Promise<ExpressResponse_Migration<Materia>> => {
+    private _delete_ = async (_id: string): Promise<ExpressResponse<Materia>> => {
         try {
             const materiaABorrarReq = await this.findOne(_id);
 
@@ -226,7 +223,7 @@ export class MateriaController {
         this._delete_ = value;
     }
 
-    findMateriasPorAno = async (_idAno: number): Promise<ExpressResponse_Migration<Materia[]>> => {
+    findMateriasPorAno = async (_idAno: number): Promise<ExpressResponse<Materia[]>> => {
         try {
             const findAllMateriasReq = await this.findAll();
 

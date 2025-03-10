@@ -4,7 +4,7 @@ import { v4 } from "uuid";
 import { Materia } from "../materia/materia.entity.js";
 import { Profesor } from "../profesor/profesor.entity.js";
 import { Review } from "../review/review.entity.js";
-import { ExpressResponse_Migration, TipoCursado } from "../shared/types.js";
+import { ExpressResponse, TipoCursado } from "../shared/types.js";
 import { z } from "zod";
 import { primeraLetraMayuscula } from "./cursado.controller.js";
 
@@ -83,7 +83,7 @@ export class Cursado {
     static parseSchema(
         body: Request["body"],
         method: Request["method"]
-    ): ExpressResponse_Migration<Omit<Cursado, "materia" | "profesor" | "reviews" | "_id" | "borradoLogico">> {
+    ): ExpressResponse<Omit<Cursado, "materia" | "profesor" | "reviews" | "_id" | "borradoLogico">> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null

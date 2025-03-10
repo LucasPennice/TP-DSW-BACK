@@ -1,4 +1,4 @@
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 import { Review } from "./review.entity.js";
 //@ts-ignore
 import profanity from "bad-words-es";
@@ -66,7 +66,7 @@ export class ReviewController {
     private profesorController: ProfesorController;
     private usuarioController: UsuarioController;
 
-    findAll = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Review[]>> => {
+    findAll = async (limit: number, offset: number): Promise<ExpressResponse<Review[]>> => {
         try {
             const [reviewsSinBorradoLogico, total] = await this.em.findAndCount(
                 Review,
@@ -98,7 +98,7 @@ export class ReviewController {
         }
     };
 
-    findAllConBorrado = async (): Promise<ExpressResponse_Migration<Review[]>> => {
+    findAllConBorrado = async (): Promise<ExpressResponse<Review[]>> => {
         try {
             const reviews: Review[] | undefined = await this.em.findAll(Review, {
                 populate: ["*"],
@@ -123,7 +123,7 @@ export class ReviewController {
         }
     };
 
-    findOne = async (_id: string): Promise<ExpressResponse_Migration<Review>> => {
+    findOne = async (_id: string): Promise<ExpressResponse<Review>> => {
         try {
             const review: Review | null = await this.em.findOne(Review, _id, {
                 populate: ["*"],
@@ -163,7 +163,7 @@ export class ReviewController {
         anoCursado: number,
         anio: number,
         userId: string
-    ): Promise<ExpressResponse_Migration<Review>> => {
+    ): Promise<ExpressResponse<Review>> => {
         try {
             // Encontrar el Cursado
             const fork = this.em.fork();
@@ -226,7 +226,7 @@ export class ReviewController {
         }
     };
 
-    modify = async (reviewMod: Partial<Review>, reviewId: string): Promise<ExpressResponse_Migration<Review>> => {
+    modify = async (reviewMod: Partial<Review>, reviewId: string): Promise<ExpressResponse<Review>> => {
         try {
             const reviewAModificar = this.em.getReference(Review, reviewId);
 
@@ -260,7 +260,7 @@ export class ReviewController {
         }
     };
 
-    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Review>> => {
+    delete_ = async (_id: string): Promise<ExpressResponse<Review>> => {
         try {
             const reviewReq = await this.findOne(_id);
 

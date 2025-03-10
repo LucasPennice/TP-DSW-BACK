@@ -3,7 +3,7 @@ import { Cursado } from "../cursado/cursado.entity.js";
 import { dateFromString } from "../dateExtension.js";
 import { MateriaController } from "../materia/materia.controller.js";
 import { Review } from "../review/review.entity.js";
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 import { Profesor } from "./profesor.entity.js";
 import { errorToZod } from "../constants.js";
 import { CursadoController } from "../cursado/cursado.controller.js";
@@ -12,7 +12,7 @@ export class ProfesorController {
     private em: MongoEntityManager<MongoDriver>;
     private materiaController: MateriaController;
 
-    findAll = async (): Promise<ExpressResponse_Migration<Profesor[]>> => {
+    findAll = async (): Promise<ExpressResponse<Profesor[]>> => {
         try {
             const profesoresSinBorradoLogico: Profesor[] | undefined = await this.em.findAll(Profesor, {
                 populate: ["*"],
@@ -38,7 +38,7 @@ export class ProfesorController {
         }
     };
 
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Profesor[]>> => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Profesor[]>> => {
         try {
             const [profesores, total] = await this.em.findAndCount(
                 Profesor,
@@ -71,7 +71,7 @@ export class ProfesorController {
         }
     };
 
-    findOne = async (_id: string): Promise<ExpressResponse_Migration<Profesor>> => {
+    findOne = async (_id: string): Promise<ExpressResponse<Profesor>> => {
         try {
             const profesor: Profesor | null = await this.em.findOne(Profesor, _id, {
                 populate: ["*"],
@@ -104,7 +104,7 @@ export class ProfesorController {
         }
     };
 
-    add = async (newProfesor: Profesor): Promise<ExpressResponse_Migration<Profesor>> => {
+    add = async (newProfesor: Profesor): Promise<ExpressResponse<Profesor>> => {
         try {
             const { nombre, apellido, fechaNacimiento, dni, sexo } = newProfesor;
 
@@ -129,7 +129,7 @@ export class ProfesorController {
         }
     };
 
-    modify = async (profesorMod: Partial<Omit<Profesor, "puntuacionGeneral">>, profesorId: string): Promise<ExpressResponse_Migration<Profesor>> => {
+    modify = async (profesorMod: Partial<Omit<Profesor, "puntuacionGeneral">>, profesorId: string): Promise<ExpressResponse<Profesor>> => {
         const { nombre, apellido, fechaNacimiento, dni, sexo } = profesorMod;
 
         try {
@@ -170,7 +170,7 @@ export class ProfesorController {
         }
     };
 
-    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Profesor>> => {
+    delete_ = async (_id: string): Promise<ExpressResponse<Profesor>> => {
         try {
             const finProfReq = await this.findOne(_id);
 
@@ -213,7 +213,7 @@ export class ProfesorController {
         }
     };
 
-    findReviews = async (_id: string): Promise<ExpressResponse_Migration<Review[]>> => {
+    findReviews = async (_id: string): Promise<ExpressResponse<Review[]>> => {
         try {
             const finProfReq = await this.findOne(_id);
 
@@ -253,11 +253,7 @@ export class ProfesorController {
         }
     };
 
-    findPorMateriaYAnoYAnoCursado = async (
-        _idMateria: string,
-        anoMateria: number,
-        anoCursado: number
-    ): Promise<ExpressResponse_Migration<Profesor[]>> => {
+    findPorMateriaYAnoYAnoCursado = async (_idMateria: string, anoMateria: number, anoCursado: number): Promise<ExpressResponse<Profesor[]>> => {
         try {
             const findMateriaReq = await this.materiaController.findOne(_idMateria);
 
@@ -304,7 +300,7 @@ export class ProfesorController {
         }
     };
 
-    findPorMateriaYAno = async (_idMateria: string, anoMateria: number): Promise<ExpressResponse_Migration<Profesor[]>> => {
+    findPorMateriaYAno = async (_idMateria: string, anoMateria: number): Promise<ExpressResponse<Profesor[]>> => {
         try {
             const findMateriaReq = await this.materiaController.findOne(_idMateria);
 
@@ -350,7 +346,7 @@ export class ProfesorController {
         }
     };
 
-    findReviewsPorMateria = async (_id: string, _idMateria: string): Promise<ExpressResponse_Migration<Review[]>> => {
+    findReviewsPorMateria = async (_id: string, _idMateria: string): Promise<ExpressResponse<Review[]>> => {
         try {
             const finProfReq = await this.findOne(_id);
 

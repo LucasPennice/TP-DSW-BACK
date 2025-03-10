@@ -1,5 +1,5 @@
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 import { Area } from "./area.entity.js";
 import { MateriaController } from "../materia/materia.controller.js";
 import { errorToZod } from "../constants.js";
@@ -10,7 +10,7 @@ export class AreaController {
     public constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
     }
-    findAll = async (): Promise<ExpressResponse_Migration<Area[]>> => {
+    findAll = async (): Promise<ExpressResponse<Area[]>> => {
         try {
             const areasSinBorradoLogico: Area[] = await this.em.findAll(Area, {
                 populate: ["*"],
@@ -36,7 +36,7 @@ export class AreaController {
         }
     };
 
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Area[]>> => {
+    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Area[]>> => {
         try {
             const [areas, total] = await this.em.findAndCount(
                 Area,
@@ -69,7 +69,7 @@ export class AreaController {
         }
     };
 
-    findOne = async (id: string): Promise<ExpressResponse_Migration<Area>> => {
+    findOne = async (id: string): Promise<ExpressResponse<Area>> => {
         try {
             const response = await this.findOneArea(id);
             if (!response.success)
@@ -100,7 +100,7 @@ export class AreaController {
         }
     };
 
-    add = async (newArea: Area): Promise<ExpressResponse_Migration<Area>> => {
+    add = async (newArea: Area): Promise<ExpressResponse<Area>> => {
         try {
             let areasMatch: Area[] = await this.em.findAll(Area, { where: { nombre: newArea.nombre } });
 
@@ -127,7 +127,7 @@ export class AreaController {
         }
     };
 
-    modify = async (newArea: Partial<Area>, areaId: string): Promise<ExpressResponse_Migration<Area>> => {
+    modify = async (newArea: Partial<Area>, areaId: string): Promise<ExpressResponse<Area>> => {
         try {
             const areaAModificar = this.em.getReference(Area, areaId);
 
@@ -161,7 +161,7 @@ export class AreaController {
         }
     };
 
-    delete_ = async (id: string): Promise<ExpressResponse_Migration<null>> => {
+    delete_ = async (id: string): Promise<ExpressResponse<null>> => {
         try {
             const response = await this.findOneArea(id);
             if (!response.success)
@@ -204,7 +204,7 @@ export class AreaController {
         }
     };
 
-    findOneArea = async (id: string): Promise<ExpressResponse_Migration<Area>> => {
+    findOneArea = async (id: string): Promise<ExpressResponse<Area>> => {
         try {
             const area: Area | null = await this.em.findOne(Area, id, {
                 populate: ["*"],

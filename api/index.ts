@@ -16,7 +16,7 @@ import { MateriaRouter } from "./materia/materia.route.js";
 import { initORM } from "./orm.js";
 import { ProfesorRouter } from "./profesor/profesor.route.js";
 import { ReviewRouter } from "./review/review.route.js";
-import { ExpressResponse_Migration, Sexo, UserRole } from "./shared/types.js";
+import { ExpressResponse, Sexo, UserRole } from "./shared/types.js";
 import { UsuarioController } from "./usuario/usuario.controller.js";
 import { Usuario } from "./usuario/usuario.entity.js";
 import { UsuarioRouter } from "./usuario/usuario.route.js";
@@ -143,7 +143,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     app.post("/login", (req, res, next) => {
         passport.authenticate("local", (error: string | null, user: Usuario | false, message: { message: string }) => {
             if (error) {
-                const reponse: ExpressResponse_Migration<Usuario> = {
+                const reponse: ExpressResponse<Usuario> = {
                     message: "Failed to login",
                     data: null,
                     totalPages: undefined,
@@ -152,7 +152,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                 };
                 return res.status(401).json(reponse);
             } else if (!user) {
-                const reponse: ExpressResponse_Migration<Usuario> = {
+                const reponse: ExpressResponse<Usuario> = {
                     message: "User Not found",
                     data: null,
                     totalPages: undefined,
@@ -162,7 +162,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
             } else {
                 req.login(user, (err) => {
                     if (err) {
-                        const reponse: ExpressResponse_Migration<Usuario> = {
+                        const reponse: ExpressResponse<Usuario> = {
                             message: "Failed to login",
                             data: null,
                             totalPages: undefined,
@@ -170,7 +170,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                         };
                         return res.status(500).json(reponse);
                     } else {
-                        const reponse: ExpressResponse_Migration<Usuario> = {
+                        const reponse: ExpressResponse<Usuario> = {
                             message: "Usuario log",
                             data: { ...user, hashed_password: "" },
                             totalPages: undefined,
@@ -217,7 +217,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
 
                 req.login(user, (err) => {
                     if (err) {
-                        const reponse: ExpressResponse_Migration<Usuario> = {
+                        const reponse: ExpressResponse<Usuario> = {
                             message: "Error al loguear nuevo usuario, creado exitosamente",
                             error: err,
                             success: false,
@@ -227,7 +227,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
 
                         return res.status(500).json(reponse);
                     } else {
-                        const reponse: ExpressResponse_Migration<Usuario> = {
+                        const reponse: ExpressResponse<Usuario> = {
                             message: "Usuario logueado y creado",
                             data: { ...user, hashed_password: "" },
                             totalPages: undefined,
@@ -238,7 +238,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                     }
                 });
             } catch (error) {
-                const reponse: ExpressResponse_Migration<Usuario> = {
+                const reponse: ExpressResponse<Usuario> = {
                     message: "Error during signup",
                     data: null,
                     success: false,

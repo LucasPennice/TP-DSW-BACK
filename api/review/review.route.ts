@@ -6,7 +6,7 @@ import { Review } from "./review.entity";
 import { UsuarioController } from "../usuario/usuario.controller";
 import { CursadoController } from "../cursado/cursado.controller";
 import { Cursado } from "../cursado/cursado.entity";
-import { ExpressResponse_Migration } from "../shared/types";
+import { ExpressResponse } from "../shared/types";
 
 export class ReviewRouter {
     public instance: Router;

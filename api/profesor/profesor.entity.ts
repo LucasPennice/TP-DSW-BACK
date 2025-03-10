@@ -1,6 +1,6 @@
 import { Entity, PrimaryKey, Property, OneToMany, Collection } from "@mikro-orm/core";
 import { v4 } from "uuid";
-import { ExpressResponse_Migration, Sexo } from "../shared/types.js";
+import { ExpressResponse, Sexo } from "../shared/types.js";
 import { Cursado } from "../cursado/cursado.entity.js";
 import { z } from "zod";
 
@@ -75,7 +75,7 @@ export class Profesor {
             }),
     });
 
-    static parseSchema(json: Request["body"]): ExpressResponse_Migration<Profesor> {
+    static parseSchema(json: Request["body"]): ExpressResponse<Profesor> {
         /*
          * Recieves a JSON object and returns an Profesor object
          * If the JSON object is not valid, returns null

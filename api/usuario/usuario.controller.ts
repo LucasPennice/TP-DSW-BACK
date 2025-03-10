@@ -1,5 +1,5 @@
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
-import { ExpressResponse_Migration, UserRole } from "../shared/types.js";
+import { ExpressResponse, UserRole } from "../shared/types.js";
 import { Usuario } from "./usuario.entity.js";
 import { errorToZod } from "../constants.js";
 import { ReviewController } from "../review/review.controller.js";
@@ -7,7 +7,7 @@ import { ReviewController } from "../review/review.controller.js";
 export class UsuarioController {
     private em: MongoEntityManager<MongoDriver>;
 
-    findAll = async (): Promise<ExpressResponse_Migration<Usuario[]>> => {
+    findAll = async (): Promise<ExpressResponse<Usuario[]>> => {
         try {
             const usuariosSinBorradoLogico: Usuario[] = await this.em.findAll(Usuario, {
                 populate: ["*"],
@@ -33,7 +33,7 @@ export class UsuarioController {
         }
     };
 
-    findAllConBorrado = async (): Promise<ExpressResponse_Migration<Usuario[]>> => {
+    findAllConBorrado = async (): Promise<ExpressResponse<Usuario[]>> => {
         try {
             const usuarios: Usuario[] = await this.em.findAll(Usuario, {
                 populate: ["*"],
@@ -58,7 +58,7 @@ export class UsuarioController {
         }
     };
 
-    add = async (newUsuario: Usuario): Promise<ExpressResponse_Migration<Usuario>> => {
+    add = async (newUsuario: Usuario): Promise<ExpressResponse<Usuario>> => {
         try {
             newUsuario.rol = UserRole.Regular;
 
@@ -91,7 +91,7 @@ export class UsuarioController {
         }
     };
 
-    modify = async (usuarioMod: Partial<Usuario>, usuarioId: string): Promise<ExpressResponse_Migration<Usuario>> => {
+    modify = async (usuarioMod: Partial<Usuario>, usuarioId: string): Promise<ExpressResponse<Usuario>> => {
         try {
             const usuarioAModificar = this.em.getReference(Usuario, usuarioId);
 
@@ -129,7 +129,7 @@ export class UsuarioController {
         }
     };
 
-    delete_ = async (_id: string): Promise<ExpressResponse_Migration<Usuario>> => {
+    delete_ = async (_id: string): Promise<ExpressResponse<Usuario>> => {
         try {
             const findUsuarioReq = await this.findOne(_id);
 
@@ -170,7 +170,7 @@ export class UsuarioController {
         }
     };
 
-    findOne = async (_id: string): Promise<ExpressResponse_Migration<Usuario>> => {
+    findOne = async (_id: string): Promise<ExpressResponse<Usuario>> => {
         try {
             const usuario: Usuario | null = await this.em.findOne(Usuario, _id, {
                 populate: ["*"],
@@ -203,7 +203,7 @@ export class UsuarioController {
         }
     };
 
-    findOneUsuarioByUsername = async (username: string): Promise<ExpressResponse_Migration<Usuario>> => {
+    findOneUsuarioByUsername = async (username: string): Promise<ExpressResponse<Usuario>> => {
         try {
             const usuario: Usuario | null = await this.em.findOne(Usuario, { username });
 
@@ -234,7 +234,7 @@ export class UsuarioController {
         }
     };
 
-    getReviewsEliminadas = async (id: string): Promise<ExpressResponse_Migration<Usuario["reviewsEliminadas"]>> => {
+    getReviewsEliminadas = async (id: string): Promise<ExpressResponse<Usuario["reviewsEliminadas"]>> => {
         try {
             const findUsuarioReq = await this.findOne(id);
 

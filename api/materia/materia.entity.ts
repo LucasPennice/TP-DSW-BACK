@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import { Cursado } from "../cursado/cursado.entity.js";
 import { Area } from "../area/area.entity.js";
 import { z } from "zod";
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 
 @Entity()
 export class Materia {
@@ -30,7 +30,7 @@ export class Materia {
     static parseSchema(
         body: Request["body"],
         method: Request["method"]
-    ): ExpressResponse_Migration<Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">> {
+    ): ExpressResponse<Omit<Materia, "area" | "cursados" | "_id" | "borradoLogico">> {
         /*
          * Recieves a JSON object and returns an Area object
          * If the JSON object is not valid, returns null

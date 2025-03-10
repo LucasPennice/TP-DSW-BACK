@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import { Usuario } from "../usuario/usuario.entity.js";
 import { Cursado } from "../cursado/cursado.entity.js";
 import { z } from "zod";
-import { ExpressResponse_Migration } from "../shared/types.js";
+import { ExpressResponse } from "../shared/types.js";
 
 @Entity()
 export class Review {
@@ -40,7 +40,7 @@ export class Review {
 
     static parseSchema(
         json: Request["body"]
-    ): ExpressResponse_Migration<Omit<Review, "usuario" | "cursado" | "fecha" | "_id" | "borradoLogico" | "censurada">> {
+    ): ExpressResponse<Omit<Review, "usuario" | "cursado" | "fecha" | "_id" | "borradoLogico" | "censurada">> {
         /*
          * Recieves a JSON object and returns an Review object
          * If the JSON object is not valid, returns null

@@ -1,7 +1,7 @@
 import { Collection, Entity, OneToMany, PrimaryKey, Property } from "@mikro-orm/core";
 import { v4 } from "uuid";
 import { Review } from "../review/review.entity.js";
-import { ExpressResponse_Migration, Sexo, UserRole } from "../shared/types.js";
+import { ExpressResponse, Sexo, UserRole } from "../shared/types.js";
 import crypto from "crypto";
 import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN } from "../constants.js";
 import { z } from "zod";
@@ -83,7 +83,7 @@ export class Usuario {
         reviewsEliminadas: z.array(z.object({ id: z.string(), mensaje: z.string(), visto: z.boolean() })).optional(),
     });
 
-    static parseSchema(json: Request["body"]): ExpressResponse_Migration<Usuario> {
+    static parseSchema(json: Request["body"]): ExpressResponse<Usuario> {
         /*
          * Recieves a JSON object and returns an Review object
          * If the JSON object is not valid, returns null
