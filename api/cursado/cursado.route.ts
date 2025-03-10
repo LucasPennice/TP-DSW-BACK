@@ -44,7 +44,7 @@ export class CursadoRouter {
          *       200:
          *         description: A list of cursados including deleted ones
          */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.get("/conBorrado", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
@@ -82,7 +82,7 @@ export class CursadoRouter {
          *       201:
          *         description: The created cursado
          */
-        this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.post("/", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const materiaId = req.body.materiaId;
             const profesorId = req.body.profesorId;
 
@@ -108,7 +108,7 @@ export class CursadoRouter {
          *       200:
          *         description: The updated cursado
          */
-        this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.patch("/:id", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const findCursadoReq = await this.controller.findOne(req.params.id);
 
             if (!findCursadoReq.success) return res.status(500).json(findCursadoReq);
@@ -133,7 +133,7 @@ export class CursadoRouter {
          *       200:
          *         description: No content
          */
-        this.instance.delete("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.delete("/:id", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const idToDelete = req.params.id as string;
 
             const result = await this.controller.delete_(idToDelete);

@@ -38,7 +38,7 @@ export class AreaRouter {
          *       200:
          *         description: A list of reviews including deleted ones
          */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.get("/conBorrado", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
@@ -76,7 +76,7 @@ export class AreaRouter {
          *       201:
          *         description: The created review
          */
-        this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.post("/", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const parseResult = Area.parseSchema(req.body);
             console.log(parseResult);
 
@@ -98,7 +98,7 @@ export class AreaRouter {
          *       200:
          *         description: The updated review
          */
-        this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.patch("/:id", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const parseResult = Area.parseSchema(req.body);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
@@ -119,7 +119,7 @@ export class AreaRouter {
          *       200:
          *         description: No content
          */
-        this.instance.delete("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.delete("/:id", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const idToDelete = req.params.id as string;
 
             const result = await this.controller.delete_(idToDelete);

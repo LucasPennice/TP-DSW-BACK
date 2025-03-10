@@ -291,7 +291,7 @@ export class AuthRoute {
         return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
     }
 
-    static ensureAdmin(req: Request, res: Response, next: NextFunction) {
+    static ensureAdminMiddleware(req: Request, res: Response, next: NextFunction) {
         if (!req.isAuthenticated()) {
             return res.status(401).send({ message: "Usuario no autenticado", succeed: false });
         }
@@ -303,5 +303,15 @@ export class AuthRoute {
         }
 
         return next();
+    }
+
+    static isAdmin(req: Request): boolean {
+        if (!req.isAuthenticated()) return false;
+
+        let user = req.user as Usuario;
+
+        if (user.rol != UserRole.Administrador) return false;
+
+        return true;
     }
 }

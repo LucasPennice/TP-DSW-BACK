@@ -38,7 +38,7 @@ export class ProfesorRouter {
          *       200:
          *         description: A list of profesors including deleted ones
          */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.get("/conBorrado", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
@@ -157,7 +157,7 @@ export class ProfesorRouter {
          *       201:
          *         description: The created profesor
          */
-        this.instance.post("/", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.post("/", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const parseResult = Profesor.parseSchema({ ...req.body, fechaNacimiento: new Date(req.body.fechaNacimiento) });
 
             if (!parseResult.success) return res.status(500).json(parseResult);
@@ -178,7 +178,7 @@ export class ProfesorRouter {
          *       200:
          *         description: The updated profesor
          */
-        this.instance.patch("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.patch("/:id", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const parseResult = Profesor.parseSchema({ ...req.body, fechaNacimiento: new Date(req.body.fechaNacimiento) });
 
             if (!parseResult.success) return res.status(500).json(parseResult);
@@ -199,7 +199,7 @@ export class ProfesorRouter {
          *       200:
          *         description: No content
          */
-        this.instance.delete("/:id", AuthRoute.ensureAdmin, async (req, res) => {
+        this.instance.delete("/:id", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const idToDelete = req.params.id as string;
 
             const result = await this.controller.delete_(idToDelete);
