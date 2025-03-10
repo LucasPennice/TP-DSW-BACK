@@ -74,8 +74,8 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
 
     app.use(cors(options));
 
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
     app.use(
         session({
