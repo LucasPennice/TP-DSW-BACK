@@ -128,14 +128,14 @@ export class UsuarioRouter {
 
         /**
          * @swagger
-         * /api/usuario/reviewsEliminadas/{id}:
+         * /api/usuario/{id}/reviews:
          *   delete:
-         *     summary: Get user's deleted reviews by ID
+         *     summary: Get user's reviews by ID
          *     responses:
          *       200:
          *         description: No content
          */
-        this.instance.get("/reviewsEliminadas/:id", async (req, res) => {
+        this.instance.get("/:id/deleted-reviews", async (req, res) => {
             const result = await this.controller.getReviewsEliminadas(req.params.id);
 
             if (!result.success) return res.status(500).send(result);

@@ -59,68 +59,15 @@ export class ProfesorRouter {
         this.instance.get("/:id/reviews", async (req, res) => {
             const id = req.params.id as string;
 
-            const result = await this.controller.findReviews(id);
+            const idMateria = req.query.idMateria;
 
-            if (!result.success) return res.status(500).json(result);
+            let result;
 
-            res.status(200).json(result);
-        });
-
-        /**
-         * @swagger
-         * /api/profesor/porMateriaYAno/{ano}/{idMateria}/{anoCursado}:
-         *   get:
-         *     summary: Retrieve profesors by subject and year of study
-         *     responses:
-         *       200:
-         *         description: A list of profesors by subject and year of study
-         */
-        this.instance.get("/porMateriaYAno/:ano/:idMateria/:anoCursado", async (req, res) => {
-            const idMateria = req.params.idMateria as string;
-            const anoMateria = parseInt(req.params.ano) as number;
-            const anoCursado = parseInt(req.params.anoCursado) as number;
-
-            const result = await this.controller.findPorMateriaYAnoYAnoCursado(idMateria, anoMateria, anoCursado);
-
-            if (!result.success) return res.status(500).json(result);
-
-            res.status(200).json(result);
-        });
-
-        /**
-         * @swagger
-         * /api/profesor/porMateriaYAno/{ano}/{idMateria}:
-         *   get:
-         *     summary: Retrieve profesors by subject and year
-         *     responses:
-         *       200:
-         *         description: A list of profesors by subject and year
-         */
-        this.instance.get("/porMateriaYAno/:ano/:idMateria", async (req, res) => {
-            const idMateria = req.params.idMateria as string;
-            const anoMateria = parseInt(req.params.ano) as number;
-
-            const result = await this.controller.findPorMateriaYAno(idMateria, anoMateria);
-
-            if (!result.success) return res.status(500).json(result);
-
-            res.status(200).json(result);
-        });
-
-        /**
-         * @swagger
-         * /api/profesor/{id}/reviewsDeMateria/{idMateria}:
-         *   get:
-         *     summary: Retrieve reviews for a specific profesor and subject
-         *     responses:
-         *       200:
-         *         description: A list of reviews for the profesor and subject
-         */
-        this.instance.get("/:id/reviewsDeMateria/:idMateria", async (req, res) => {
-            const id = req.params.id as string;
-            const idMateria = req.params.idMateria as string;
-
-            const result = await this.controller.findReviewsPorMateria(id, idMateria);
+            if (idMateria) {
+                result = await this.controller.findReviewsPorMateria(id, idMateria.toString());
+            } else {
+                result = await this.controller.findReviews(id);
+            }
 
             if (!result.success) return res.status(500).json(result);
 

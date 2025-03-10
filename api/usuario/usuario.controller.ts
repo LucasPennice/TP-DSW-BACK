@@ -19,8 +19,6 @@ export class UsuarioController {
                 }
             );
 
-            console.log(total);
-
             await this.em.flush();
 
             const boundLimit = limit <= 0 ? 1 : limit;

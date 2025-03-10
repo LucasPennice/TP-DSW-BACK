@@ -75,7 +75,6 @@ export class AreaRouter {
          */
         this.instance.post("/", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const parseResult = Area.parseSchema(req.body);
-            console.log(parseResult);
 
             if (!parseResult.success) return res.status(500).json(parseResult);
 

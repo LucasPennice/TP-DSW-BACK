@@ -4,6 +4,8 @@ import { AuthRoute } from "..";
 import { MateriaController } from "./materia.controller";
 import { Materia } from "./materia.entity";
 import { ExpressResponse } from "../shared/types";
+import { ProfesorController } from "../profesor/profesor.controller";
+import { Profesor } from "../profesor/profesor.entity";
 
 export class MateriaRouter {
     public instance: Router;
@@ -12,6 +14,7 @@ export class MateriaRouter {
     constructor(em: MongoEntityManager<MongoDriver>) {
         this.instance = express.Router();
         this.controller = new MateriaController(em);
+        const profesorController = new ProfesorController(em);
 
         /**
          * @swagger
@@ -41,6 +44,44 @@ export class MateriaRouter {
             const offset = (page - 1) * limit;
 
             const result = await this.controller.findAll(offset, limit, isDeleted);
+
+            if (!result.success) return res.status(500).json(result);
+
+            res.status(200).json(result);
+        });
+
+        /**
+         * @swagger
+         * /api/materia/{idMateria}:
+         *   get:
+         *     summary: Retrieve profesors by subject and year of study
+         *     responses:
+         *       200:
+         *         description: A list of profesors by subject and year of study
+         */
+        this.instance.get("/:idMateria/profesores", async (req, res) => {
+            const idMateria = req.params.idMateria as string;
+            const anoMateria = req.query.ano as string;
+            const anoCursado = req.query.anoCursado as string;
+
+            if (!anoMateria) {
+                const result: ExpressResponse<Profesor> = {
+                    success: false,
+                    message: "Missing parameters ano and/or anoCursado",
+                    data: null,
+                    totalPages: undefined,
+                };
+
+                res.status(400).json(result);
+            }
+
+            let result;
+
+            if (anoCursado) {
+                result = await profesorController.findPorMateriaYAnoYAnoCursado(idMateria, parseInt(anoMateria), parseInt(anoCursado));
+            } else {
+                result = await profesorController.findPorMateriaYAno(idMateria, parseInt(anoMateria));
+            }
 
             if (!result.success) return res.status(500).json(result);
 
