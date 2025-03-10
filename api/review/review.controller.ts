@@ -68,9 +68,9 @@ export class ReviewController {
 
     findAll = async (limit: number, offset: number): Promise<ExpressResponse_Migration<Review[]>> => {
         try {
-            const [reviews, total] = await this.em.findAndCount(
+            const [reviewsSinBorradoLogico, total] = await this.em.findAndCount(
                 Review,
-                {},
+                { borradoLogico: false },
                 {
                     populate: ["*"],
                     limit,
@@ -80,8 +80,6 @@ export class ReviewController {
             await this.em.flush();
 
             const totalPages = Math.ceil(total / limit);
-
-            let reviewsSinBorradoLogico = reviews.filter((r) => r.borradoLogico == false);
 
             return {
                 message: "Reviews encontradas:",

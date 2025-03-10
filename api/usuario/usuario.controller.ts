@@ -9,13 +9,12 @@ export class UsuarioController {
 
     findAll = async (): Promise<ExpressResponse_Migration<Usuario[]>> => {
         try {
-            const usuarios: Usuario[] = await this.em.findAll(Usuario, {
+            const usuariosSinBorradoLogico: Usuario[] = await this.em.findAll(Usuario, {
                 populate: ["*"],
+                where: { borradoLogico: false },
             });
 
             await this.em.flush();
-
-            let usuariosSinBorradoLogico = usuarios.filter((u) => u.borradoLogico == false);
 
             return {
                 message: "Usuarios encontrados:",

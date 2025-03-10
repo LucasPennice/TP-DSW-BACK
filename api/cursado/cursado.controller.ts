@@ -17,13 +17,12 @@ export class CursadoController {
 
     findAll = async (): Promise<ExpressResponse_Migration<Cursado[]>> => {
         try {
-            const cursados: Cursado[] | undefined = await this.em.findAll(Cursado, {
+            const cursadosSinBorradoLogico: Cursado[] | undefined = await this.em.findAll(Cursado, {
                 populate: ["*"],
+                where: { borradoLogico: false },
             });
 
             await this.em.flush();
-
-            let cursadosSinBorradoLogico = cursados.filter((c) => c.borradoLogico == false);
 
             return {
                 message: "Found cursados successfully",

@@ -11,13 +11,12 @@ export class MateriaController {
 
     findAll = async (): Promise<ExpressResponse_Migration<Materia[]>> => {
         try {
-            const materias = await this.em.findAll(Materia, {
+            const materiasSinBorradoLogico = await this.em.findAll(Materia, {
                 populate: ["*"],
+                where: { borradoLogico: false },
             });
 
             await this.em.flush();
-
-            let materiasSinBorradoLogico = materias.filter((m) => m.borradoLogico == false);
 
             return {
                 message: "Materias Encontradas",
@@ -229,9 +228,11 @@ export class MateriaController {
 
     findMateriasPorAno = async (_idAno: number): Promise<ExpressResponse_Migration<Materia[]>> => {
         try {
-            const materias: Materia[] = await this.em.findAll(Materia, {
-                populate: ["*"],
-            });
+            const findAllMateriasReq = await this.findAll();
+
+            if (!findAllMateriasReq.success) return { ...findAllMateriasReq, message: "No se econtraron materias" };
+
+            const materias = findAllMateriasReq.data!;
 
             let resultado = materias.filter((m) => m.cursados.toArray().filter((x) => x.comision.toString()[0] == _idAno.toString()).length != 0);
 

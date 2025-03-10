@@ -14,13 +14,12 @@ export class ProfesorController {
 
     findAll = async (): Promise<ExpressResponse_Migration<Profesor[]>> => {
         try {
-            const profesores: Profesor[] | undefined = await this.em.findAll(Profesor, {
+            const profesoresSinBorradoLogico: Profesor[] | undefined = await this.em.findAll(Profesor, {
                 populate: ["*"],
+                where: { borradoLogico: false },
             });
 
             await this.em.flush();
-
-            let profesoresSinBorradoLogico = profesores.filter((p) => p.borradoLogico == false);
 
             return {
                 message: "Profesores encontrados:",

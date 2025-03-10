@@ -12,13 +12,12 @@ export class AreaController {
     }
     findAll = async (): Promise<ExpressResponse_Migration<Area[]>> => {
         try {
-            const areas: Area[] = await this.em.findAll(Area, {
+            const areasSinBorradoLogico: Area[] = await this.em.findAll(Area, {
                 populate: ["*"],
+                where: { borradoLogico: false },
             });
 
             await this.em.flush();
-
-            let areasSinBorradoLogico = areas.filter((a) => a.borradoLogico == false);
 
             return {
                 message: "Areas found successfully",
