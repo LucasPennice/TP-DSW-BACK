@@ -10,37 +10,11 @@ export class AreaController {
     public constructor(em: MongoEntityManager<MongoDriver>) {
         this.em = em;
     }
-    findAll = async (): Promise<ExpressResponse<Area[]>> => {
-        try {
-            const areasSinBorradoLogico: Area[] = await this.em.findAll(Area, {
-                populate: ["*"],
-                where: { borradoLogico: false },
-            });
-
-            await this.em.flush();
-
-            return {
-                message: "Areas found successfully",
-                success: true,
-                data: areasSinBorradoLogico,
-                totalPages: undefined,
-            };
-        } catch (error) {
-            return {
-                message: "Error finding the areas",
-                data: null,
-                success: false,
-                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
-                totalPages: undefined,
-            };
-        }
-    };
-
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Area[]>> => {
+    findAll = async (offset?: number, limit: number = 0, isDeleted: boolean = false): Promise<ExpressResponse<Area[]>> => {
         try {
             const [areas, total] = await this.em.findAndCount(
                 Area,
-                {},
+                { $or: [{ borradoLogico: isDeleted }, { borradoLogico: false }] },
                 {
                     populate: ["*"],
                     limit,
@@ -50,13 +24,14 @@ export class AreaController {
 
             await this.em.flush();
 
-            const totalPages = Math.ceil(total / limit);
+            const boundLimit = limit <= 0 ? 1 : limit;
+            const totalPages = limit === 0 ? undefined : Math.ceil(total / boundLimit);
 
             return {
-                message: "Areas found successfully",
+                message: "Areas Encontradas",
                 success: true,
                 data: areas,
-                totalPages: totalPages,
+                totalPages,
             };
         } catch (error) {
             return {

@@ -7,45 +7,30 @@ import { ReviewController } from "../review/review.controller.js";
 export class UsuarioController {
     private em: MongoEntityManager<MongoDriver>;
 
-    findAll = async (): Promise<ExpressResponse<Usuario[]>> => {
+    findAll = async (offset?: number, limit: number = 0, isDeleted: boolean = false): Promise<ExpressResponse<Usuario[]>> => {
         try {
-            const usuariosSinBorradoLogico: Usuario[] = await this.em.findAll(Usuario, {
-                populate: ["*"],
-                where: { borradoLogico: false },
-            });
+            const [usuarios, total] = await this.em.findAndCount(
+                Usuario,
+                { $or: [{ borradoLogico: isDeleted }, { borradoLogico: false }] },
+                {
+                    populate: ["*"],
+                    limit,
+                    offset,
+                }
+            );
+
+            console.log(total);
 
             await this.em.flush();
 
-            return {
-                message: "Usuarios encontrados:",
-                success: true,
-                data: usuariosSinBorradoLogico,
-                totalPages: undefined,
-            };
-        } catch (error) {
-            return {
-                message: "There was an finding the cursado",
-                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
-                success: false,
-                data: null,
-                totalPages: undefined,
-            };
-        }
-    };
-
-    findAllConBorrado = async (): Promise<ExpressResponse<Usuario[]>> => {
-        try {
-            const usuarios: Usuario[] = await this.em.findAll(Usuario, {
-                populate: ["*"],
-            });
-
-            await this.em.flush();
+            const boundLimit = limit <= 0 ? 1 : limit;
+            const totalPages = limit === 0 ? undefined : Math.ceil(total / boundLimit);
 
             return {
-                message: "Usuarios encontrados:",
+                message: "Usuarios encontrados",
                 success: true,
                 data: usuarios,
-                totalPages: undefined,
+                totalPages,
             };
         } catch (error) {
             return {

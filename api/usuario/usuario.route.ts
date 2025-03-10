@@ -3,6 +3,7 @@ import { UsuarioController } from "./usuario.controller";
 import { MongoDriver, MongoEntityManager } from "@mikro-orm/mongodb";
 import { AuthRoute } from "..";
 import { Usuario } from "./usuario.entity";
+import { ExpressResponse } from "../shared/types";
 
 export class UsuarioRouter {
     public instance: Router;
@@ -22,29 +23,24 @@ export class UsuarioRouter {
          *         description: A list of usuarios
          */
         this.instance.get("/", async (req, res) => {
-            const result = await this.controller.findAll();
+            const isDeleted = req.query.isDeleted === "true";
 
-            if (!result.success) return res.status(500).json(result);
+            // Require admin permissions to see deleted entities
+            if (isDeleted && !AuthRoute.isAdmin(req)) {
+                const response: ExpressResponse<Usuario[]> = {
+                    success: false,
+                    message: "Forbidden",
+                    data: null,
+                    totalPages: undefined,
+                };
+                return res.status(403).send(response);
+            }
 
-            res.status(200).json(result);
-        });
-
-        /**
-         * @swagger
-         * /api/usuario/conBorrado:
-         *   get:
-         *     summary: Retrieve all usuarios including deleted ones
-         *     responses:
-         *       200:
-         *         description: A list of usuarios including deleted ones
-         */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
 
-            const result = await this.controller.findAllConBorrado();
-            //   const result = await this.controller.findAllConBorrado(limit, offset);
+            const result = await this.controller.findAll(offset, limit, isDeleted);
 
             if (!result.success) return res.status(500).json(result);
 

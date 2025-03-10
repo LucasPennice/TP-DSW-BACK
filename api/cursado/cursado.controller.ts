@@ -15,52 +15,28 @@ export class CursadoController {
     private materiaController: MateriaController;
     private profesorController: ProfesorController;
 
-    findAll = async (): Promise<ExpressResponse<Cursado[]>> => {
-        try {
-            const cursadosSinBorradoLogico: Cursado[] | undefined = await this.em.findAll(Cursado, {
-                populate: ["*"],
-                where: { borradoLogico: false },
-            });
-
-            await this.em.flush();
-
-            return {
-                message: "Found cursados successfully",
-                data: cursadosSinBorradoLogico,
-                success: true,
-                totalPages: undefined,
-            };
-        } catch (error) {
-            return {
-                message: "There was an error finding the cursados",
-                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
-                success: false,
-                data: null,
-                totalPages: undefined,
-            };
-        }
-    };
-
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Cursado[]>> => {
+    findAll = async (offset?: number, limit: number = 0, isDeleted: boolean = false): Promise<ExpressResponse<Cursado[]>> => {
         try {
             const [cursados, total] = await this.em.findAndCount(
                 Cursado,
-                {},
+                { $or: [{ borradoLogico: isDeleted }, { borradoLogico: false }] },
                 {
                     populate: ["*"],
                     limit,
                     offset,
                 }
             );
+
             await this.em.flush();
 
-            const totalPages = Math.ceil(total / limit);
+            const boundLimit = limit <= 0 ? 1 : limit;
+            const totalPages = limit === 0 ? undefined : Math.ceil(total / boundLimit);
 
             return {
-                message: "Cursados found successfuly",
-                data: cursados,
-                totalPages: totalPages,
+                message: "Cursados Encontradas",
                 success: true,
+                data: cursados,
+                totalPages,
             };
         } catch (error) {
             return {

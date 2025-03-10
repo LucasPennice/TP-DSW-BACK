@@ -12,37 +12,11 @@ export class ProfesorController {
     private em: MongoEntityManager<MongoDriver>;
     private materiaController: MateriaController;
 
-    findAll = async (): Promise<ExpressResponse<Profesor[]>> => {
-        try {
-            const profesoresSinBorradoLogico: Profesor[] | undefined = await this.em.findAll(Profesor, {
-                populate: ["*"],
-                where: { borradoLogico: false },
-            });
-
-            await this.em.flush();
-
-            return {
-                message: "Profesores encontrados:",
-                data: profesoresSinBorradoLogico,
-                totalPages: undefined,
-                success: true,
-            };
-        } catch (error) {
-            return {
-                message: "Error finding the profesores",
-                data: null,
-                success: false,
-                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
-                totalPages: undefined,
-            };
-        }
-    };
-
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Profesor[]>> => {
+    findAll = async (offset?: number, limit: number = 0, isDeleted: boolean = false): Promise<ExpressResponse<Profesor[]>> => {
         try {
             const [profesores, total] = await this.em.findAndCount(
                 Profesor,
-                {},
+                { $or: [{ borradoLogico: isDeleted }, { borradoLogico: false }] },
                 {
                     populate: ["*"],
                     limit,
@@ -52,13 +26,14 @@ export class ProfesorController {
 
             await this.em.flush();
 
-            const totalPages = Math.ceil(total / limit);
+            const boundLimit = limit <= 0 ? 1 : limit;
+            const totalPages = limit === 0 ? undefined : Math.ceil(total / boundLimit);
 
             return {
-                message: "Profesores encontrados:",
-                data: profesores,
-                totalPages: totalPages,
+                message: "Profesores Encontradas",
                 success: true,
+                data: profesores,
+                totalPages,
             };
         } catch (error) {
             return {

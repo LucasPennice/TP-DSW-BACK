@@ -9,37 +9,11 @@ export class MateriaController {
     private em: MongoEntityManager<MongoDriver>;
     private areaController: AreaController;
 
-    findAll = async (): Promise<ExpressResponse<Materia[]>> => {
-        try {
-            const materiasSinBorradoLogico = await this.em.findAll(Materia, {
-                populate: ["*"],
-                where: { borradoLogico: false },
-            });
-
-            await this.em.flush();
-
-            return {
-                message: "Materias Encontradas",
-                success: true,
-                data: materiasSinBorradoLogico,
-                totalPages: undefined,
-            };
-        } catch (error) {
-            return {
-                message: "There was an error in findAll materias",
-                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
-                success: false,
-                data: null,
-                totalPages: undefined,
-            };
-        }
-    };
-
-    findAllConBorrado = async (limit: number, offset: number): Promise<ExpressResponse<Materia[]>> => {
+    findAll = async (offset?: number, limit: number = 0, isDeleted: boolean = false): Promise<ExpressResponse<Materia[]>> => {
         try {
             const [materias, total] = await this.em.findAndCount(
                 Materia,
-                {},
+                { $or: [{ borradoLogico: isDeleted }, { borradoLogico: false }] },
                 {
                     populate: ["*"],
                     limit,
@@ -49,17 +23,18 @@ export class MateriaController {
 
             await this.em.flush();
 
-            const totalPages = Math.ceil(total / limit);
+            const boundLimit = limit <= 0 ? 1 : limit;
+            const totalPages = limit === 0 ? undefined : Math.ceil(total / boundLimit);
 
             return {
                 message: "Materias Encontradas",
                 success: true,
                 data: materias,
-                totalPages: totalPages,
+                totalPages,
             };
         } catch (error) {
             return {
-                message: "There was an error in findAllConBorrado materia",
+                message: "There was an error in findAll materias",
                 error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
                 success: false,
                 data: null,

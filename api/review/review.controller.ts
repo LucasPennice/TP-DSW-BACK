@@ -66,51 +66,28 @@ export class ReviewController {
     private profesorController: ProfesorController;
     private usuarioController: UsuarioController;
 
-    findAll = async (limit: number, offset: number): Promise<ExpressResponse<Review[]>> => {
+    findAll = async (offset?: number, limit: number = 0, isDeleted: boolean = false): Promise<ExpressResponse<Review[]>> => {
         try {
-            const [reviewsSinBorradoLogico, total] = await this.em.findAndCount(
+            const [reviews, total] = await this.em.findAndCount(
                 Review,
-                { borradoLogico: false },
+                { $or: [{ borradoLogico: isDeleted }, { borradoLogico: false }] },
                 {
                     populate: ["*"],
                     limit,
                     offset,
                 }
             );
-            await this.em.flush();
-
-            const totalPages = Math.ceil(total / limit);
-
-            return {
-                message: "Reviews encontradas:",
-                success: true,
-                data: reviewsSinBorradoLogico,
-                totalPages: totalPages,
-            };
-        } catch (error) {
-            return {
-                message: "Error finding the reviews",
-                error: errorToZod(error instanceof Error ? error.message : "Unknown error"),
-                success: false,
-                data: null,
-                totalPages: undefined,
-            };
-        }
-    };
-
-    findAllConBorrado = async (): Promise<ExpressResponse<Review[]>> => {
-        try {
-            const reviews: Review[] | undefined = await this.em.findAll(Review, {
-                populate: ["*"],
-            });
 
             await this.em.flush();
 
+            const boundLimit = limit <= 0 ? 1 : limit;
+            const totalPages = limit === 0 ? undefined : Math.ceil(total / boundLimit);
+
             return {
-                message: "Reviews encontradas:",
+                message: "Reviews Encontradas",
                 success: true,
                 data: reviews,
-                totalPages: undefined,
+                totalPages,
             };
         } catch (error) {
             return {

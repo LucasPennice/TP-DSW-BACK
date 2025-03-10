@@ -23,7 +23,10 @@ export class MateriaRouter {
          *         description: A list of materias
          */
         this.instance.get("/", async (req, res) => {
-            if (req.query.isDeleted && !AuthRoute.isAdmin(req)) {
+            const isDeleted = req.query.isDeleted === "true";
+
+            // Require admin permissions to see deleted entities
+            if (isDeleted && !AuthRoute.isAdmin(req)) {
                 const response: ExpressResponse<Materia[]> = {
                     success: false,
                     message: "Forbidden",
@@ -33,28 +36,11 @@ export class MateriaRouter {
                 return res.status(403).send(response);
             }
 
-            const result = await this.controller.findAll();
-
-            if (!result.success) return res.status(500).json(result);
-
-            res.status(200).json(result);
-        });
-
-        /**
-         * @swagger
-         * /api/materia/conBorrado:
-         *   get:
-         *     summary: Retrieve a list of materias including deleted ones
-         *     responses:
-         *       200:
-         *         description: A list of materias including deleted ones
-         */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
 
-            const result = await this.controller.findAllConBorrado(limit, offset);
+            const result = await this.controller.findAll(offset, limit, isDeleted);
 
             if (!result.success) return res.status(500).json(result);
 

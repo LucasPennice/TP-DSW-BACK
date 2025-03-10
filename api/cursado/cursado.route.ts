@@ -5,6 +5,7 @@ import { AuthRoute } from "../index.js";
 import { Cursado } from "./cursado.entity.js";
 import { MateriaController } from "../materia/materia.controller.js";
 import { ProfesorController } from "../profesor/profesor.controller.js";
+import { ExpressResponse } from "../shared/types.js";
 
 export class CursadoRouter {
     public instance: Router;
@@ -28,28 +29,24 @@ export class CursadoRouter {
          *         description: A list of cursados
          */
         this.instance.get("/", async (req, res) => {
-            const result = await this.controller.findAll();
+            const isDeleted = req.query.isDeleted === "true";
 
-            if (!result.success) return res.status(500).json(result);
+            // Require admin permissions to see deleted entities
+            if (isDeleted && !AuthRoute.isAdmin(req)) {
+                const response: ExpressResponse<Cursado[]> = {
+                    success: false,
+                    message: "Forbidden",
+                    data: null,
+                    totalPages: undefined,
+                };
+                return res.status(403).send(response);
+            }
 
-            res.status(200).json(result);
-        });
-
-        /**
-         * @swagger
-         * /api/cursado/conBorrado:
-         *   get:
-         *     summary: Retrieve a list of cursados including deleted ones
-         *     responses:
-         *       200:
-         *         description: A list of cursados including deleted ones
-         */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
 
-            const result = await this.controller.findAllConBorrado(limit, offset);
+            const result = await this.controller.findAll(offset, limit, isDeleted);
 
             if (!result.success) return res.status(500).json(result);
 

@@ -30,32 +30,24 @@ export class ReviewRouter {
          *         description: A list of reviews
          */
         this.instance.get("/", async (req, res) => {
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const offset = (page - 1) * limit;
-            const result = await this.controller.findAll(limit, offset);
+            const isDeleted = req.query.isDeleted === "true";
 
-            if (!result.success) return res.status(500).json(result);
+            // Require admin permissions to see deleted entities
+            if (isDeleted && !AuthRoute.isAdmin(req)) {
+                const response: ExpressResponse<Review[]> = {
+                    success: false,
+                    message: "Forbidden",
+                    data: null,
+                    totalPages: undefined,
+                };
+                return res.status(403).send(response);
+            }
 
-            res.status(200).json(result);
-        });
-
-        /**
-         * @swagger
-         * /api/review/conBorrado:
-         *   get:
-         *     summary: Retrieve all reviews including deleted ones
-         *     responses:
-         *       200:
-         *         description: A list of reviews including deleted ones
-         */
-        this.instance.get("/conBorrado", AuthRoute.ensureAdminMiddleware, async (req, res) => {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const offset = (page - 1) * limit;
 
-            const result = await this.controller.findAllConBorrado();
-            // const result = await this.controller.findAllConBorrado(limit, offset);
+            const result = await this.controller.findAll(offset, limit, isDeleted);
 
             if (!result.success) return res.status(500).json(result);
 
