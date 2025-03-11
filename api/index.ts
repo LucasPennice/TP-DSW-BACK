@@ -1,22 +1,21 @@
 import { MongoDriver, MongoEntityManager, RequestContext } from "@mikro-orm/mongodb";
-import bodyParser from "body-parser";
 import cors from "cors";
 import crypto from "crypto";
 import express, { NextFunction, Request, Response } from "express";
 import session from "express-session";
+import createMemoryStore from "memorystore";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { AreaRouter } from "./area/area.route.js";
-import { errorToZod, SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN } from "./constants.js";
+import { SALT_CONSTANT, SALT_DIGEST, SALT_ITERATIONS, SALT_KEYLEN, errorToZod } from "./constants.js";
 import { CursadoRouter } from "./cursado/cursado.route.js";
-import { dateFromString } from "./dateExtension.js";
 import { MateriaRouter } from "./materia/materia.route.js";
 import { initORM } from "./orm.js";
 import { ProfesorRouter } from "./profesor/profesor.route.js";
 import { ReviewRouter } from "./review/review.route.js";
-import { ExpressResponse, Sexo, UserRole } from "./shared/types.js";
+import { ExpressResponse, UserRole } from "./shared/types.js";
 import { UsuarioController } from "./usuario/usuario.controller.js";
 import { Usuario } from "./usuario/usuario.entity.js";
 import { UsuarioRouter } from "./usuario/usuario.route.js";
@@ -77,6 +76,8 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
+    const MemoryStore = createMemoryStore(session);
+
     app.use(
         session({
             secret: "your-secret-key",
@@ -87,6 +88,10 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                 secure: false, // Set to true if using HTTPS
                 httpOnly: true,
             },
+
+            store: new MemoryStore({
+                checkPeriod: 24 * 60 * 60 * 1000 * 365, // 1 year until session expires })
+            }),
         })
     );
 
