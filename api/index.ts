@@ -78,6 +78,8 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
 
     const MemoryStore = createMemoryStore(session);
 
+    app.enable("trust proxy");
+
     app.use(
         session({
             secret: "your-secret-key",
@@ -87,6 +89,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
                 maxAge: 24 * 60 * 60 * 1000 * 365, // 1 year until session expires
                 secure: false, // Set to true if using HTTPS
                 httpOnly: true,
+                sameSite: "none",
             },
 
             store: new MemoryStore({
