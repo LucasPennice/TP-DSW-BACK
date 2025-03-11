@@ -90,7 +90,7 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
             },
 
             store: new MemoryStore({
-                checkPeriod: 24 * 60 * 60 * 1000 * 365, // 1 year until session expires })
+                checkPeriod: 86400000,
             }),
         })
     );
