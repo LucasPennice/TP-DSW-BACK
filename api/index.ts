@@ -78,17 +78,19 @@ export async function startServer(port: number, em: MongoEntityManager<MongoDriv
 
     const MemoryStore = createMemoryStore(session);
 
-    app.enable("trust proxy");
+    app.set("trust proxy", 1);
 
     app.use(
         session({
             secret: "your-secret-key",
             resave: false,
             saveUninitialized: false,
+            proxy: true, // Required for Heroku & Digital Ocean (regarding X-Forwarded-For)
+            name: "RenderCookieName", // This needs to be unique per-host.
             cookie: {
                 maxAge: 24 * 60 * 60 * 1000 * 365, // 1 year until session expires
-                secure: false, // Set to true if using HTTPS
-                httpOnly: true,
+                secure: true, // Set to true if using HTTPS
+                httpOnly: false,
                 sameSite: "none",
             },
 
