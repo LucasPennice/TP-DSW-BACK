@@ -173,7 +173,7 @@ export class ReviewController {
             const reviewLimpia = filter.clean(reviewData.descripcion);
             const censurada = reviewLimpia != reviewData.descripcion;
 
-            const newReview = new Review(reviewData.descripcion, reviewData.puntuacion, findUserReq.data!, cursado, censurada);
+            const newReview = new Review(reviewLimpia, reviewData.puntuacion, findUserReq.data!, cursado, censurada);
             await this.em.persistAndFlush(newReview);
 
             const profReq = await this.profesorController.findOne(profesorId);
